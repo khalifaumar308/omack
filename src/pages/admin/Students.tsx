@@ -61,7 +61,7 @@ export default function Students() {
     e.preventDefault();
     const studentData: CreateStudentForm = {
       ...formData,
-      school: user?.school || "",
+      school: user?.school?.id || "",
     };
     if (editingStudent) {
       updateStudentMutation.mutate({ studentId: editingStudent.id, studentData });
@@ -111,7 +111,7 @@ export default function Students() {
           school: user?.school?.id || "",
           level: parseInt(level.trim()) || 100,
           matricNo: matricNo.trim(),
-          department: departments?.find(dep => dep.name === department.trim())?.id || null,
+          department: departments?.find(dep => dep.name === department.trim())?.id || "",
         };
       }).filter(s => s.name && s.email && s.matricNo);
       if (students.length > 0) {

@@ -157,13 +157,13 @@ interface Summary {
 }
 
 
-interface Props {
+export interface PDFProps {
 	studentData: StudentData;
 	courses: Course[];
 	summary: Summary;
 }
 
-const ResultTemplate: React.FC<Props> = ({ studentData, courses, summary }) => (
+const ResultTemplate: React.FC<PDFProps> = ({ studentData, courses, summary }) => (
 	<Document>
 		<Page size="A4" style={styles.page}>
 			{/* Header Section */}
@@ -340,3 +340,53 @@ const ResultTemplate: React.FC<Props> = ({ studentData, courses, summary }) => (
 );
 
 export default ResultTemplate;
+
+// Sample data for testing the template
+// const studentData: StudentData = {
+// 	lastUpdated: '2025-04-19 12:22:50',
+// 	matric: 'OSHT/PHT24/0026',
+// 	name: 'AJAKAIYE OLUWATOSIN AJOKE',
+// 	session: '2024/2025',
+// 	programme: 'PUBLIC HEALTH TECHNICIAN',
+// 	semester: 'First',
+// 	department: 'PUBLIC HEALTH TECHNICIAN',
+// 	level: '100',
+// 	faculty: 'PUBLIC HEALTH',
+// 	approvalStatus: 'approved',
+// };
+
+// const courses: Course[] = [
+// 	{ sn: 1, code: 'PSY 101', title: 'General Psychology', credits: 3, total: 60.00, grade: 'B', gradePoint: 12, remark: 'PASSED' },
+// 	{ sn: 2, code: 'BIO 101', title: 'General Biology', credits: 3, total: 71.00, grade: 'A', gradePoint: 15, remark: 'PASSED' },
+// 	{ sn: 3, code: 'ANA 102', title: 'Anatomy and Physiology I', credits: 3, total: 59.00, grade: 'BC', gradePoint: 10.5, remark: 'PASSED' },
+// 	{ sn: 4, code: 'ANA 103', title: 'Anatomy and Physiology (Practical) I', credits: 2, total: 57.00, grade: 'BC', gradePoint: 7, remark: 'PASSED' },
+// 	{ sn: 5, code: 'CSC 106', title: 'Introduction to Computer', credits: 3, total: 70.00, grade: 'A', gradePoint: 15, remark: 'PASSED' },
+// 	{ sn: 6, code: 'ENG 101', title: 'English Language I', credits: 3, total: 71.00, grade: 'A', gradePoint: 15, remark: 'PASSED' },
+// 	{ sn: 7, code: 'MAT 107', title: 'Biostatistics', credits: 3, total: 83.00, grade: 'A', gradePoint: 15, remark: 'PASSED' },
+// 	{ sn: 8, code: 'MAT 109', title: 'General Mathematics I', credits: 2, total: 68.00, grade: 'AB', gradePoint: 9, remark: 'PASSED' },
+// 	{ sn: 9, code: 'PHE 101', title: 'Physical and Health Education', credits: 2, total: 77.00, grade: 'A', gradePoint: 10, remark: 'PASSED' },
+// 	{ sn: 10, code: 'PUB 101', title: 'Introduction to Public Health', credits: 3, total: 60.00, grade: 'B', gradePoint: 12, remark: 'PASSED' },
+// 	{ sn: 11, code: 'CUM 101', title: 'Interpersonal Communication', credits: 3, total: 72.00, grade: 'A', gradePoint: 15, remark: 'PASSED' },
+// ];
+
+// const summary: Summary = {
+// 	current: { tcu: 30, tca: 30, tgp: 140.5, gpa: 4.68, remark: 'DISTINCTION' },
+// 	previous: { ltcu: 'NIL', ltca: 'NIL', ltgp: 'NIL', lcgpa: 'NIL' },
+// 	cumulative: { tcu: 30, tca: 30, tgp: 140.5, cgpa: 4.68 },
+// };
+
+// Example test component (uncomment to use in a page)
+// import { PDFDownloadLink, PDFViewer } from '@react-pdf/renderer';
+//
+// const TestTemplate = () => (
+//   <div style={{ width: '100%', height: '800px' }}>
+//     <PDFViewer width="100%" height="800px">
+//       <ResultTemplate studentData={sampleStudentData} courses={sampleCourses} summary={sampleSummary} />
+//     </PDFViewer>
+//     <PDFDownloadLink document={<ResultTemplate studentData={sampleStudentData} courses={sampleCourses} summary={sampleSummary} />} fileName="test-result.pdf">
+//       {({ loading }) => (loading ? 'Loading...' : 'Download Test PDF')}
+//     </PDFDownloadLink>
+//   </div>
+// );
+//
+// export { TestTemplate };

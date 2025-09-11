@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -41,7 +42,6 @@ import {
 } from "lucide-react";
 import type {
   IAdminCourseRegs,
-  PopulatedCourseRegistration,
   RegisterCourseRequest,
 } from "@/components/types";
 import {
@@ -53,14 +53,15 @@ import {
   useAdminAddBulkRegistrations,
   useRegisterCourse,
 } from "@/lib/api/mutations";
+import { useUser } from "@/contexts/useUser";
 
 const CourseRegistrations = () => {
-  // const user = 
+  const { user } = useUser();
   const semesters = ["First", "Second"];
-  const sessions = ["2023/2024", "2024/2025", "2025/2026"];
+  const sessions = user?.school?.sessions || ["2025/2026"];
   const [searchTerm, setSearchTerm] = useState("");
   const [currentPage, setCurrentPage] = useState(1);
-  const [limit] = useState(10);
+  // const [limit] = useState(10);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isBulkDialogOpen, setIsBulkDialogOpen] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
@@ -73,6 +74,8 @@ const CourseRegistrations = () => {
     semester: "",
     session: "",
   });
+
+  console.log(currentPage)
 
   const [bulkFormData, setBulkFormData] = useState<{student:string; course:string; semester:string; session:string}[]>([{
     student: "",
@@ -138,22 +141,24 @@ const CourseRegistrations = () => {
   };
 
   // console.log(students, 'students', courses, 'courses')
-  console.log(bulkFormData, 'bulk')
+  // console.log(bulkFormData, 'bulk')
   const handleBulkUpload = () => {
     if (!selectedFile) return;
 
     const reader = new FileReader();
     reader.onload = (event) => {
       const csv = event.target?.result as string;
+      console.log(csv, 'csv')
       const lines = csv.split('\n').slice(1); // Skip header
+      console.log(lines, 'lines')
       const registrations: { student: string; course: string, semester:string, session:string }[] = [];
       lines.forEach(line => {
         const [matricNo, courseCodes] = line.split(',');
+        console.log(matricNo, courseCodes, 'matricNo, courseCodes')
         //get student id and course ids from matricNo and courseCodes
-        const studentId = students?.find(student => student.matricNo === matricNo.trim())?.id;
+        const studentId = (students?.find(student => student.matricNo === matricNo.trim()) as any)?._id;
         const courseCds = courseCodes.trim().split(';');
-        const courseIds = courses?.filter(course => courseCds.includes(course.code)).map(course => course.id);
-        console.log(courseIds, 'courseIds', studentId, 'studentId')
+        const courseIds = courses?.filter(course => courseCds.includes(course.code)).map((course:any) => course._id);
         if (studentId && courseIds && courseIds.length > 0) {
           courseIds.forEach(courseId => {
             registrations.push({ student: studentId, course: courseId, semester: bulkSemester, session: bulkSession });
@@ -162,11 +167,12 @@ const CourseRegistrations = () => {
       });
 
       if (registrations.length > 0) {
+        console.log(registrations, 'registrw')
         setBulkFormData(registrations);
       }
     };
     reader.readAsText(selectedFile);
-    setIsBulkDialogOpen(false);
+    // setIsBulkDialogOpen(false);
     setSelectedFile(null);
   };
 
@@ -181,12 +187,12 @@ const CourseRegistrations = () => {
     return matchesSearch && matchesStudent;
   });
 
-  const getGradeBadgeVariant = (grade?: string) => {
-    if (!grade) return "secondary";
-    if (["A", "A-", "B+"].includes(grade)) return "default";
-    if (["B", "B-", "C+"].includes(grade)) return "secondary";
-    return "destructive";
-  };
+  // const getGradeBadgeVariant = (grade?: string) => {
+  //   if (!grade) return "secondary";
+  //   if (["A", "A-", "B+"].includes(grade)) return "default";
+  //   if (["B", "B-", "C+"].includes(grade)) return "secondary";
+  //   return "destructive";
+  // };
 
   const LoadingSkeleton = () => (
     <div className="space-y-4">

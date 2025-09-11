@@ -213,6 +213,22 @@ export interface TranscriptResponse {
   summaries: ResultSummary[];
 }
 
+
+export interface PopulatedUser extends Omit<User, 'school'> {
+  school?: School;
+}
+
+export interface AdminUploadResultsRequest {
+  results: Array<{
+    matricNo: string;
+    score: number;
+    grade: string;
+    course: string;
+    semester: string;
+    session: string;
+  }>;
+}
+
 // =============================================================================
 // FORM TYPES
 // =============================================================================

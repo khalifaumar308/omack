@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -63,7 +64,7 @@ export default function Courses() {
     const instructors = formData.instructors.split(',').map(i => i.trim()).filter(Boolean);
     const courseData: CreateCourseForm = {
       ...formData,
-      school: user?.school || "",
+      school: user?.school?.id || "",
       instructors,
     };
     if (editingCourse) {
@@ -128,7 +129,7 @@ export default function Courses() {
       </div>
     );
   }
-
+  console.log(departments, 'departments')
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -284,16 +285,17 @@ export default function Courses() {
                           return {
                             code: code?.trim(),
                             title: title?.trim(),
-                            department: department?.trim(),
-                            school: user?.school || "",
+                            department: departments?.find(depart=>depart.name.trim()===department.trim())?.id || "",
+                            school: user?.school?.id || "",
                             instructors,
                             creditUnits: parseInt(creditUnits?.trim() || "0") || 0,
                           };
                         }).filter(c => c.code && c.title && c.department);
+                        console.log(newCourses, 'newcourses')
                         newCourses.forEach(course => addCourseMutation.mutate(course));
                       };
                       reader.readAsText(selectedFile);
-                      setUploadDialogOpen(false);
+                      // setUploadDialogOpen(false);
                       setSelectedFile(null);
                     }}
                     disabled={!selectedFile || addCourseMutation.isPending}
@@ -337,7 +339,7 @@ export default function Courses() {
                     <TableHead><Skeleton className="h-8 w-24" /></TableHead>
                   </TableRow>
                 </TableHeader>
-                <TableBody>
+                <TableBody className="text-left">
                   {Array.from({ length: 5 }).map((_, i) => (
                     <TableRow key={i}>
                       <TableCell><Skeleton className="h-4 w-20" /></TableCell>
@@ -369,14 +371,14 @@ export default function Courses() {
                     <TableHead>Actions</TableHead>
                   </TableRow>
                 </TableHeader>
-                <TableBody>
+                <TableBody className="text-left">
                   {paginatedCourses.map((course) => (
                     <TableRow key={course.id}>
                       <TableCell className="font-medium">
                         {course.code}
                       </TableCell>
                       <TableCell>{course.title}</TableCell>
-                      <TableCell>{getDepartmentName(course.department.name)}</TableCell>
+                      <TableCell>{getDepartmentName((course.department as any).name)}</TableCell>
                       <TableCell>{course.creditUnits}</TableCell>
                       <TableCell>{course.instructors.join(', ')}</TableCell>
                       <TableCell>

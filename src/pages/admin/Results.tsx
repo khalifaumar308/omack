@@ -1,14 +1,26 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useUser } from "@/contexts/useUser";
-import { useGetStudentsSemesterResults } from "@/lib/api/queries";
+import { useGetStudentsSemesterResults, useGetCourses } from "@/lib/api/queries";
 import { useState, useMemo } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+	Dialog,
+	DialogContent,
+	DialogDescription,
+	DialogFooter,
+	DialogHeader,
+	DialogTitle,
+	DialogTrigger,
+} from "@/components/ui/dialog";
 import { PDFDownloadLink } from "@react-pdf/renderer";
 import ResultTemplate from "@/components/ResultTemplate";
 import type { StudentsSemesterResultsResponse, PopulatedDepartment, PopulatedFaculty } from "@/components/types";
+import { useAdminUploadResults } from "@/lib/api/mutations";
 
 // Types for ResultTemplate
 interface Course {
@@ -41,15 +53,88 @@ interface Summary {
 	cumulative: { tcu: number; tca: number; tgp: number; cgpa: number };
 }
 
+interface UploadData {
+	matricNo: string;
+	score: number;
+	grade: string;
+}
+
 const Results = () => {
-	const { isLoading: userLoading } = useUser();
-	
-	const [semester, setSemester] = useState('First');
-	const [session, setSession] = useState('2024/2025');
+	const { isLoading: userLoading, user } = useUser();
+	const [semester, setSemester] = useState(user?.school?.currentSemester || 'First');
+	const [session, setSession] = useState(user?.school?.currentSession || '2024/2025');
 	const [searchTerm, setSearchTerm] = useState('');
 	const [levelFilter, setLevelFilter] = useState('');
-	
+
 	const { data: results, isLoading, error } = useGetStudentsSemesterResults(semester, session);
+	const { mutate: uploadResults } = useAdminUploadResults();
+	console.log(results, 'results data');
+	// Upload states
+	const [isUploadOpen, setIsUploadOpen] = useState(false);
+	const [uploadSemester, setUploadSemester] = useState('First');
+	const [uploadSession, setUploadSession] = useState('2024/2025');
+	const [selectedCourse, setSelectedCourse] = useState('');
+	const [uploadFile, setUploadFile] = useState<File | null>(null);
+	const [parsedData, setParsedData] = useState<UploadData[]>([]);
+
+	const { data: coursesData } = useGetCourses();
+
+	const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+		const file = event.target.files?.[0];
+		if (!file) return;
+
+		setUploadFile(file);
+		const reader = new FileReader();
+		reader.onload = (e) => {
+			const text = e.target?.result as string;
+			const lines = text.split('\n').filter(line => line.trim());
+			if (lines.length < 2) {
+				console.error('Invalid CSV: No data rows');
+				return;
+			}
+
+			const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
+			const expectedHeaders = ['matric no', 'score', 'grade'];
+			if (!expectedHeaders.every(h => headers.includes(h))) {
+				console.error('Invalid CSV headers. Expected: Matric No, Score, Grade');
+				return;
+			}
+
+			const data: UploadData[] = lines.slice(1).map(line => {
+				const values = line.split(',').map(v => v.trim());
+				return {
+					matricNo: values[headers.indexOf('matric no')],
+					score: parseFloat(values[headers.indexOf('score')]) || 0,
+					grade: values[headers.indexOf('grade')],
+				};
+			}).filter(row => row.matricNo && !isNaN(row.score));
+
+			setParsedData(data);
+		};
+		reader.readAsText(file);
+	};
+
+	const handleUploadSubmit = () => {
+		if (!selectedCourse || !uploadFile || parsedData.length === 0) {
+			console.error('Missing required fields or data');
+			return;
+		}
+		const courses = (coursesData?.find(c => c.code === selectedCourse) as any)?._id;
+		const resultss = parsedData.map(item => ({
+			matricNo: item.matricNo,
+			score: item.score,
+			grade: item.grade,
+			course: courses!,
+			semester: uploadSemester,
+			session: uploadSession,
+		}));
+		uploadResults({ results: resultss });
+		// TODO: Implement actual upload logic here
+		setIsUploadOpen(false);
+		setParsedData([]);
+		setUploadFile(null);
+		setSelectedCourse('');
+	};
 
 	const filteredResults = useMemo(() => {
 		if (!results) return [];
@@ -114,12 +199,11 @@ const Results = () => {
 			semester,
 			department: department.name,
 			level: student.level.toString(),
-			faculty: faculty.name,
+			faculty: faculty?.name,
 			approvalStatus: 'approved',
 		};
 		return { studentData, courses, summary };
 	};
-
 
 	return (
 		<div className="container mx-auto p-6">
@@ -145,8 +229,9 @@ const Results = () => {
 								<SelectValue placeholder="Select session" />
 							</SelectTrigger>
 							<SelectContent>
-								<SelectItem value="2023/2024">2023/2024</SelectItem>
-								<SelectItem value="2024/2025">2024/2025</SelectItem>
+								{(user?.school?.sessions ||['2023/2024', '2024/2025', '2025/2026']).map(sess => (
+									<SelectItem key={sess} value={sess}>{sess}</SelectItem>
+								))}
 							</SelectContent>
 						</Select>
 
@@ -173,9 +258,78 @@ const Results = () => {
 					</div>
 
 					<div className="flex gap-2 mb-6">
-						<Button variant="outline" onClick={() => alert('Upload Results from CSV - Coming Soon!')}>
-							Upload Results from CSV
-						</Button>
+						<Dialog open={isUploadOpen} onOpenChange={setIsUploadOpen}>
+							<DialogTrigger asChild>
+								<Button variant="outline">Upload Results from CSV</Button>
+							</DialogTrigger>
+							<DialogContent className="max-w-2xl">
+								<DialogHeader>
+									<DialogTitle>Upload Results CSV</DialogTitle>
+									<DialogDescription>
+										Select course, semester, session and upload CSV with headers: Matric No, Score, Grade
+									</DialogDescription>
+								</DialogHeader>
+								<div className="space-y-4">
+									<div className="flex flex-col gap-4">
+										<div>
+											<Label htmlFor="course">Course</Label>
+											<Select onValueChange={val => setSelectedCourse(val)} value={selectedCourse}>
+												<SelectTrigger>
+													<SelectValue placeholder="Select Course" />
+												</SelectTrigger>
+												<SelectContent className="w-full">
+													<SelectItem value="-">--Select course--</SelectItem>
+													{coursesData?.map((course) => (
+														<SelectItem key={course.id} value={course.code}>
+															{course.code}
+														</SelectItem>
+													))}
+												</SelectContent>
+											</Select>
+										</div>
+										<div>
+											<Label htmlFor="semester">Semester</Label>
+											<Select value={uploadSemester} onValueChange={setUploadSemester}>
+												<SelectTrigger>
+													<SelectValue placeholder="Select semester" />
+												</SelectTrigger>
+												<SelectContent>
+													<SelectItem value="First">First Semester</SelectItem>
+													<SelectItem value="Second">Second Semester</SelectItem>
+												</SelectContent>
+											</Select>
+										</div>
+										<div>
+											<Label htmlFor="session">Session</Label>
+											<Select value={uploadSession} onValueChange={val => setUploadSession(val)}>
+												<SelectTrigger>
+													<SelectValue placeholder="Select session" />
+												</SelectTrigger>
+												<SelectContent>
+													{(user?.school?.sessions ||['2023/2024', '2024/2025', '2025/2026']).map(sess => (
+														<SelectItem key={sess} value={sess}>{sess}</SelectItem>
+													))}
+												</SelectContent>
+											</Select>
+										</div>
+									</div>
+									<div>
+										<Label htmlFor="file">CSV File</Label>
+										<Input id="file" type="file" accept=".csv" onChange={handleFileUpload} />
+									</div>
+									{parsedData.length > 0 && (
+										<div className="text-sm text-muted-foreground">
+											Parsed {parsedData.length} rows successfully.
+										</div>
+									)}
+								</div>
+								<DialogFooter>
+									<Button type="submit" onClick={handleUploadSubmit} disabled={!selectedCourse || !uploadFile || parsedData.length === 0}>
+										Upload
+									</Button>
+								</DialogFooter>
+							</DialogContent>
+						</Dialog>
 					</div>
 
 					{!filteredResults.length && (
@@ -198,7 +352,7 @@ const Results = () => {
 										<TableHead>Actions</TableHead>
 									</TableRow>
 								</TableHeader>
-								<TableBody>
+								<TableBody className="text-left">
 									{filteredResults.map((result: StudentsSemesterResultsResponse) => {
 										const passed = result.courses.filter(c => c.grade && c.grade !== 'F').length;
 										const failed = result.courses.filter(c => c.grade === 'F').length;

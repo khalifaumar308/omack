@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import * as api from "./base";
 import { toast } from "sonner";
-import type { CreateCourseForm, CreateDepartmentForm, CreateFacultyForm, CreateStudentForm, RegisterCourseRequest, RegisterManyCoursesRequest } from "@/components/types";
+import type { AdminUploadResultsRequest, CreateCourseForm, CreateDepartmentForm, CreateFacultyForm, CreateStudentForm, RegisterCourseRequest, RegisterManyCoursesRequest } from "@/components/types";
 
 // export const useAddSchool = () => {
 //   const queryClient = useQueryClient();
@@ -262,6 +262,22 @@ export const useRegisterManyCourses = () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     onError: (error: any) => {
       toast.error(error?.response?.data?.message || "Failed to register courses. Please try again.");
+    },
+  });
+};
+
+export const useAdminUploadResults = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (resultsData: AdminUploadResultsRequest) => api.adminUploadResults(resultsData),
+    onSuccess: (data) => {
+      console.log(data, 'upload response');
+      queryClient.invalidateQueries({ queryKey: ["studentsSemesterResults"] });
+      toast.success("Results uploaded successfully");
+    },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.message || "Failed to upload results. Please try again.");
     },
   });
 };

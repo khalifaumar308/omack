@@ -13,6 +13,8 @@ import type {
   PopulatedStudent,
   IAdminCourseRegs,
   StudentsSemesterResultsResponse,
+  AdminUploadResultsRequest,
+  PopulatedUser,
 } from '@/components/types';
 
 // Configure your API base URL
@@ -21,12 +23,12 @@ const API_BASE_URL = 'http://localhost:5000/api';
 // =============================================================================
 // SECURE AXIOS INSTANCE WITH COOKIES AND CSRF
 // =============================================================================
-const getCsrfToken = async () => {
-  const val = (await cookieStore.get('_csrfSecret'))?.value
-  return val || null;
-}
+// const getCsrfToken = async () => {
+//   const val = (await cookieStore.get('_csrfSecret'))?.value
+//   return val || null;
+// }
 // CSRF token management
-let csrfToken: string | null = getCsrfToken();
+let csrfToken: string | null = null;
 
 // Create secure axios instance
 const api: AxiosInstance = axios.create({
@@ -143,7 +145,7 @@ export const authManager = {
   },
 
   // Get current user data
-  getCurrentUser: async (): Promise<User | null> => {
+  getCurrentUser: async (): Promise<PopulatedUser | null> => {
     try {
       const response = await api.get('/auth/me');
       return response.data.user;
@@ -404,6 +406,11 @@ export const registerManyCourses = async (registrationData: RegisterManyCoursesR
 
 export const uploadResult = async (registrationId: string, resultData: UploadResultRequest) => {
   const response = await api.put<{ message: string; registration: CourseRegistration }>(`/course-registrations/${registrationId}/result`, resultData);
+  return response.data;
+};
+
+export const adminUploadResults = async (results:AdminUploadResultsRequest) => {
+  const response = await api.post<{ message: string; registration: CourseRegistration }>(`/course-registrations/admin-results`, results);
   return response.data;
 };
 

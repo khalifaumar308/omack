@@ -1,8 +1,8 @@
 import { createContext } from "react";
-import type { User } from "@/components/types";
+import type { PopulatedUser } from "@/components/types";
 
 interface UserContextType {
-  user: User | null | undefined;
+  user: PopulatedUser | null | undefined;
   isLoading: boolean;
   error: unknown;
 }
