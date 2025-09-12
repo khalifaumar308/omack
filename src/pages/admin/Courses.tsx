@@ -29,6 +29,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 
 export default function Courses() {
   const [searchTerm, setSearchTerm] = useState("");
+  const [selectedDepartment, setSelectedDepartment] = useState<string>('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [limit] = useState(10);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -105,10 +106,15 @@ export default function Courses() {
     setIsDialogOpen(true);
   };
 
-  const filteredCourses = courses.filter((course) =>
-    course.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    course.title.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredCourses = courses.filter((course) => {
+    const matchesSearch = course.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      course.title.toLowerCase().includes(searchTerm.toLowerCase());
+
+    const courseDeptId = typeof course.department === 'string' ? course.department : (course.department as any)?.id || (course.department as any)?.name;
+    const matchesDepartment = selectedDepartment === 'all' || courseDeptId === selectedDepartment;
+
+    return matchesSearch && matchesDepartment;
+  });
 
   const paginatedCourses = filteredCourses.slice(
     (currentPage - 1) * limit,
@@ -312,18 +318,33 @@ export default function Courses() {
 
       <Card>
         <CardHeader>
-          <CardTitle>All Courses</CardTitle>
-          <div className="relative w-full max-w-sm">
-            <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search courses..."
-              value={searchTerm}
-              onChange={(e) => {
-                setSearchTerm(e.target.value);
-                setCurrentPage(1);
-              }}
-              className="pl-8"
-            />
+          <div className="flex items-center justify-between">
+            <CardTitle>All Courses</CardTitle>
+            <div className="flex items-center space-x-2">
+              <div className="relative w-full max-w-sm">
+                <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search courses..."
+                  value={searchTerm}
+                  onChange={(e) => {
+                    setSearchTerm(e.target.value);
+                    setCurrentPage(1);
+                  }}
+                  className="pl-8"
+                />
+              </div>
+              <Select value={selectedDepartment} onValueChange={(v) => { setSelectedDepartment(v); setCurrentPage(1); }}>
+                <SelectTrigger className="w-40">
+                  <SelectValue placeholder="Department" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Departments</SelectItem>
+                  {departments?.map((dep) => (
+                    <SelectItem key={dep.id} value={dep.id}>{dep.name}</SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         </CardHeader>
         <CardContent>
@@ -379,7 +400,7 @@ export default function Courses() {
                         {course.code}
                       </TableCell>
                       <TableCell>{course.title}</TableCell>
-                      <TableCell>{getDepartmentName((course.department as any).name)}</TableCell>
+                      <TableCell>{getDepartmentName(typeof course.department === 'string' ? course.department : (course.department as any)?.id || '')}</TableCell>
                       <TableCell>{course.creditUnits}</TableCell>
                       <TableCell>{course.instructors.join(', ')}</TableCell>
                       <TableCell>
