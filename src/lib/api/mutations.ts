@@ -281,3 +281,18 @@ export const useAdminUploadResults = () => {
     },
   });
 };
+
+export const useStudentRegisterManyCourses = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: { courses: string[]; semester: string; session: string }) => api.studentRegisterManyCourses(data.courses, data.semester, data.session),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["courseRegistrations"] });
+      toast.success("Courses registered successfully");
+    },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.message || "Failed to register courses. Please try again.");
+    },
+  });
+};

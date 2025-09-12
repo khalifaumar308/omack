@@ -46,7 +46,7 @@ const Dapartments = () => {
         e.preventDefault();
         const departmentData: CreateDepartmentForm = {
             ...formData,
-            school: user?.school || "", // Assuming user has schoolId
+            school: user?.school?.id || "", // Assuming user has schoolId
         };
         if (editingDapartment) {
             updateDepartmentMutation.mutate({ departmentId: editingDapartment.id, departmentData });
@@ -118,7 +118,7 @@ const Dapartments = () => {
                             }}
                         >
                             <Plus className="mr-2 h-4 w-4" />
-                            Add Faculty
+                            Add Department
                         </Button>
                     </DialogTrigger>
                     <DialogContent className="max-w-lg">
@@ -207,7 +207,7 @@ const Dapartments = () => {
 
             <Card>
                 <CardHeader>
-                    <CardTitle>All Faculties</CardTitle>
+                    <CardTitle>All Departments</CardTitle>
                     <div className="relative w-full max-w-sm">
                         <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                         <Input
@@ -220,7 +220,7 @@ const Dapartments = () => {
                 </CardHeader>
                 <CardContent>
                     {isLoading ? (
-                        <div className="text-center py-4">Loading faculties...</div>
+                        <div className="text-center py-4">Loading Departments...</div>
                     ) : (
                         <Table>
                             <TableHeader>
@@ -244,7 +244,7 @@ const Dapartments = () => {
                                         <TableCell className="max-w-xs truncate">
                                             {faculty.description || "No description"}
                                         </TableCell>
-                                        <TableCell>{faculty.faculty.name || "Not assigned"}</TableCell>
+                                        <TableCell>{faculty.faculty?.name || "Not assigned"}</TableCell>
                                         <TableCell>
                                             <div className="flex space-x-2">
                                                 <Button

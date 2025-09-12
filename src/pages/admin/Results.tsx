@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useUser } from "@/contexts/useUser";
 import { useGetStudentsSemesterResults, useGetCourses } from "@/lib/api/queries";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useEffect } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
@@ -64,11 +64,13 @@ const Results = () => {
 	const [semester, setSemester] = useState(user?.school?.currentSemester || 'First');
 	const [session, setSession] = useState(user?.school?.currentSession || '2024/2025');
 	const [searchTerm, setSearchTerm] = useState('');
-	const [levelFilter, setLevelFilter] = useState('');
+	const [levelFilter, setLevelFilter] = useState('all');
+	// pagination
+	const [currentPage, setCurrentPage] = useState(1);
+	const [pageSize, setPageSize] = useState(10);
 
 	const { data: results, isLoading, error } = useGetStudentsSemesterResults(semester, session);
 	const { mutate: uploadResults } = useAdminUploadResults();
-	console.log(results, 'results data');
 	// Upload states
 	const [isUploadOpen, setIsUploadOpen] = useState(false);
 	const [uploadSemester, setUploadSemester] = useState('First');
@@ -100,7 +102,7 @@ const Results = () => {
 				return;
 			}
 
-			const data: UploadData[] = lines.slice(1).map(line => {
+			const data: UploadData[] = lines.slice(1).map((line) => {
 				const values = line.split(',').map(v => v.trim());
 				return {
 					matricNo: values[headers.indexOf('matric no')],
@@ -140,27 +142,53 @@ const Results = () => {
 		if (!results) return [];
 		return results.filter((result) => {
 			const student = result.student;
-			const matchesSearch = !searchTerm ||
-				student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-				student.matricNo.toLowerCase().includes(searchTerm.toLowerCase());
-			const matchesLevel = !levelFilter || student.level.toString() === levelFilter.replace('all', '');
+			const q = searchTerm.trim().toLowerCase();
+			const matchesSearch = !q ||
+				student.name.toLowerCase().includes(q) ||
+				student.matricNo.toLowerCase().includes(q);
+			const matchesLevel = !levelFilter || levelFilter === 'all' || student.level.toString() === levelFilter;
 			return matchesSearch && matchesLevel;
 		});
 	}, [results, searchTerm, levelFilter]);
+
+	// reset page when filters change
+	useEffect(() => {
+		setCurrentPage(1);
+	}, [searchTerm, levelFilter, semester, session, pageSize]);
+
+	const totalItems = filteredResults.length;
+	const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
+	const paginatedResults = filteredResults.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+
+	// generate a compact page list for UI (windowed)
+	const getPageList = () => {
+		const maxButtons = 7;
+		if (totalPages <= maxButtons) return Array.from({ length: totalPages }, (_, i) => i + 1);
+		const pages: number[] = [];
+		const left = Math.max(1, currentPage - 2);
+		const right = Math.min(totalPages, currentPage + 2);
+		pages.push(1);
+		if (left > 2) pages.push(-1); // ellipsis
+		for (let i = left; i <= right; i++) {
+			if (i > 1 && i < totalPages) pages.push(i);
+		}
+		if (right < totalPages - 1) pages.push(-1);
+		if (totalPages > 1) pages.push(totalPages);
+		return pages;
+	};
 
 	if (userLoading || isLoading) return <div>Loading...</div>;
 	if (error) return <div>Error loading results</div>;
 
 	const getGradePoints = (grade: string): number => {
 		const pointsMap: Record<string, number> = {
-			'A': 5,
-			'B': 4,
-			'C': 3,
-			'D': 2,
-			'E': 1,
+			'A': 4,
+			'AB': 3.5,
+			'B': 3,
+			'BC': 2.5,
+			'C': 2,
+			'D': 1,
 			'F': 0,
-			'BC': 3.5,
-			'AB': 4.5,
 			// Adjust based on your grading scale
 		};
 		return pointsMap[grade] || 0;
@@ -171,6 +199,7 @@ const Results = () => {
 		const department = student.department as unknown as PopulatedDepartment;
 		const faculty = department.faculty as unknown as PopulatedFaculty;
 		const currentDate = new Date().toISOString().slice(0, 19).replace('T', ' ');
+		const rsummary = result.summary
 		const courses: Course[] = result.courses.map((reg, index) => ({
 			sn: index + 1,
 			code: reg.course.code,
@@ -181,14 +210,14 @@ const Results = () => {
 			gradePoint: getGradePoints(reg.grade || '') * reg.course.creditUnits,
 			remark: reg.grade && getGradePoints(reg.grade) > 0 ? 'PASSED' : (reg.grade ? 'FAILED' : 'Not Graded'),
 		}));
-		const tcu = courses.reduce((sum, c) => sum + c.credits, 0);
+		const tcu = rsummary?.TCU || courses.reduce((sum, c) => sum + c.credits, 0);
 		const tgp = courses.reduce((sum, c) => sum + c.gradePoint, 0);
-		const gpa = tcu > 0 ? tgp / tcu : 0;
-		const remark = gpa >= 4.5 ? 'DISTINCTION' : gpa >= 3.5 ? 'VERY GOOD' : gpa >= 2.5 ? 'GOOD' : gpa >= 1.5 ? 'PASS' : 'FAIL';
+		const gpa = rsummary?.GPA || (tcu > 0 ? tgp / tcu : 0);
+		const remark = gpa >= 3.0 ? 'UPPER CREDIT' : gpa >= 2.5 ? 'LOWER CREDIT' : gpa >= 2 ? 'PASS' : 'FAIL';
 		const summary: Summary = {
 			current: { tcu, tca: tcu, tgp, gpa, remark },
 			previous: { ltcu: 'NIL', ltca: 'NIL', ltgp: 'NIL', lcgpa: 'NIL' },
-			cumulative: { tcu, tca: tcu, tgp, cgpa: gpa },
+			cumulative: { tcu, tca: tcu, tgp, cgpa: rsummary?.CGPA || gpa },
 		};
 		const studentData: StudentData = {
 			lastUpdated: currentDate,
@@ -339,7 +368,8 @@ const Results = () => {
 					)}
 
 					{filteredResults.length > 0 && (
-						<div className="overflow-x-auto">
+						<>
+							<div className="overflow-x-auto">
 							<Table>
 								<TableHeader>
 									<TableRow>
@@ -353,7 +383,7 @@ const Results = () => {
 									</TableRow>
 								</TableHeader>
 								<TableBody className="text-left">
-									{filteredResults.map((result: StudentsSemesterResultsResponse) => {
+									{paginatedResults.map((result: StudentsSemesterResultsResponse) => {
 										const passed = result.courses.filter(c => c.grade && c.grade !== 'F').length;
 										const failed = result.courses.filter(c => c.grade === 'F').length;
 										const gpa = result.summary?.GPA;
@@ -383,8 +413,38 @@ const Results = () => {
 									})}
 								</TableBody>
 							</Table>
-						</div>
-					)}
+							</div>
+
+							{/* Pagination Controls */}
+							<div className="flex items-center justify-between mt-4">
+								<div className="flex items-center gap-2">
+									<span className="text-sm text-muted-foreground">Rows per page:</span>
+									<Select value={String(pageSize)} onValueChange={(v) => setPageSize(parseInt(v))}>
+										<SelectTrigger>
+											<SelectValue />
+										</SelectTrigger>
+										<SelectContent>
+											<SelectItem value="5">5</SelectItem>
+											<SelectItem value="10">10</SelectItem>
+											<SelectItem value="25">25</SelectItem>
+											<SelectItem value="50">50</SelectItem>
+										</SelectContent>
+									</Select>
+								</div>
+								<div className="flex items-center gap-2">
+									<Button variant="outline" size="sm" disabled={currentPage <= 1} onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}>Previous</Button>
+									<div className="flex items-center gap-1">
+										{getPageList().map((p, idx) => p === -1 ? (
+											<span key={`el-${idx}`} className="px-2">&hellip;</span>
+										) : (
+											<Button key={`p-${p}`} variant={p === currentPage ? 'default' : 'ghost'} size="sm" onClick={() => setCurrentPage(p)}>{p}</Button>
+										))}
+									</div>
+									<Button variant="outline" size="sm" disabled={currentPage >= Math.max(1, Math.ceil(totalItems / pageSize))} onClick={() => setCurrentPage((p) => Math.min(Math.max(1, Math.ceil(totalItems / pageSize)), p + 1))}>Next</Button>
+								</div>
+							</div>
+						</>
+						)}
 				</CardContent>
 			</Card>
 		</div>

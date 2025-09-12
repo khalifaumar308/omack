@@ -48,14 +48,15 @@ export default function Students() {
   });
 
   const { user } = useUser();
-  const { data, isLoading, isError, error, refetch } = useGetStudents(currentPage, limit, searchTerm);
+  // fetch a large number of students once and handle pagination/filtering on client
+  const { data, isLoading, isError, error, refetch } = useGetStudents(1, 10000);
   const addStudentMutation = useAddStudent();
   const updateStudentMutation = useUpdateStudent();
   // const deleteStudentMutation = useDeleteStudent();
   const bulkAddStudentMutation = useBulkAddStudents();
 
   const students = data || [];
-  const totalPages = Math.ceil((data?.length || 0) / limit);
+  // totalPages replaced by pagesAfterFilter after client-side filtering
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -102,11 +103,11 @@ export default function Students() {
       const csv = event.target?.result as string;
       const lines = csv.split('\n').slice(1); // Skip header
       const students: CreateStudentForm[] = lines.map(line => {
-        const [name, email, matricNo, department, level] = line.split(',');
+        const [name, email, matricNo, department, level, password] = line.split(',');
         return {
           name: name.trim(),
           email: email.trim(),
-          password: 'default123', // Default password
+          password: password.trim(),
           role: "student" as const,
           school: user?.school?.id || "",
           level: parseInt(level.trim()) || 100,
@@ -120,7 +121,7 @@ export default function Students() {
       }
     };
     reader.readAsText(selectedFile);
-    setUploadDialogOpen(false);
+    // setUploadDialogOpen(false);
     setSelectedFile(null);
   };
 
@@ -140,10 +141,15 @@ export default function Students() {
   //   setIsDialogOpen(true);
   // };
 
-  const filteredStudents = students.filter((student) =>
+  const filteredStudentsAll = students.filter((student) =>
     student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
     student.matricNo.toLowerCase().includes(searchTerm.toLowerCase())
   );
+
+  // client-side pagination after filtering
+  const startIdx = (currentPage - 1) * limit;
+  const filteredStudents = filteredStudentsAll.slice(startIdx, startIdx + limit);
+  const pagesAfterFilter = Math.max(1, Math.ceil(filteredStudentsAll.length / limit));
 
   if (isError) {
     return (
@@ -454,7 +460,7 @@ export default function Students() {
                   )}
                 </TableBody>
               </Table>
-              {totalPages > 1 && (
+              {pagesAfterFilter > 1 && (
                 <div className="flex items-center justify-between mt-4">
                   <Button
                     variant="outline"
@@ -465,7 +471,7 @@ export default function Students() {
                     Previous
                   </Button>
                   <div className="space-x-1">
-                    {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                    {Array.from({ length: pagesAfterFilter }, (_, i) => i + 1).map((page) => (
                       <Button
                         key={page}
                         variant={currentPage === page ? "default" : "outline"}
@@ -479,8 +485,8 @@ export default function Students() {
                   <Button
                     variant="outline"
                     size="sm"
-                    onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-                    disabled={currentPage === totalPages}
+                    onClick={() => setCurrentPage((prev) => Math.min(prev + 1, pagesAfterFilter))}
+                    disabled={currentPage === pagesAfterFilter}
                   >
                     Next
                   </Button>

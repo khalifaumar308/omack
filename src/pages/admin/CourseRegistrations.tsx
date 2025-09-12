@@ -54,6 +54,7 @@ import {
   useRegisterCourse,
 } from "@/lib/api/mutations";
 import { useUser } from "@/contexts/useUser";
+import { toast } from "sonner";
 
 const CourseRegistrations = () => {
   const { user } = useUser();
@@ -65,9 +66,10 @@ const CourseRegistrations = () => {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isBulkDialogOpen, setIsBulkDialogOpen] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [selectedSemester, setSelectedSemester] = useState("First");
-  const [selectedSession, setSelectedSession] = useState(sessions[2]);
-  const [selectedStudent, setSelectedStudent] = useState("");
+  // default filters to 'all' so the Select components start in a neutral state
+  const [selectedSemester, setSelectedSemester] = useState<string>("all");
+  const [selectedSession, setSelectedSession] = useState<string>("all");
+  const [selectedStudent, setSelectedStudent] = useState<string>("all");
   
   const [formData, setFormData] = useState<RegisterCourseRequest>({
     course: "",
@@ -75,18 +77,14 @@ const CourseRegistrations = () => {
     session: "",
   });
 
-  console.log(currentPage)
-
-  const [bulkFormData, setBulkFormData] = useState<{student:string; course:string; semester:string; session:string}[]>([{
-    student: "",
-    course: "",
-    semester: "",
-    session: "",
-  }]);
+  const [bulkFormData, setBulkFormData] = useState<{student:string; course:string; semester:string; session:string}[]|[]>([]);
   const [bulkSemester, setBulkSemester] = useState("");
   const [bulkSession, setBulkSession] = useState("");
+  const [viewModalOpen, setViewModalOpen] = useState(false);
+  const [selectedRegistration, setSelectedRegistration] = useState<IAdminCourseRegs | null>(null);
 
-  const { data: registrations, isLoading, isError, error, refetch } = useGetCourseRegistrations(selectedSemester, selectedSession);
+  // fetch without server-side semester/session filtering so we can filter & paginate on client
+  const { data: registrations, isLoading, isError, error, refetch } = useGetCourseRegistrations(user?.school?.currentSemester, user?.school?.currentSession);
   const { data: courses } = useGetCourses();
   const { data: students } = useGetStudents(1, 100); // Get more students for filtering
   const registerCourseMutation = useRegisterCourse();
@@ -114,7 +112,11 @@ const CourseRegistrations = () => {
 
   const handleBulkSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    registerManyCourseMutation.mutate(bulkFormData);
+    if (bulkFormData.length > 0) {
+      registerManyCourseMutation.mutate(bulkFormData);
+    } else {
+      toast.error("No registrations to submit");
+    }
   };
 
   const resetForm = () => {
@@ -126,12 +128,7 @@ const CourseRegistrations = () => {
   };
 
   const resetBulkForm = () => {
-    setBulkFormData([{
-      student: "",
-      course: "",
-      semester: "",
-      session: "",
-    }]);
+    setBulkFormData([]);
     setSelectedFile(null);
   };
 
@@ -148,18 +145,19 @@ const CourseRegistrations = () => {
     const reader = new FileReader();
     reader.onload = (event) => {
       const csv = event.target?.result as string;
-      console.log(csv, 'csv')
       const lines = csv.split('\n').slice(1); // Skip header
-      console.log(lines, 'lines')
       const registrations: { student: string; course: string, semester:string, session:string }[] = [];
       lines.forEach(line => {
         const [matricNo, courseCodes] = line.split(',');
-        console.log(matricNo, courseCodes, 'matricNo, courseCodes')
+        // console.log(matricNo, courseCodes, 'matricNo, courseCodes')
         //get student id and course ids from matricNo and courseCodes
         const studentId = (students?.find(student => student.matricNo === matricNo.trim()) as any)?._id;
         const courseCds = courseCodes.trim().split(';');
         const courseIds = courses?.filter(course => courseCds.includes(course.code)).map((course:any) => course._id);
-        if (studentId && courseIds && courseIds.length > 0) {
+        if (studentId === "") {
+          console.log(matricNo, 'student not found');
+        }
+        if (studentId && courseIds && courseIds.length > 0 && studentId !== "") {
           courseIds.forEach(courseId => {
             registrations.push({ student: studentId, course: courseId, semester: bulkSemester, session: bulkSession });
           });
@@ -167,7 +165,7 @@ const CourseRegistrations = () => {
       });
 
       if (registrations.length > 0) {
-        console.log(registrations, 'registrw')
+        // console.log(registrations, 'registrw')
         setBulkFormData(registrations);
       }
     };
@@ -176,16 +174,26 @@ const CourseRegistrations = () => {
     setSelectedFile(null);
   };
 
-  const filteredRegistrations = courseRegistrations.filter((registration) => {
-    const matchesSearch = 
-      registration.student.name.toLowerCase().includes(searchTerm.toLowerCase()) 
-    
-    // const matchesSemester = !selectedSemester || selectedSemester === "all" || registration.semester === selectedSemester;
-    // const matchesSession = !selectedSession || selectedSession === "all" || registration.session === selectedSession;
+  // client-side filtering
+  // Filter the grouped registrations. Note: IAdminCourseRegs groups a student with
+  // an array of populated course registrations, and semester/session live on
+  // each nested course registration entry. We treat a group as matching if any
+  // nested registration matches the chosen semester/session.
+  const filteredRegistrationsAll = courseRegistrations.filter((registration) => {
+    const q = searchTerm.trim().toLowerCase();
+    const matchesSearch = !q || registration.student.name.toLowerCase().includes(q) || registration.student.matricNo?.toLowerCase().includes(q);
+    const matchesSemester = !selectedSemester || selectedSemester === "all" || registration.courseRegistrations.some((cr) => cr.semester === selectedSemester);
+    const matchesSession = !selectedSession || selectedSession === "all" || registration.courseRegistrations.some((cr) => cr.session === selectedSession);
     const matchesStudent = !selectedStudent || selectedStudent === "all" || registration.student.id === selectedStudent;
 
-    return matchesSearch && matchesStudent;
+    return matchesSearch && matchesStudent && matchesSemester && matchesSession;
   });
+
+  // client-side pagination
+  const [limit] = useState(10);
+  const startIdx = (currentPage - 1) * limit;
+  const pagesAfterFilter = Math.max(1, Math.ceil(filteredRegistrationsAll.length / limit));
+  const filteredRegistrations = filteredRegistrationsAll.slice(startIdx, startIdx + limit);
 
   // const getGradeBadgeVariant = (grade?: string) => {
   //   if (!grade) return "secondary";
@@ -483,6 +491,55 @@ const CourseRegistrations = () => {
           </div>
         </CardContent>
       </Card>
+      {/* View Registration Modal */}
+      <Dialog open={viewModalOpen} onOpenChange={(open) => { if (!open) setSelectedRegistration(null); setViewModalOpen(open); }}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-hidden">
+          <DialogHeader>
+            <DialogTitle>Registered Courses</DialogTitle>
+          </DialogHeader>
+          <div>
+            {selectedRegistration ? (
+              <div>
+                <div className="mb-2">
+                  <div className="font-semibold">{selectedRegistration.student.name}</div>
+                  <div className="text-sm text-muted-foreground">{selectedRegistration.student.matricNo}</div>
+                </div>
+                <div className="max-h-[56vh] sm:max-h-[64vh] overflow-scroll">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Code</TableHead>
+                        <TableHead>Title</TableHead>
+                        <TableHead>CU</TableHead>
+                      </TableRow>
+                    </TableHeader>
+                    <TableBody>
+                      {selectedRegistration.courseRegistrations.map((cr) => (
+                        <TableRow key={cr.id}>
+                          <TableCell className="font-medium">{cr.course.code}</TableCell>
+                          <TableCell>{cr.course.title}</TableCell>
+                          <TableCell>{cr.course.creditUnits || 0}</TableCell>
+                        </TableRow>
+                      ))}
+                      {selectedRegistration.courseRegistrations.length === 0 && (
+                        <TableRow>
+                          <TableCell colSpan={3} className="text-center text-muted-foreground py-6">No courses registered</TableCell>
+                        </TableRow>
+                      )}
+                    </TableBody>
+                  </Table>
+                </div>
+                <div className="mt-4 flex justify-end">
+                  <Button variant="outline" onClick={() => setViewModalOpen(false)}>Close</Button>
+                </div>
+              </div>
+            ) : (
+              <div className="text-center text-muted-foreground">Select a registration to view courses</div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
+      {/* Pagination Controls */}
 
       {/* Statistics Cards */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
@@ -573,8 +630,8 @@ const CourseRegistrations = () => {
                           variant="outline"
                           size="sm"
                           onClick={() => {
-                            // View detailed registrations - to be implemented
-                            alert(`View details for ${registration.student.name}`);
+                            setSelectedRegistration(registration);
+                            setViewModalOpen(true);
                           }}
                         >
                           View
@@ -616,6 +673,30 @@ const CourseRegistrations = () => {
               </Table>
             </div>
           )}
+           <div className="flex items-center justify-between">
+        <div className="text-sm text-muted-foreground">
+          Showing {startIdx + 1} - {Math.min(startIdx + limit, filteredRegistrationsAll.length)} of {filteredRegistrationsAll.length}
+        </div>
+        <div className="flex items-center space-x-2">
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={currentPage <= 1}
+            onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+          >
+            Previous
+          </Button>
+          <div className="text-sm">Page {currentPage} of {pagesAfterFilter}</div>
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={currentPage >= pagesAfterFilter}
+            onClick={() => setCurrentPage((p) => Math.min(pagesAfterFilter, p + 1))}
+          >
+            Next
+          </Button>
+        </div>
+      </div>
         </CardContent>
       </Card>
     </div>

@@ -23,7 +23,7 @@ export default function Login() {
         } else if(role === 'school-admin'){
           window.location.href = "/admin/";
         } else if(role === 'student'){
-          window.location.href = "/admin/students";
+          window.location.href = "/student/results";
         }
         // Redirect to dashboard or home page
         // window.location.href = "/";

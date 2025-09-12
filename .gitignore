@@ -22,3 +22,6 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+*.csv
+testRegs.csv
+teststudents.csv

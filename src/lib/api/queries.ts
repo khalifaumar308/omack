@@ -60,7 +60,7 @@ export const useGetUser = () => {
     queryKey: ["user"],
     queryFn: () => api.getCurrentUser(),
     refetchOnWindowFocus: false,
-    staleTime: 1000 * 60 * 10, // 10 minutes,
+    staleTime: 1000 * 60 * 100, // 10 minutes,
   });
 }
 
@@ -92,6 +92,23 @@ export const useGetStudentsSemesterResults = (semester:string  = 'First', sessio
   });
 };
 
+export const useGetTranscript = () => {
+return useQuery({
+  queryKey: ["transcript"],
+  queryFn: () => api.getTranscript(),
+  placeholderData: undefined,
+  refetchOnWindowFocus: false,
+});
+};
+
+export const useGetSemesterResult = (semester:string  = 'First', session:string = '2025/2026',) => {
+  return useQuery({
+    queryKey: ["semesterResult", semester, session],
+    queryFn: () => api.getSemesterResult(semester, session),
+    placeholderData: undefined,
+    refetchOnWindowFocus: false,
+  });
+};
 // export const useGetCourse = (id: string) => {
 //   return useQuery({
 //     queryKey: ["course", id],

@@ -282,6 +282,7 @@ export default function Courses() {
                         const newCourses = lines.map(line => {
                           const [code, title, department, creditUnits, instructorsStr] = line.split(',');
                           const instructors = instructorsStr ? instructorsStr.split(',').map(i => i.trim()).filter(Boolean) : [];
+                          console.log(code, title, department, creditUnits, instructorsStr)
                           return {
                             code: code?.trim(),
                             title: title?.trim(),

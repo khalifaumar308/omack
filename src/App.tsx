@@ -17,6 +17,8 @@ import Dashboard from "./pages/admin/Dashboard";
 import AdminFaculties from "./pages/admin/AdminFaculties";
 import { UserProvider } from "./contexts/UserContext";
 import Results from "./pages/admin/Results";
+import StudentResults from "./pages/student/StudentResults";
+import StudentCourseRegistration from "./pages/student/StudentCourseRegistration";
 
 const queryClient = new QueryClient();
 function App() {
@@ -49,6 +51,16 @@ function App() {
                   <Route path="/admin/courses" element={<Courses />} />
                   <Route path="/admin/results" element={<Results />} />
                   <Route path="/admin/course-registrations" element={<CourseRegistrations />} />
+                </Route>
+                {/* Student Routes */}
+                <Route path="/student" element={
+                  <UserProvider>
+                    <DashboardLayout />
+                  </UserProvider>
+                }>
+                  <Route index element={<div>Student Dashboard</div>} />
+                  <Route path="/student/results" element={<StudentResults />} />
+                  <Route path="/student/course-registration" element={<StudentCourseRegistration />} />
                 </Route>
               {/* </UserProvider> */}
               <Route path="/login" element={<Login />} />

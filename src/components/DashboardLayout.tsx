@@ -27,6 +27,8 @@ import {
 import { Link, useLocation, Outlet } from "react-router";
 // import { UserProvider } from "@/contexts/UserContext";
 import { useUser } from "@/contexts/useUser";
+import { userLogout } from "@/lib/api/base";
+import { Button } from "@/components/ui/button";
 
 
 // interface DashboardLayoutProps {
@@ -42,6 +44,16 @@ export function DashboardLayout() {
     return null; // or a loading spinner
   }
   // console.log(user, 'user')
+
+  const handleLogout = async () => {
+    try {
+      await userLogout();
+      window.location.href = '/login';
+    } catch (error) {
+      console.error('Logout failed:', error);
+      window.location.href = '/login';
+    }
+  };
 
   const getFilteredSidebarItems = () => {
     if (!user) return []; // Loading or error, show nothing
@@ -199,6 +211,12 @@ export function DashboardLayout() {
         <SidebarInset className="flex-1">
           <header className="flex h-16 shrink-0 items-center gap-2 border-b px-6">
             <SidebarTrigger className="-ml-1" />
+            <div className="ml-auto flex items-center gap-2">
+              <span className="text-sm font-medium">{user?.name}</span>
+              <Button variant="ghost" size="sm" onClick={handleLogout}>
+                Logout
+              </Button>
+            </div>
           </header>
           <main className="flex-1 p-6">
             {/* <UserProvider> */}

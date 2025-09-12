@@ -399,6 +399,11 @@ export const adminAddBulkRegistrations = async (registrations: { student: string
   return response.data;
 };
 
+export const studentRegisterManyCourses = async (courses: string[], semester: string, session: string) => {
+  const response = await api.post<{ message: string }>("/course-registrations/student-bulk", { courses, semester, session });
+  return response.data;
+};
+
 export const registerManyCourses = async (registrationData: RegisterManyCoursesRequest) => {
   const response = await api.post<CourseRegistration[]>("/course-registrations/bulk", registrationData);
   return response.data;
