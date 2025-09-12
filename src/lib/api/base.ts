@@ -18,7 +18,7 @@ import type {
 } from '@/components/types';
 
 // Configure your API base URL
-const API_BASE_URL = 'https://hmsms-api.onrender.com/api';
+const API_BASE_URL = 'http://localhost:5000/api';
 
 // =============================================================================
 // SECURE AXIOS INSTANCE WITH COOKIES AND CSRF
@@ -27,8 +27,8 @@ const API_BASE_URL = 'https://hmsms-api.onrender.com/api';
 //   const val = (await cookieStore.get('_csrfSecret'))?.value
 //   return val || null;
 // }
-// CSRF token management
-let csrfToken: string | null = null;
+// Access token management (access token stored in localStorage; refresh handled by httpOnly cookie)
+let accessToken: string | null = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : null;
 
 // Create secure axios instance
 const api: AxiosInstance = axios.create({
@@ -40,15 +40,13 @@ const api: AxiosInstance = axios.create({
   },
 });
 
-// Request interceptor to add CSRF token
+// Request interceptor to add Authorization header when we have an access token
 api.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
-    // Add CSRF token for state-changing operations
-    if (['post', 'put', 'delete', 'patch'].includes(config.method?.toLowerCase() || '')) {
-      console.log('Adding CSRF token to request headers', csrfToken);
-      if (csrfToken && config.headers) {
-        config.headers['X-CSRF-Token'] = csrfToken;
-      }
+  if (!config.headers) (config.headers as any) = {};
+    const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : accessToken;
+    if (token) {
+      config.headers['Authorization'] = `Bearer ${token}`;
     }
     return config;
   },
@@ -58,46 +56,47 @@ api.interceptors.request.use(
 // Response interceptor for automatic token refresh and CSRF token management
 api.interceptors.response.use(
   (response: AxiosResponse) => {
-    // Update CSRF token if provided
-    console.log('[API] response', response.config?.url, response.status);
-    console.log('[API] response headers', response.headers);
-    if (response.headers && response.headers['set-cookie']) {
-      console.log('[API] set-cookie header', response.headers['set-cookie']);
-    }
-    if (response.data && response.data.csrfToken) {
-      csrfToken = response.data.csrfToken;
+    // Update access token if provided in response body
+    if (response.data && response.data.accessToken) {
+      accessToken = response.data.accessToken;
+      try {
+        if (typeof window !== 'undefined' && accessToken) localStorage.setItem('accessToken', accessToken);
+      } catch (e) {
+        console.warn('Failed to persist access token', e);
+      }
     }
     return response;
   },
   async (error: AxiosError) => {
     const originalRequest = error.config as any;
-    const errorData = error.response?.data as any;
- console.log('[API] response error', error.config?.url, error.response?.status, error.response?.data);
+    console.log('[API] response error', error.config?.url, error.response?.status, error.response?.data);
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
 
-      // Check if it's a token expiration (not invalid credentials)
-      if (errorData?.tokenExpired || errorData?.requiresAuth) {
-        try {
-          // Try to refresh token using cookies
-          const response = await api.post('/auth/refresh');
-          
-          // Update CSRF token from refresh response
-          if (response.data.csrfToken) {
-            csrfToken = response.data.csrfToken;
+      // Attempt to refresh access token using refresh endpoint (refresh token should be httpOnly cookie)
+      try {
+        const refreshResponse = await axios.post(`${API_BASE_URL}/auth/refresh`, {}, { withCredentials: true });
+        const newAccess = refreshResponse.data?.accessToken;
+        if (newAccess) {
+          accessToken = newAccess;
+          try {
+            if (typeof window !== 'undefined' && accessToken) localStorage.setItem('accessToken', accessToken);
+          } catch (e) {
+            console.warn('Failed to persist access token', e);
           }
-          
-          // Retry the original request
+
+          // Set Authorization header on original request and retry
+          if (!originalRequest.headers) originalRequest.headers = {};
+          originalRequest.headers['Authorization'] = `Bearer ${accessToken}`;
           return api(originalRequest);
-        } catch (refreshError) {
-          // Refresh failed, redirect to login
-          authManager.handleAuthFailure();
-          return Promise.reject(refreshError);
         }
-      } else {
-        // Invalid credentials or other auth error
+      } catch (refreshError) {
+        console.warn('Token refresh failed', refreshError);
         authManager.handleAuthFailure();
+        return Promise.reject(refreshError);
       }
+      // If refresh didn't provide token, treat as auth failure
+      authManager.handleAuthFailure();
     }
 
     return Promise.reject(error);
@@ -109,33 +108,37 @@ api.interceptors.response.use(
 // =============================================================================
 
 export const authManager = {
-  // Initialize CSRF token
-  initializeCSRF: async (): Promise<void> => {
+  // Get current access token
+  getAccessToken: (): string | null => {
     try {
-      if (!csrfToken) {
-        const response = await axios.get(`${API_BASE_URL}/csrf-token`, {
-          withCredentials: true
-        });
-        csrfToken = response.data.csrfToken;
+      if (typeof window !== 'undefined') return localStorage.getItem('accessToken');
+    } catch (e) {
+      console.warn('Failed to read access token', e);
+    }
+    return accessToken;
+  },
+
+  // Set access token (stores in memory + localStorage)
+  setAccessToken: (token: string | null): void => {
+    accessToken = token;
+    try {
+      if (typeof window !== 'undefined') {
+        if (token) localStorage.setItem('accessToken', token);
+        else localStorage.removeItem('accessToken');
       }
-    } catch (error) {
-      console.warn('Failed to initialize CSRF token:', error);
+    } catch (e) {
+      console.warn('Failed to persist/clear access token', e);
     }
   },
 
-  // Get current CSRF token
-  getCSRFToken: (): string | null => {
-    return csrfToken;
-  },
-
-  // Set CSRF token manually
-  setCSRFToken: (token: string): void => {
-    csrfToken = token;
-  },
-
-  // Clear CSRF token
-  clearCSRFToken: (): void => {
-    csrfToken = null;
+  // Clear access token
+  clearAccessToken: (): void => {
+    accessToken = null;
+    try {
+      if (typeof window !== 'undefined') localStorage.removeItem('accessToken');
+    } catch (e) {
+      console.warn('Failed to clear access token', e);
+    }
   },
 
   // Check if user is authenticated by making a request to /auth/me
@@ -162,29 +165,25 @@ export const authManager = {
 
   // Handle authentication failure
   handleAuthFailure: (): void => {
-    csrfToken = null;
+    authManager.clearAccessToken();
     
     // Dispatch logout event for React components to handle
     if (typeof window !== 'undefined') {
       window.dispatchEvent(new CustomEvent('auth:logout', {
         detail: { message: 'Authentication failed' }
       }));
-      
-      // Optional: redirect to login page
-      // window.location.href = '/login';
     }
   },
 
-  // Handle successful authentication
-  handleAuthSuccess: (userData: any): void => {
-    if (userData.csrfToken) {
-      csrfToken = userData.csrfToken;
+  // Handle successful authentication (expects object with accessToken and user)
+  handleAuthSuccess: (data: any): void => {
+    if (data?.accessToken) {
+      authManager.setAccessToken(data.accessToken);
     }
-    
     // Dispatch login event
     if (typeof window !== 'undefined') {
       window.dispatchEvent(new CustomEvent('auth:login', {
-        detail: { user: userData.user }
+        detail: { user: data.user }
       }));
     }
   }
@@ -195,37 +194,33 @@ export const authManager = {
 // =============================================================================
 
 export const userLogin = async (email: string, password: string) => {
-  // Ensure CSRF token is available
-  await authManager.initializeCSRF();
-  
+  // Perform login - expect server to return accessToken in response body and set refresh cookie
   const response = await api.post("/auth/login", { email, password });
-  
-  // Handle successful authentication
+
+  // Handle successful authentication (store accessToken if returned)
   authManager.handleAuthSuccess(response.data);
-  
+
   return response.data;
 };
 
 export const userLogout = async () => {
   try {
-    await api.post("/auth/logout");
+    await api.post("/auth/logout", {}, { withCredentials: true });
   } catch (error) {
     // Continue with logout even if server call fails
     console.warn('Logout request failed:', error);
   } finally {
-    // Clear CSRF token and dispatch logout event
+    // Clear access token and dispatch logout event
     authManager.handleAuthFailure();
   }
 };
 
 export const refreshToken = async () => {
-  const response = await api.post("/auth/refresh");
-  
-  // Update CSRF token if provided
-  if (response.data.csrfToken) {
-    authManager.setCSRFToken(response.data.csrfToken);
+  const response = await axios.post(`${API_BASE_URL}/auth/refresh`, {}, { withCredentials: true });
+  // If a new accessToken is returned, persist it
+  if (response.data?.accessToken) {
+    authManager.setAccessToken(response.data.accessToken);
   }
-  
   return response.data;
 };
 
@@ -499,13 +494,15 @@ export const deleteCourse = async (id: string) => {
 // Helper function to set authorization (deprecated - use authManager instead)
 export const setAuthToken = (token: string) => {
   console.warn('setAuthToken is deprecated. Use authManager.setCSRFToken() instead.');
-  authManager.setCSRFToken(token);
+  // Map to new access-token API
+  authManager.setAccessToken(token);
 };
 
 // Helper function to clear authorization (deprecated - use authManager instead)
 export const clearAuthToken = () => {
   console.warn('clearAuthToken is deprecated. Use authManager.clearCSRFToken() instead.');
-  authManager.clearCSRFToken();
+  // Map to new access-token API
+  authManager.clearAccessToken();
 };
 
 // Grade calculation utility (matching the server-side logic)
