@@ -59,6 +59,11 @@ api.interceptors.request.use(
 api.interceptors.response.use(
   (response: AxiosResponse) => {
     // Update CSRF token if provided
+    console.log('[API] response', response.config?.url, response.status);
+    console.log('[API] response headers', response.headers);
+    if (response.headers && response.headers['set-cookie']) {
+      console.log('[API] set-cookie header', response.headers['set-cookie']);
+    }
     if (response.data && response.data.csrfToken) {
       csrfToken = response.data.csrfToken;
     }
@@ -67,7 +72,7 @@ api.interceptors.response.use(
   async (error: AxiosError) => {
     const originalRequest = error.config as any;
     const errorData = error.response?.data as any;
-
+ console.log('[API] response error', error.config?.url, error.response?.status, error.response?.data);
     if (error.response?.status === 401 && !originalRequest._retry) {
       originalRequest._retry = true;
 
