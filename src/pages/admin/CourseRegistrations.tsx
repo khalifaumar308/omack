@@ -67,8 +67,8 @@ const CourseRegistrations = () => {
   const [isBulkDialogOpen, setIsBulkDialogOpen] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   // default filters to 'all' so the Select components start in a neutral state
-  const [selectedSemester, setSelectedSemester] = useState<string>("all");
-  const [selectedSession, setSelectedSession] = useState<string>("all");
+  const [selectedSemester, setSelectedSemester] = useState<string>(user?.school?.currentSemester || "all");
+  const [selectedSession, setSelectedSession] = useState<string>(user?.school?.currentSession || "all");
   const [selectedStudent, setSelectedStudent] = useState<string>("all");
   
   const [formData, setFormData] = useState<RegisterCourseRequest>({
@@ -83,8 +83,8 @@ const CourseRegistrations = () => {
   const [viewModalOpen, setViewModalOpen] = useState(false);
   const [selectedRegistration, setSelectedRegistration] = useState<IAdminCourseRegs | null>(null);
 
-  // fetch without server-side semester/session filtering so we can filter & paginate on client
-  const { data: registrations, isLoading, isError, error, refetch } = useGetCourseRegistrations(user?.school?.currentSemester, user?.school?.currentSession);
+  // fetch registrations with current selected semester/session (use 'all' to fetch unfiltered)
+  const { data: registrations, isLoading, isError, error, refetch } = useGetCourseRegistrations(selectedSemester || 'all', selectedSession || 'all');
   const { data: courses } = useGetCourses();
   const { data: students } = useGetStudents(1, 100); // Get more students for filtering
   const registerCourseMutation = useRegisterCourse();
@@ -92,8 +92,8 @@ const CourseRegistrations = () => {
 
   const courseRegistrations: IAdminCourseRegs[] = registrations || [];
 
-  // Available semesters and sessions
-
+  // React Query will refetch automatically when selectedSemester/selectedSession change
+  
 
   useEffect(() => {
     if (registerCourseMutation.isSuccess || registerManyCourseMutation.isSuccess) {

@@ -383,9 +383,17 @@ export const registerSchoolAdmin = async (adminData: { name: string; email: stri
 // COURSE REGISTRATION APIs (Note: These routes need to be added to app.ts)
 // =============================================================================
 
-export const getCourseRegistrations = async (semester: string, session: string) => {
-  const query = new URLSearchParams({ semester, session });
-  const response = await api.get<IAdminCourseRegs[]>(`/course-registrations/registrations?${query.toString()}`);
+export const getCourseRegistrations = async (semester?: string, session?: string) => {
+  let url = '/course-registrations/registrations';
+  // Only attach query params when semester/session are provided and not equal to 'all'
+  const params: Record<string, string> = {};
+  if (semester && semester !== 'all') params.semester = semester;
+  if (session && session !== 'all') params.session = session;
+  if (Object.keys(params).length > 0) {
+    const query = new URLSearchParams(params);
+    url = `${url}?${query.toString()}`;
+  }
+  const response = await api.get<IAdminCourseRegs[]>(url);
   return response.data;
 };
 

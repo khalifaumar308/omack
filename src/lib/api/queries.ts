@@ -74,12 +74,13 @@ export const useGetCourses = () => {
   });
 };
 
-export const useGetCourseRegistrations = (semester:string  = 'First', session:string = '2024/2025',) => {
+export const useGetCourseRegistrations = (semester: string = 'all', session: string = 'all') => {
   return useQuery({
     queryKey: ["courseRegistrations", semester, session],
-    queryFn: () => api.getCourseRegistrations(semester, session),
+    queryFn: () => api.getCourseRegistrations(semester === 'all' ? undefined : semester, session === 'all' ? undefined : session),
     placeholderData: undefined,
     refetchOnWindowFocus: false,
+    enabled: true,
   });
 };
 
