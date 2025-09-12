@@ -19,10 +19,7 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Badge } from "@/components/ui/badge";
-import { Alert, AlertDescription } from "@/components/ui/alert";
-import { Skeleton } from "@/components/ui/skeleton";
-import { Plus, Search, Edit, Trash2, Building, AlertCircle, Users, BookOpen } from "lucide-react";
+import { Plus, Search, Edit, Trash2, Building } from "lucide-react";
 import type { IFaculty, ICreateFacultyRequest } from "@/types";
 import type { CreateFacultyForm } from "@/components/types";
 import { useGetFaculties } from "@/lib/api/queries";
@@ -61,7 +58,7 @@ export default function AdminFaculties() {
     e.preventDefault();
     const facultyData: CreateFacultyForm = {
       ...formData,
-      school: user?.school || "", // Assuming user has schoolId
+      school: user?.school?.id || "", // Assuming user has schoolId
     };
     if (editingFaculty) {
       updateFacultyMutation.mutate({ facultyId: editingFaculty.id, facultyData });

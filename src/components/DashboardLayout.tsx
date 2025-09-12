@@ -138,7 +138,7 @@ export function DashboardLayout() {
           { title: "Students", url: "/admin/students" },
           { title: "Instructors", url: "/admin/instructors" },
           { title: "Course Registrations", url: "/admin/course-registrations" },
-          { ttitle: "Results", url: "/admin/results" },
+          { title: "Results", url: "/admin/results" },
         ]
       },
       {

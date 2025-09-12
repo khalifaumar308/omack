@@ -35,11 +35,11 @@ export default function Faculties() {
     dean: "",
   });
 
-  const {data, isLoading, isError, error} = useGetFaculties(1, 10);
+  const {data, isLoading} = useGetFaculties();
 
     useEffect(() => {
       if (data) {
-        setFaculties(data.data?.data || []);
+        setFaculties(data || []);
       }
     //   setLoading(isLoading);
     }, [data]);
@@ -71,6 +71,7 @@ export default function Faculties() {
   };
 
   const handleDelete = async (facultyId: string) => {
+    console.log("Deleting faculty:", facultyId);
     // if (confirm("Are you sure you want to delete this faculty?")) {
     //   try {
     //     const response = await fetch(`/api/faculties/${facultyId}`, {

@@ -1,9 +1,9 @@
 import { useGetStudent } from "@/lib/api/queries";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Users,  MapPin, User, GraduationCap } from "lucide-react";
+import { Users, User, GraduationCap } from "lucide-react";
 import { useParams, Link } from "react-router";
-import { Badge } from "@/components/ui/badge";
+// import { Badge } from "@/components/ui/badge";
 
 export default function StudentDetail() {
   const { id } = useParams<{ id: string }>();
@@ -70,7 +70,7 @@ export default function StudentDetail() {
               <span className="text-sm font-medium text-muted-foreground">Email</span>
               <span className="text-lg">{student.email}</span>
             </div>
-            <div className="flex flex-col space-y-1">
+            {/* <div className="flex flex-col space-y-1">
               <span className="text-sm font-medium text-muted-foreground">Phone</span>
               <span className="text-lg">{student.phoneNumber || "Not provided"}</span>
             </div>
@@ -81,9 +81,9 @@ export default function StudentDetail() {
             <div className="flex flex-col space-y-1">
               <span className="text-sm font-medium text-muted-foreground">Status</span>
               <Badge variant={student.status === "active" ? "default" : "secondary"}>{student.status}</Badge>
-            </div>
+            </div> */}
           </div>
-          {student.address && (
+          {/* {student.address && (
             <div className="flex items-start space-x-3">
               <MapPin className="h-5 w-5 mt-0.5 text-muted-foreground flex-shrink-0" />
               <div className="flex-1">
@@ -91,7 +91,7 @@ export default function StudentDetail() {
                 <p className="text-lg">{student.address}</p>
               </div>
             </div>
-          )}
+          )} */}
         </CardContent>
       </Card>
 
@@ -106,7 +106,7 @@ export default function StudentDetail() {
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="flex flex-col space-y-1">
               <span className="text-sm font-medium text-muted-foreground">Level</span>
-              <span className="text-lg font-semibold">{student.currentLevel}</span>
+              <span className="text-lg font-semibold">{student.level}</span>
             </div>
             <div className="flex flex-col space-y-1">
               <span className="text-sm font-medium text-muted-foreground">Department</span>
@@ -114,7 +114,7 @@ export default function StudentDetail() {
             </div>
             <div className="flex flex-col space-y-1">
               <span className="text-sm font-medium text-muted-foreground">Faculty</span>
-              <span className="text-lg">{student.faculty?.name || "Not assigned"}</span>
+              {/* <span className="text-lg">{student.faculty?.name || "Not assigned"}</span> */}
             </div>
             <div className="flex flex-col space-y-1">
               <span className="text-sm font-medium text-muted-foreground">School</span>
@@ -122,13 +122,13 @@ export default function StudentDetail() {
             </div>
             <div className="flex flex-col space-y-1">
               <span className="text-sm font-medium text-muted-foreground">Admission Year</span>
-              <span className="text-lg font-semibold">{student.admissionYear}</span>
+              {/* <span className="text-lg font-semibold">{student.admissionYear}</span> */}
             </div>
           </div>
         </CardContent>
       </Card>
 
-      {student.profilePicture && (
+      {/* {student.profilePicture && (
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center space-x-2">
@@ -144,7 +144,7 @@ export default function StudentDetail() {
             />
           </CardContent>
         </Card>
-      )}
+      )} */}
     </div>
   );
 }

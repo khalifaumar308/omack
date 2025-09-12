@@ -1,29 +1,29 @@
 import { useState, useMemo } from "react";
 import { useUser } from "@/contexts/useUser";
-import { 
+import {
   useGetSemesterResult,
-  useGetTranscript 
+  useGetTranscript
 } from "@/lib/api/queries";
-import { 
-  Select, 
-  SelectContent, 
-  SelectItem, 
-  SelectTrigger, 
-  SelectValue 
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue
 } from "@/components/ui/select";
-import { 
-  Table, 
-  TableBody, 
-  TableCell, 
-  TableHead, 
-  TableHeader, 
-  TableRow 
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow
 } from "@/components/ui/table";
-import { 
-  Card, 
-  CardContent, 
-  CardHeader, 
-  CardTitle 
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { PDFDownloadLink } from "@react-pdf/renderer";
@@ -61,31 +61,32 @@ interface SummaryDisplay {
 
 const getGradePoints = (grade: string): number => {
   const pointsMap: Record<string, number> = {
-    'A': 5,
-    'B': 4,
-    'C': 3,
-    'D': 2,
-    'E': 1,
+    'A': 4,
+    'AB': 3.5,
+    'B': 3,
+    'BC': 2.5,
+    'C': 2,
+    'D': 1,
     'F': 0,
-    'AB': 4.5,
-    'BC': 3.5,
     // Add more if needed
   };
   return pointsMap[grade as keyof typeof pointsMap] || 0;
 };
 
 const getClassification = (gpa: number): string => {
-  if (gpa >= 4.5) return 'DISTINCTION';
-  if (gpa >= 3.5) return 'VERY GOOD';
-  if (gpa >= 2.5) return 'GOOD';
-  if (gpa >= 1.5) return 'PASS';
-  return 'FAIL';
+  // if (gpa >= 4.5) return 'DISTINCTION';
+  // if (gpa >= 3.5) return 'VERY GOOD';
+  // if (gpa >= 2.5) return 'GOOD';
+  // if (gpa >= 1.5) return 'PASS';
+  // return 'FAIL';
+  const remark = gpa >= 3.0 ? 'UPPER CREDIT' : gpa >= 2.5 ? 'LOWER CREDIT' : gpa >= 2 ? 'PASS' : 'FAIL';
+  return remark;
 };
 
 const Results = () => {
   const { user, isLoading: userLoading } = useUser();
   const [semester, setSemester] = useState(user?.school?.currentSemester || 'First');
-  const [session, setSession] = useState(user?.school?.currentSession || '2024/2025');
+  const [session, setSession] = useState(user?.school?.currentSession || '2025/2026');
 
   // const { data: semesterResults = [], isLoading: semesterLoading } = useGetStudentsSemesterResults(semester, session);
   const { data: semesterResult, isLoading: semesterLoading } = useGetSemesterResult(semester, session); // To refetch on semester/session change
@@ -93,7 +94,6 @@ const Results = () => {
 
   const currentUser = user && user.role === 'student' ? (user as PopulatedStudent) : null;
   const currentResult = semesterResult as StudentsSemesterResultsResponse | undefined; // Assume only current student's data
-  console.log(user, 'cUser')
 
   // Student data for PDFs - compute always, null if no user
   const studentData = useMemo<ResultPDFProps['studentData'] & TranscriptProps['studentData'] | null>(() => {
