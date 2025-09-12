@@ -28,6 +28,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 
 export default function Students() {
   const [searchTerm, setSearchTerm] = useState("");
+  const [selectedDepartment, setSelectedDepartment] = useState<string>('all');
+  const [selectedLevel, setSelectedLevel] = useState<string>('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [limit] = useState(10);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
@@ -56,6 +58,7 @@ export default function Students() {
   const bulkAddStudentMutation = useBulkAddStudents();
 
   const students = data || [];
+  const totalStudents = students.length;
   // totalPages replaced by pagesAfterFilter after client-side filtering
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -141,10 +144,16 @@ export default function Students() {
   //   setIsDialogOpen(true);
   // };
 
-  const filteredStudentsAll = students.filter((student) =>
-    student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    student.matricNo.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  const filteredStudentsAll = students.filter((student) => {
+    const matchesSearch = student.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      student.matricNo.toLowerCase().includes(searchTerm.toLowerCase());
+
+    const matchesDepartment = selectedDepartment === 'all' || (student.department && student.department.id === selectedDepartment);
+
+    const matchesLevel = selectedLevel === 'all' || (String(student.level) === selectedLevel);
+
+    return matchesSearch && matchesDepartment && matchesLevel;
+  });
 
   // client-side pagination after filtering
   const startIdx = (currentPage - 1) * limit;
@@ -400,18 +409,52 @@ export default function Students() {
 
       <Card>
         <CardHeader>
-          <CardTitle>All Students</CardTitle>
-          <div className="relative w-full max-w-sm">
-            <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-            <Input
-              placeholder="Search students..."
-              value={searchTerm}
-              onChange={(e) => {
-                setSearchTerm(e.target.value);
-                setCurrentPage(1);
-              }}
-              className="pl-8"
-            />
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle>All Students</CardTitle>
+              <div className="text-sm text-muted-foreground">Total students: {totalStudents}</div>
+            </div>
+            <div className="flex items-center space-x-2">
+              <div className="relative w-full max-w-sm">
+                <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Search students..."
+                  value={searchTerm}
+                  onChange={(e) => {
+                    setSearchTerm(e.target.value);
+                    setCurrentPage(1);
+                  }}
+                  className="pl-8"
+                />
+              </div>
+              <div className="flex items-center space-x-2">
+                <Select value={selectedDepartment} onValueChange={(v) => { setSelectedDepartment(v); setCurrentPage(1); }}>
+                  <SelectTrigger className="w-40">
+                    <SelectValue placeholder="Department" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All Departments</SelectItem>
+                    {departments?.map((dep) => (
+                      <SelectItem key={dep.id} value={dep.id}>{dep.name}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+
+                <Select value={selectedLevel} onValueChange={(v) => { setSelectedLevel(v); setCurrentPage(1); }}>
+                  <SelectTrigger className="w-28">
+                    <SelectValue placeholder="Level" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">All</SelectItem>
+                    <SelectItem value="100">100</SelectItem>
+                    <SelectItem value="200">200</SelectItem>
+                    <SelectItem value="300">300</SelectItem>
+                    <SelectItem value="400">400</SelectItem>
+                    <SelectItem value="500">500</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
           </div>
         </CardHeader>
         <CardContent>
