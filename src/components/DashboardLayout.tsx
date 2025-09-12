@@ -150,7 +150,7 @@ export function DashboardLayout() {
       },
     ]
 
-  const filteredSidebarItems = user?.role === 'school-admin' ? adminRoutes : getFilteredSidebarItems();
+  const filteredSidebarItems = user?.role === 'school-admin' ? adminRoutes : (user?.role==='student'?[]:getFilteredSidebarItems());
 
   return (
     <SidebarProvider>
