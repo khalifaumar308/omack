@@ -105,8 +105,11 @@ export default function Students() {
     reader.onload = (event) => {
       const csv = event.target?.result as string;
       const lines = csv.split('\n').slice(1); // Skip header
-      const students: CreateStudentForm[] = lines.map(line => {
+      const students = lines.map(line => {
         const [name, email, matricNo, department, level, password] = line.split(',');
+        if(!name || !email || !matricNo || !department || !level || !password) {
+          return ;
+        }
         return {
           name: name.trim(),
           email: email.trim(),
@@ -117,10 +120,11 @@ export default function Students() {
           matricNo: matricNo.trim(),
           department: departments?.find(dep => dep.name === department.trim())?.id || "",
         };
-      }).filter(s => s.name && s.email && s.matricNo);
+      }).filter(s => s?.name && s?.email && s?.matricNo);
       if (students.length > 0) {
         console.log(students);
-        bulkAddStudentMutation.mutate(students);
+        const final = JSON.parse(JSON.stringify(students)) as CreateStudentForm[];
+        bulkAddStudentMutation.mutate(final);
       }
     };
     reader.readAsText(selectedFile);
