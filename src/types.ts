@@ -9,7 +9,7 @@ export interface ISchool {
   createdAt: string;
   updatedAt: string;
 }
-
+// =LOWER(LEFT(c2,3)) & LOWER(SUBSTITUTE(MID(c2,4,LEN(c2)),"/","")) & "@omark.com"
 export interface ICreateSchoolRequest {
   name: string;
   address: string;
@@ -17,6 +17,9 @@ export interface ICreateSchoolRequest {
   logo: string;
   registrarSignature?: string;
 }
+
+
+
 
 export interface ICreateFacultyRequest {
   name: string;

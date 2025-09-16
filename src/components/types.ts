@@ -222,7 +222,7 @@ export interface AdminUploadResultsRequest {
   results: Array<{
     matricNo: string;
     score: number;
-    grade: string;
+    grade?: string;
     course: string;
     semester: string;
     session: string;

@@ -21,6 +21,7 @@ import { PDFDownloadLink } from "@react-pdf/renderer";
 import ResultTemplate from "@/components/ResultTemplate";
 import type { StudentsSemesterResultsResponse, PopulatedDepartment, PopulatedFaculty } from "@/components/types";
 import { useAdminUploadResults } from "@/lib/api/mutations";
+import { toast } from "sonner";
 
 // Types for ResultTemplate
 interface Course {
@@ -56,7 +57,9 @@ interface Summary {
 interface UploadData {
 	matricNo: string;
 	score: number;
-	grade: string;
+	course: string;
+	semester: string;
+	session: string;
 }
 
 const Results = () => {
@@ -74,8 +77,7 @@ const Results = () => {
 	// Upload states
 	const [isUploadOpen, setIsUploadOpen] = useState(false);
 	const [uploadSemester, setUploadSemester] = useState('First');
-	const [uploadSession, setUploadSession] = useState('2024/2025');
-	const [selectedCourse, setSelectedCourse] = useState('');
+	const [uploadSession, setUploadSession] = useState('2025/2026');
 	const [uploadFile, setUploadFile] = useState<File | null>(null);
 	const [parsedData, setParsedData] = useState<UploadData[]>([]);
 
@@ -95,47 +97,57 @@ const Results = () => {
 				return;
 			}
 
-			const headers = lines[0].split(',').map(h => h.trim().toLowerCase());
-			const expectedHeaders = ['matric no', 'score', 'grade'];
-			if (!expectedHeaders.every(h => headers.includes(h))) {
-				console.error('Invalid CSV headers. Expected: Matric No, Score, Grade');
-				return;
-			}
-
-			const data: UploadData[] = lines.slice(1).map((line) => {
+			const headers = lines[0].split(',').map(h => h.trim());
+			// const expectedHeaders = ['matric no', 'score', 'grade'];
+			// if (!expectedHeaders.every(h => headers.includes(h))) {
+			// 	console.error('Invalid CSV headers. Expected: Matric No, Score, Grade');
+			// 	return;
+			// }
+			const data: UploadData[] = []
+			lines.slice(1).forEach((line) => {
 				const values = line.split(',').map(v => v.trim());
-				return {
-					matricNo: values[headers.indexOf('matric no')],
-					score: parseFloat(values[headers.indexOf('score')]) || 0,
-					grade: values[headers.indexOf('grade')],
-				};
-			}).filter(row => row.matricNo && !isNaN(row.score));
-
+				// index 0 is matric no, the rest are course scores
+				values.slice(1).forEach((score, index) => {
+					const cc = {
+					//get course id from course code
+					course: (coursesData?.find(c => c.code === headers[index + 1]) as any)?._id,
+					// course: headers[index + 1],
+					score: parseFloat(score) || 0,
+					matricNo: values[0],
+					semester: uploadSemester,
+					session: uploadSession,
+				}
+					if(cc.course && cc.matricNo && !isNaN(cc.score)){
+						data.push(cc);
+					}
+				});
+			});
+			console.log('Parsed Data:', data);
 			setParsedData(data);
 		};
 		reader.readAsText(file);
 	};
 
 	const handleUploadSubmit = () => {
-		if (!selectedCourse || !uploadFile || parsedData.length === 0) {
+		if (!uploadFile || parsedData.length === 0) {
 			console.error('Missing required fields or data');
 			return;
 		}
-		const courses = (coursesData?.find(c => c.code === selectedCourse) as any)?._id;
-		const resultss = parsedData.map(item => ({
-			matricNo: item.matricNo,
-			score: item.score,
-			grade: item.grade,
-			course: courses!,
-			semester: uploadSemester,
-			session: uploadSession,
-		}));
-		uploadResults({ results: resultss });
-		// TODO: Implement actual upload logic here
-		setIsUploadOpen(false);
-		setParsedData([]);
-		setUploadFile(null);
-		setSelectedCourse('');
+		console.log('Submitting upload for', parsedData.length, 'results');
+		uploadResults({ results: parsedData }, {
+			onSuccess: () => {
+				// Optionally show a success message or refresh data
+				console.log('Upload successful');
+				toast.success('Upload successful!');
+				setIsUploadOpen(false);
+				setParsedData([]);
+				setUploadFile(null);
+			},
+			onError: (err) => {
+				console.error('Upload failed:', err);
+				toast.error(`Upload failed. ${err.message || 'Please try again.'}`);
+			},
+		});
 	};
 
 	const filteredResults = useMemo(() => {
@@ -301,7 +313,7 @@ const Results = () => {
 								<div className="space-y-4">
 									<div className="flex flex-col gap-4">
 										<div>
-											<Label htmlFor="course">Course</Label>
+											{/* <Label htmlFor="course">Course</Label>
 											<Select onValueChange={val => setSelectedCourse(val)} value={selectedCourse}>
 												<SelectTrigger>
 													<SelectValue placeholder="Select Course" />
@@ -314,7 +326,7 @@ const Results = () => {
 														</SelectItem>
 													))}
 												</SelectContent>
-											</Select>
+											</Select> */}
 										</div>
 										<div>
 											<Label htmlFor="semester">Semester</Label>
@@ -353,7 +365,7 @@ const Results = () => {
 									)}
 								</div>
 								<DialogFooter>
-									<Button type="submit" onClick={handleUploadSubmit} disabled={!selectedCourse || !uploadFile || parsedData.length === 0}>
+									<Button type="submit" onClick={handleUploadSubmit} disabled={!uploadFile || parsedData.length === 0}>
 										Upload
 									</Button>
 								</DialogFooter>
@@ -383,13 +395,13 @@ const Results = () => {
 									</TableRow>
 								</TableHeader>
 								<TableBody className="text-left">
-									{paginatedResults.map((result: StudentsSemesterResultsResponse) => {
+									{paginatedResults.map((result: StudentsSemesterResultsResponse, id) => {
 										const passed = result.courses.filter(c => c.grade && c.grade !== 'F').length;
 										const failed = result.courses.filter(c => c.grade === 'F').length;
 										const gpa = result.summary?.GPA;
 
 										return (
-											<TableRow key={result.student.id}>
+											<TableRow key={id}>
 												<TableCell className="font-medium">{result.student.name}</TableCell>
 												<TableCell>{result.student.matricNo}</TableCell>
 												<TableCell>{result.student.level}</TableCell>

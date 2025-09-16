@@ -151,8 +151,11 @@ const CourseRegistrations = () => {
         const [matricNo, courseCodes] = line.split(',');
         // console.log(matricNo, courseCodes, 'matricNo, courseCodes')
         //get student id and course ids from matricNo and courseCodes
+        if (!matricNo || !courseCodes || !bulkSemester || !bulkSession) {
+          return;
+        }
         const studentId = (students?.find(student => student.matricNo === matricNo.trim()) as any)?._id;
-        const courseCds = courseCodes.trim().split(';');
+        const courseCds = courseCodes?.trim().split(';');
         const courseIds = courses?.filter(course => courseCds.includes(course.code)).map((course:any) => course._id);
         if (studentId === "") {
           console.log(matricNo, 'student not found');
