@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import * as api from "./base";
 import { toast } from "sonner";
-import type { AdminUploadResultsRequest, CreateCourseForm, CreateDepartmentForm, CreateFacultyForm, CreateStudentForm, RegisterCourseRequest, RegisterManyCoursesRequest } from "@/components/types";
+import type { AdminUploadResultsRequest, CreateCourseForm, CreateDepartmentForm, CreateFacultyForm, CreateGradingTemplateRequest, CreateStudentForm, RegisterCourseRequest, RegisterManyCoursesRequest, UpdateGradingTemplateRequest } from "@/components/types";
 
 // export const useAddSchool = () => {
 //   const queryClient = useQueryClient();
@@ -293,6 +293,51 @@ export const useStudentRegisterManyCourses = () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     onError: (error: any) => {
       toast.error(error?.response?.data?.message || "Failed to register courses. Please try again.");
+    },
+  });
+};
+
+export const useCreateGradingTemplate = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data:CreateGradingTemplateRequest) => api.createGradingTemplate(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["gradingTemplates"] });
+      toast.success("Grading Template registered successfully");
+    },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.message || "Failed to register gradingTemplate. Please try again.");
+    },
+  })
+}
+
+export const useDeleteGradingTemplate = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (id: string) => api.deleteGradingTemplate(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["gradingTemplates"] });
+      toast.success("Grading Template deleted successfully");
+    },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.message || "Failed to delete Grading Template. Please try again.");
+    },
+  });
+};
+
+export const useUpdateGradingTemplate = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: { id: string; data: UpdateGradingTemplateRequest }) => api.updateGradingTemplate(data.id, data.data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["gradingTemplates"] });
+      toast.success("gradingTemplate updated successfully");
+    },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.message || "Failed to update gradingTemplate. Please try again.");
     },
   });
 };

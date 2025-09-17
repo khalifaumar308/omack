@@ -15,10 +15,14 @@ import type {
   StudentsSemesterResultsResponse,
   AdminUploadResultsRequest,
   PopulatedUser,
+  GradingTemplateListResponse,
+  CreateGradingTemplateRequest,
+  UpdateGradingTemplateRequest,
 } from '@/components/types';
 
 // Configure your API base URL
 const API_BASE_URL = 'https://hmsms-api.onrender.com/api';
+
 
 // =============================================================================
 // SECURE AXIOS INSTANCE WITH COOKIES AND CSRF
@@ -232,6 +236,32 @@ export const checkAuthStatus = async () => {
   return await authManager.isAuthenticated();
 };
 
+//grading template
+
+export const getGradingTemplates = async () =>{
+  const response = await api.get<GradingTemplateListResponse>("/grading-templates");
+  return response.data
+}
+
+export const createGradingTemplate = async(template:CreateGradingTemplateRequest) => {
+  const response = await api.post("/grading-templates", template);
+  return response.data
+}
+
+export const updateGradingTemplate = async (id:string, update:UpdateGradingTemplateRequest) => {
+ const responce = await api.put(`/grading-templates/${id}`, update)
+ return responce.data
+} 
+
+export const getGradingTemplateById = async (id:string) => {
+ const responce = await api.get(`/grading-templates/${id}`)
+ return responce.data
+} 
+
+export const deleteGradingTemplate = async (id:string) => {
+ const responce = await api.delete(`/grading-templates/${id}`)
+ return responce.data
+} 
 // =============================================================================
 // SCHOOL MANAGEMENT APIs
 // =============================================================================

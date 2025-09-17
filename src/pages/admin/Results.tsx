@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useUser } from "@/contexts/useUser";
-import { useGetStudentsSemesterResults, useGetCourses } from "@/lib/api/queries";
+import { useGetStudentsSemesterResults, useGetCourses, useGetGradingTemplates } from "@/lib/api/queries";
 import { useState, useMemo, useEffect } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/dialog";
 import { PDFDownloadLink } from "@react-pdf/renderer";
 import ResultTemplate from "@/components/ResultTemplate";
-import type { StudentsSemesterResultsResponse, PopulatedDepartment, PopulatedFaculty } from "@/components/types";
+import type { StudentsSemesterResultsResponse, PopulatedDepartment, PopulatedFaculty, GradingTemplate, GradeBand } from "@/components/types";
 import { useAdminUploadResults } from "@/lib/api/mutations";
 import { toast } from "sonner";
 
@@ -62,10 +62,11 @@ interface UploadData {
 	session: string;
 }
 
+
 const Results = () => {
 	const { isLoading: userLoading, user } = useUser();
 	const [semester, setSemester] = useState(user?.school?.currentSemester || 'First');
-	const [session, setSession] = useState(user?.school?.currentSession || '2024/2025');
+	const [session, setSession] = useState(user?.school?.currentSession || '2025/2026');
 	const [searchTerm, setSearchTerm] = useState('');
 	const [levelFilter, setLevelFilter] = useState('all');
 	// pagination
@@ -82,6 +83,9 @@ const Results = () => {
 	const [parsedData, setParsedData] = useState<UploadData[]>([]);
 
 	const { data: coursesData } = useGetCourses();
+	// Fetch grading templates (inside component)
+	const { data: gradingTemplatesRaw } = useGetGradingTemplates();
+	const gradingTemplates: GradingTemplate[] = Array.isArray(gradingTemplatesRaw) ? gradingTemplatesRaw : [];
 
 	const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
 		const file = event.target.files?.[0];
@@ -192,59 +196,73 @@ const Results = () => {
 	if (userLoading || isLoading) return <div>Loading...</div>;
 	if (error) return <div>Error loading results</div>;
 
-	const getGradePoints = (grade: string): number => {
-		const pointsMap: Record<string, number> = {
-			'A': 4,
-			'AB': 3.5,
-			'B': 3,
-			'BC': 2.5,
-			'C': 2,
-			'D': 1,
-			'F': 0,
-			// Adjust based on your grading scale
+	console.log(gradingTemplates, 'gradingTemplates')
+		// Find grading template for a department
+		const getDepartmentTemplate = (departmentId: string): GradingTemplate | undefined => {
+			return gradingTemplates.find(
+				(tpl) => (typeof tpl.department === 'string' ? tpl.department : tpl.department?.id) === departmentId
+			);
 		};
-		return pointsMap[grade] || 0;
-	};
 
-	const formatForResultTemplate = (result: StudentsSemesterResultsResponse) => {
-		const student = result.student;
-		const department = student.department as unknown as PopulatedDepartment;
-		const faculty = department.faculty as unknown as PopulatedFaculty;
-		const currentDate = new Date().toISOString().slice(0, 19).replace('T', ' ');
-		const rsummary = result.summary
-		const courses: Course[] = result.courses.map((reg, index) => ({
-			sn: index + 1,
-			code: reg.course.code,
-			title: reg.course.title,
-			credits: reg.course.creditUnits,
-			total: reg.score || 0,
-			grade: reg.grade || '',
-			gradePoint: getGradePoints(reg.grade || '') * reg.course.creditUnits,
-			remark: reg.grade && getGradePoints(reg.grade) > 0 ? 'PASSED' : (reg.grade ? 'FAILED' : 'Not Graded'),
-		}));
-		const tcu = rsummary?.TCU || courses.reduce((sum, c) => sum + c.credits, 0);
-		const tgp = courses.reduce((sum, c) => sum + c.gradePoint, 0);
-		const gpa = rsummary?.GPA || (tcu > 0 ? tgp / tcu : 0);
-		const remark = gpa >= 3.0 ? 'UPPER CREDIT' : gpa >= 2.5 ? 'LOWER CREDIT' : gpa >= 2 ? 'PASS' : 'FAIL';
-		const summary: Summary = {
-			current: { tcu, tca: tcu, tgp, gpa, remark },
-			previous: { ltcu: 'NIL', ltca: 'NIL', ltgp: 'NIL', lcgpa: 'NIL' },
-			cumulative: { tcu, tca: tcu, tgp, cgpa: rsummary?.CGPA || gpa },
+		// Given a score and gradeBands, return grade and point
+		const getGradeAndPoint = (score: number, gradeBands: GradeBand[]): { grade: string; point: number } => {
+			for (const band of gradeBands) {
+				if (score >= band.minScore && score <= band.maxScore) {
+					return { grade: band.grade, point: band.point };
+				}
+			}
+			return { grade: '', point: 0 };
 		};
-		const studentData: StudentData = {
-			lastUpdated: currentDate,
-			matric: student.matricNo,
-			name: student.name,
-			session,
-			programme: department.name,
-			semester,
-			department: department.name,
-			level: student.level.toString(),
-			faculty: faculty?.name,
-			approvalStatus: 'approved',
+
+		const formatForResultTemplate = (result: StudentsSemesterResultsResponse) => {
+			const student = result.student;
+			const department = student.department as unknown as PopulatedDepartment;
+			const faculty = department.faculty as unknown as PopulatedFaculty;
+			const currentDate = new Date().toISOString().slice(0, 19).replace('T', ' ');
+			const rsummary = result.summary;
+			// Find grading template for this department
+			const template = getDepartmentTemplate((department as any)._id);
+			const gradeBands = template?.gradeBands || [];
+			const courses: Course[] = result.courses.map((reg, index) => {
+				const score = reg.score || 0;
+				// const regGrade = reg.grade;
+				const { grade, point } = getGradeAndPoint(score, gradeBands);
+				
+				return {
+					sn: index + 1,
+					code: reg.course.code,
+					title: reg.course.title,
+					credits: reg.course.creditUnits,
+					total: score,
+					grade: grade,
+					gradePoint: point * reg.course.creditUnits,
+					remark: grade ? (point > 0 ? 'PASSED' : 'FAILED') : 'Not Graded',
+				};
+			});
+			const tcu = rsummary?.TCU || courses.reduce((sum, c) => sum + c.credits, 0);
+			const tgp = courses.reduce((sum, c) => sum + c.gradePoint, 0);
+			const gpa = rsummary?.GPA || (tcu > 0 ? tgp / tcu : 0);
+			// Optionally, use template to determine remark (e.g., based on GPA bands)
+			const remark = gpa >= 3.0 ? 'UPPER CREDIT' : gpa >= 2.5 ? 'LOWER CREDIT' : gpa >= 2 ? 'PASS' : 'FAIL';
+			const summary: Summary = {
+				current: { tcu, tca: tcu, tgp, gpa, remark },
+				previous: { ltcu: 'NIL', ltca: 'NIL', ltgp: 'NIL', lcgpa: 'NIL' },
+				cumulative: { tcu, tca: tcu, tgp, cgpa: rsummary?.CGPA || gpa },
+			};
+			const studentData: StudentData = {
+				lastUpdated: currentDate,
+				matric: student.matricNo,
+				name: student.name,
+				session,
+				programme: department.name,
+				semester,
+				department: department.name,
+				level: student.level.toString(),
+				faculty: faculty?.name,
+				approvalStatus: 'approved',
+			};
+			return { studentData, courses, summary };
 		};
-		return { studentData, courses, summary };
-	};
 
 	return (
 		<div className="container mx-auto p-6">

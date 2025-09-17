@@ -118,3 +118,22 @@ export const useGetSemesterResult = (semester:string  = 'First', session:string 
 //     refetchOnWindowFocus: false,
 //   });
 // };
+
+//grading templates
+export const useGetGradingTemplates = () => {
+  return useQuery({
+    queryKey: ["gradingTemplates"],
+    queryFn: api.getGradingTemplates,
+    placeholderData: undefined,
+    refetchOnWindowFocus: false,
+  })
+}
+
+export const useGetGradingTemplateById = (id:string) => {
+  return useQuery({
+    queryKey: ["gradingTemplates"],
+    queryFn: ()=>api.getGradingTemplateById(id),
+    placeholderData: undefined,
+    refetchOnWindowFocus: false,
+  })
+}

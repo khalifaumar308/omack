@@ -146,6 +146,7 @@ export function DashboardLayout() {
           { title: "Faculties", url: "/admin/faculties" },
           { title: "Departments", url: "/admin/departments" },
           { title: "Courses", url: "/admin/courses" },
+          { title: "Grading Templates", url: "/admin/grading-templates" },
         ]
       },
     ]

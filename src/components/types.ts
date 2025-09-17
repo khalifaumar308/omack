@@ -1,6 +1,50 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 // Client-side TypeScript types for the HMS application
 // These interfaces are designed to be used in React TypeScript clients
+// =============================================================================
+// GRADING TEMPLATE API REQUEST/RESPONSE TYPES
+// =============================================================================
+
+export interface CreateGradingTemplateRequest {
+  department: string;
+  name: string;
+  gradeBands: GradeBand[];
+}
+
+export interface UpdateGradingTemplateRequest {
+  name?: string;
+  gradeBands?: GradeBand[];
+  department?:string;
+}
+
+export interface GradingTemplateResponse {
+  gradingTemplate: GradingTemplate;
+}
+
+export interface GradingTemplateListResponse {
+  gradingTemplates: GradingTemplate[];
+}
+
+export interface GradingTemplateErrorResponse {
+  message: string;
+  error?: any;
+}
+// Grading Template Types for Frontend
+export interface GradeBand {
+  minScore: number; // inclusive
+  maxScore: number; // inclusive
+  grade: string;
+  point: number;
+}
+
+export interface GradingTemplate {
+  _id: string;
+  department: string | Department; // department id or populated object
+  name: string;
+  gradeBands: GradeBand[];
+  createdAt: string;
+  updatedAt: string;
+}
 
 // =============================================================================
 // ENUMS AND CONSTANTS
