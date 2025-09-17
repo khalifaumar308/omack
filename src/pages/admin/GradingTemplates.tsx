@@ -165,27 +165,27 @@ const GradingTemplates = () => {
   // Responsive table
   return (
     <div className="max-w-6xl mx-auto px-2 py-8">
-      <div className="flex flex-col md:flex-row gap-4 mb-6">
-        <Card className="flex-1 bg-gradient-to-br from-indigo-500 to-purple-500 text-white shadow-lg">
+      <div className="flex flex-col gap-4 mb-6">
+        <Card className="flex-1 bg-white text-slate-800 shadow border border-slate-100">
           <CardHeader>
-            <CardTitle className="text-lg font-bold">Grading Templates</CardTitle>
+            <CardTitle className="text-lg font-bold text-slate-700">Grading Templates</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="flex flex-col gap-2">
               <div>
-                <span className="font-semibold text-2xl">{totalTemplates}</span>{" "}
-                templates
+                <span className="font-semibold text-2xl text-slate-800">{totalTemplates}</span>{" "}
+                <span className="text-slate-500">templates</span>
               </div>
               <div>
-                <span className="font-semibold text-2xl">{coveredDepartments}</span>{" "}
-                departments covered
+                <span className="font-semibold text-2xl text-slate-800">{coveredDepartments}</span>{" "}
+                <span className="text-slate-500">departments covered</span>
               </div>
             </div>
           </CardContent>
         </Card>
-        <div className="flex items-end">
+        <div className="flex items-end md:items-center md:justify-end w-full md:w-auto">
           <Button
-            className="gap-2 bg-gradient-to-r from-indigo-500 to-purple-500 text-white shadow"
+            className="gap-2 bg-slate-800 text-white shadow hover:bg-slate-700 transition"
             onClick={() => handleOpenModal()}
           >
             <Plus size={18} /> New Template
@@ -193,16 +193,16 @@ const GradingTemplates = () => {
         </div>
       </div>
 
-      <div className="bg-white rounded-xl shadow p-2 md:p-4 overflow-x-auto">
+      <div className="bg-white rounded-xl shadow p-2 md:p-4 overflow-x-auto border border-slate-100">
         <div className="flex flex-col md:flex-row md:items-center gap-2 mb-4">
           <Input
             placeholder="Search by name or department..."
             value={search}
             onChange={e => setSearch(e.target.value)}
-            className="max-w-xs"
+            className="max-w-xs bg-slate-50 border-slate-200 text-slate-700"
           />
           <select
-            className="border rounded px-2 py-2 max-w-xs"
+            className="border border-slate-200 rounded px-2 py-2 max-w-xs bg-slate-50 text-slate-700"
             value={filterDept}
             onChange={e => setFilterDept(e.target.value)}
           >
@@ -216,10 +216,10 @@ const GradingTemplates = () => {
           <div className="space-y-2">
             {[...Array(4)].map((_, i) => (
               <div key={i} className="animate-pulse flex gap-2 items-center border-b py-3">
-                <div className="h-4 w-32 bg-gray-200 rounded" />
-                <div className="h-4 w-32 bg-gray-200 rounded" />
-                <div className="h-4 w-40 bg-gray-200 rounded" />
-                <div className="h-8 w-20 bg-gray-200 rounded" />
+                <div className="h-4 w-32 bg-slate-200 rounded" />
+                <div className="h-4 w-32 bg-slate-200 rounded" />
+                <div className="h-4 w-40 bg-slate-200 rounded" />
+                <div className="h-8 w-20 bg-slate-200 rounded" />
               </div>
             ))}
           </div>
@@ -228,27 +228,27 @@ const GradingTemplates = () => {
         ) : (
           <table className="min-w-[600px] w-full text-sm">
             <thead>
-              <tr className="bg-gray-100">
-                <th className="py-2 px-2 text-left">Name</th>
-                <th className="py-2 px-2 text-left">Department</th>
-                <th className="py-2 px-2 text-left">Grades</th>
-                <th className="py-2 px-2 text-left">Actions</th>
+              <tr className="bg-slate-100">
+                <th className="py-2 px-2 text-left text-slate-700">Name</th>
+                <th className="py-2 px-2 text-left text-slate-700">Department</th>
+                <th className="py-2 px-2 text-left text-slate-700">Grades</th>
+                <th className="py-2 px-2 text-left text-slate-700">Actions</th>
               </tr>
             </thead>
             <tbody>
               {filteredTemplates.map((t) => (
                 <tr
                   key={t._id}
-                  className="border-b hover:bg-gray-50 transition"
+                  className="border-b border-slate-100 hover:bg-slate-50 transition"
                 >
-                  <td className="py-2 px-2 font-medium">{t.name}</td>
-                  <td className="py-2 px-2">
+                  <td className="py-2 px-2 font-medium text-slate-800">{t.name}</td>
+                  <td className="py-2 px-2 text-slate-700">
                     {typeof t.department === "object"
                       ? t.department?.name
                       : departments.find((d) => d.id === t.department)?.name ||
                         "-"}
                   </td>
-                  <td className="py-2 px-2">
+                  <td className="py-2 px-2 text-slate-700">
                     {(t.gradeBands || [])
                       .map(
                         (g) =>
@@ -260,6 +260,7 @@ const GradingTemplates = () => {
                     <Button
                       size="sm"
                       variant="outline"
+                      className="border-slate-200 text-slate-700 hover:bg-slate-100"
                       onClick={() => handleOpenModal(t)}
                     >
                       <Edit2 size={16} />
@@ -267,6 +268,7 @@ const GradingTemplates = () => {
                     <Button
                       size="sm"
                       variant="destructive"
+                      className="border-slate-200 bg-white text-red-700 hover:bg-slate-100"
                       onClick={() => handleDelete(t._id)}
                       disabled={deleteGradingTemplate.isPending}
                     >
@@ -277,7 +279,7 @@ const GradingTemplates = () => {
               ))}
               {filteredTemplates.length === 0 && (
                 <tr>
-                  <td colSpan={4} className="text-center py-8 text-gray-400">
+                  <td colSpan={4} className="text-center py-8 text-slate-400">
                     No grading templates found.
                   </td>
                 </tr>
@@ -297,7 +299,7 @@ const GradingTemplates = () => {
           </DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-4">
             <div>
-              <label className="block mb-1 font-medium">Name</label>
+              <label className="block mb-1 font-medium text-slate-700">Name</label>
               <Input
                 required
                 value={form.name}
@@ -305,13 +307,14 @@ const GradingTemplates = () => {
                   setForm((f) => ({ ...f, name: e.target.value }))
                 }
                 placeholder="e.g. Standard Grading"
+                className="bg-slate-50 border-slate-200 text-slate-700"
               />
             </div>
             <div>
-              <label className="block mb-1 font-medium">Department</label>
+              <label className="block mb-1 font-medium text-slate-700">Department</label>
               <select
                 required
-                className="w-full border rounded px-2 py-2"
+                className="w-full border border-slate-200 rounded px-2 py-2 bg-slate-50 text-slate-700"
                 value={form.department}
                 onChange={(e) =>
                   setForm((f) => ({ ...f, department: e.target.value }))
@@ -326,8 +329,8 @@ const GradingTemplates = () => {
               </select>
             </div>
             <div>
-              <label className="block mb-1 font-medium">
-                Grades <span className="text-xs text-gray-500">(e.g. A:70-100:5, B:60-69:4, C:50-59:3)</span>
+              <label className="block mb-1 font-medium text-slate-700">
+                Grades <span className="text-xs text-slate-500">(e.g. A:70-100:5, B:60-69:4, C:50-59:3)</span>
               </label>
               <Input
                 required
@@ -336,15 +339,16 @@ const GradingTemplates = () => {
                   setForm((f) => ({ ...f, grades: e.target.value }))
                 }
                 placeholder="A:70-100:5, B:60-69:4, C:50-59:3"
+                className="bg-slate-50 border-slate-200 text-slate-700"
               />
-              <div className="text-xs text-gray-500 mt-1">
+              <div className="text-xs text-slate-500 mt-1">
                 Format: <code>Grade:MinScore-MaxScore:Point</code> (e.g. <code>A:70-100:5</code>)
               </div>
             </div>
             <DialogFooter>
               <Button
                 type="submit"
-                className="bg-gradient-to-r from-indigo-500 to-purple-500 text-white"
+                className="bg-slate-800 text-white hover:bg-slate-700"
                 disabled={
                   createGradingTemplate.isPending ||
                   updateGradingTemplate.isPending
@@ -359,7 +363,7 @@ const GradingTemplates = () => {
                   : "Create"}
               </Button>
               <DialogClose asChild>
-                <Button type="button" variant="outline">
+                <Button type="button" variant="outline" className="border-slate-200 text-slate-700 hover:bg-slate-100">
                   Cancel
                 </Button>
               </DialogClose>

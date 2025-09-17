@@ -211,10 +211,13 @@ export function DashboardLayout() {
         </Sidebar>
         <SidebarInset className="flex-1">
           <header className="flex h-16 shrink-0 items-center gap-2 border-b px-6">
-            <SidebarTrigger className="-ml-1" />
+            <div className="flex items-center align-middle gap-2">
+              <SidebarTrigger className="-ml-1" />
+              <p className="hidden md:flex text-sm font-bold">{user?.school?.name}</p>
+            </div>
             <div className="ml-auto flex items-center gap-2">
               <span className="text-sm font-medium">{user?.name}</span>
-              <Button variant="ghost" size="sm" onClick={handleLogout}>
+              <Button className="bg-red-500 text-white" variant="outline" size="sm" onClick={handleLogout}>
                 Logout
               </Button>
             </div>
