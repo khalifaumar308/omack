@@ -4,22 +4,63 @@ import {
   Text,
   View,
   StyleSheet,
+  Image,
+  Font,
 } from '@react-pdf/renderer';
+import times from "@/times.ttf"
+// Register Times New Roman font
+Font.register({
+  family: 'Times New Roman',
+  fonts: [
+    { src: times },
+    // { src: 'https://cdn.jsdelivr.net/npm/@canvas-fonts/times-new-roman@1.0.4/Times New Roman Bold.ttf', fontWeight: 'bold' }
+  ]
+});
 
 // Styles for the PDF to match the provided layout
 const styles = StyleSheet.create({
 	page: {
-		padding: 40,
-		fontFamily: 'Helvetica',
-		fontSize: 9,
-		lineHeight: 1.1,
+		padding: 30,
+		fontFamily: 'Times New Roman',
+		fontSize: 10,
+		lineHeight: 1.2,
 	},
 	headerSection: {
-		marginBottom: 20,
+		marginBottom: 15,
 		display: 'flex',
 		flexDirection: 'row',
 		justifyContent: 'space-between',
-		alignItems: 'flex-start',
+		alignItems: 'center',
+		borderBottom: '2px solid #000',
+		paddingBottom: 10,
+	},
+	headerLeft: {
+		width: 80,
+		height: 80,
+	},
+	headerCenter: {
+		flex: 1,
+		textAlign: 'center',
+		marginHorizontal: 10,
+	},
+	headerRight: {
+		width: 80,
+		height: 80,
+	},
+	schoolName: {
+		fontSize: 16,
+		fontWeight: 'bold',
+		color: '#00008B',
+		marginBottom: 5,
+	},
+	schoolAddress: {
+		fontSize: 8,
+		color: '#666',
+	},
+	studentImage: {
+		width: 80,
+		height: 80,
+		objectFit: 'cover',
 	},
 	lastUpdated: {
 		fontSize: 8,
@@ -65,6 +106,12 @@ const styles = StyleSheet.create({
 		paddingLeft: 4,
 		paddingRight: 4,
 	},
+	courseGradingTitle: {
+		fontSize: 12,
+		fontWeight: 'bold',
+		marginBottom: 5,
+		textAlign: 'center',
+	},
 	courseTable: {
 		display: 'flex',
 		flexDirection: 'column',
@@ -76,53 +123,99 @@ const styles = StyleSheet.create({
 		display: 'flex',
 		flexDirection: 'row',
 		borderBottom: '1px solid black',
+		minHeight: 25,
 	},
 	courseHeader: {
 		backgroundColor: '#f0f0f0',
 		fontWeight: 'bold',
 		padding: 4,
 		textAlign: 'center',
+		display: 'flex',
+		alignItems: 'center',
+		justifyContent: 'center',
 	},
 	courseCell: {
 		padding: 4,
 		textAlign: 'center',
 		borderRight: '1px solid black',
+		display: 'flex',
+		alignItems: 'center',
+		justifyContent: 'center',
 	},
 	snCol: { width: '5%' },
-	codeCol: { width: '8%' },
-	titleCol: { width: '30%' },
-	creditsCol: { width: '7%' },
+	codeCol: { width: '10%' },
+	titleCol: { width: '35%' },
+	creditsCol: { width: '5%' },
 	totalCol: { width: '8%' },
 	gradeCol: { width: '8%' },
-	gradePointCol: { width: '8%' },
-	remarkCol: { width: '26%' },
+	gradePointCol: { width: '12%' },
+	remarkCol: { width: '17%' },
+	summarySection: {
+		marginTop: 20,
+	},
+	summaryTitle: {
+		fontSize: 12,
+		fontWeight: 'bold',
+		marginBottom: 5,
+		textAlign: 'center',
+	},
 	summaryTable: {
 		display: 'flex',
-		flexDirection: 'column',
+		flexDirection: 'row',
+		justifyContent: 'center',
+		gap: 20,
+	},
+	summaryColumn: {
 		border: '1px solid black',
-		borderBottomWidth: 0,
+		width: '25%',
+	},
+	summaryHeader: {
+		backgroundColor: '#f0f0f0',
+		fontWeight: 'bold',
+		padding: 6,
+		textAlign: 'center',
+		borderBottom: '1px solid black',
 	},
 	summaryRow: {
 		display: 'flex',
 		flexDirection: 'row',
 		borderBottom: '1px solid black',
 	},
-	summaryHeader: {
-		backgroundColor: '#f0f0f0',
-		fontWeight: 'bold',
+	summaryLabel: {
+		width: '50%',
 		padding: 4,
-		textAlign: 'center',
-	},
-	summaryCell: {
-		padding: 4,
-		textAlign: 'center',
 		borderRight: '1px solid black',
+		textAlign: 'center',
 	},
-	summaryCol1: { width: '20%' }, // RESULT SUMMARY
-	summaryCol2: { width: '20%' }, // CURRENT
-	summaryCol3: { width: '10%' }, // REMARK
-	summaryCol4: { width: '20%' }, // PREVIOUS
-	summaryCol5: { width: '30%' }, // CUMULATIVE
+	summaryValue: {
+		width: '50%',
+		padding: 4,
+		textAlign: 'center',
+	},
+	remarkText: {
+		marginTop: 10,
+		textAlign: 'center',
+		fontSize: 12,
+		fontWeight: 'bold',
+	},
+	dateAndStamp: {
+		marginTop: 20,
+		display: 'flex',
+		flexDirection: 'row',
+		justifyContent: 'space-between',
+		alignItems: 'flex-end',
+	},
+	dateText: {
+		fontSize: 10,
+	},
+	stamp: {
+		width: 100,
+		height: 100,
+		position: 'absolute',
+		right: 50,
+		bottom: 30,
+		opacity: 0.8,
+	}
 });
 
 // Interfaces matching the required data structure
@@ -168,14 +261,39 @@ const ResultTemplate: React.FC<PDFProps> = ({ studentData, courses, summary }) =
 		<Page size="A4" style={styles.page}>
 			{/* Header Section */}
 			<View style={styles.headerSection}>
-				<View>
-					<Text style={styles.lastUpdated}>Last Updated {studentData.lastUpdated}</Text>
+				<Image 
+					src="/logo.png"
+					style={styles.headerLeft}
+				/>
+				<View style={styles.headerCenter}>
+					<Text style={styles.schoolName}>O'MARK SCHOOL OF HEALTH TECHNOLOGY</Text>
+					<Text style={styles.schoolAddress}>O'MARK BUS-STOP, ISHERI RD., EGBEDA, LAGOS</Text>
+					<Text style={styles.schoolAddress}>📱 Phone: 09153638063 📧 Email: Omarkhealthgmail.com</Text>
 				</View>
-				<View style={{ flex: 1, alignItems: 'center' }}>
-					<Text style={styles.title}>STUDENT DATA</Text>
+				<Image 
+					src={`/images/students/${studentData.matric}.jpg`}
+					style={styles.studentImage}
+				/>
+			</View>
+
+			{/* Student Info Section */}
+			<View style={{marginBottom: 10}}>
+				<View style={{marginBottom: 5}}>
+					<Text style={{fontWeight: 'bold'}}>{studentData.name}</Text>
+					<Text style={{fontWeight: 'bold'}}>{studentData.matric}</Text>
 				</View>
-				<View style={{ textAlign: 'right' }}>
-					<Text style={styles.matricHeader}>Matric {studentData.matric}</Text>
+				<View style={{display: 'flex', flexDirection: 'row', gap: 20}}>
+					<Text>PROGRAMME: {studentData.programme}</Text>
+					<Text>DEPARTMENT: {studentData.department}</Text>
+				</View>
+				<View style={{display: 'flex', flexDirection: 'row', gap: 20}}>
+					<Text>FACULTY: {studentData.faculty}</Text>
+					<Text>SESSION: {studentData.session}</Text>
+				</View>
+				<View style={{display: 'flex', flexDirection: 'row', gap: 20}}>
+					<Text>SEMESTER: {studentData.semester}</Text>
+					<Text>LEVEL: {studentData.level}</Text>
+					<Text>APPROVAL STATUS: {studentData.approvalStatus}</Text>
 				</View>
 			</View>
 
@@ -228,17 +346,18 @@ const ResultTemplate: React.FC<PDFProps> = ({ studentData, courses, summary }) =
 			</View>
 
 			{/* Course Table */}
+			<Text style={styles.courseGradingTitle}>COURSE GRADING</Text>
 			<View style={styles.courseTable}>
 				{/* Headers */}
 				<View style={styles.courseRow}>
 					<Text style={[styles.courseHeader, styles.snCol]}>S/N</Text>
-					<Text style={[styles.courseHeader, styles.codeCol]}>Code</Text>
-					<Text style={[styles.courseHeader, styles.titleCol]}>Course Title</Text>
-					<Text style={[styles.courseHeader, styles.creditsCol]}>Credits</Text>
-					<Text style={[styles.courseHeader, styles.totalCol]}>Total</Text>
-					<Text style={[styles.courseHeader, styles.gradeCol]}>Grade</Text>
-					<Text style={[styles.courseHeader, styles.gradePointCol]}>Grade Point</Text>
-					<Text style={[styles.courseHeader, styles.remarkCol]}>Remark</Text>
+					<Text style={[styles.courseHeader, styles.codeCol]}>CODE</Text>
+					<Text style={[styles.courseHeader, styles.titleCol]}>COURSE TITLE</Text>
+					<Text style={[styles.courseHeader, styles.creditsCol]}>CU</Text>
+					<Text style={[styles.courseHeader, styles.totalCol]}>TOTAL</Text>
+					<Text style={[styles.courseHeader, styles.gradeCol]}>GRADE</Text>
+					<Text style={[styles.courseHeader, styles.gradePointCol]}>GRADE POINT</Text>
+					<Text style={[styles.courseHeader, styles.remarkCol]}>REMARK</Text>
 				</View>
 				{/* Rows */}
 				{courses.map((course) => (
@@ -255,85 +374,80 @@ const ResultTemplate: React.FC<PDFProps> = ({ studentData, courses, summary }) =
 				))}
 			</View>
 
-			{/* Summary Table */}
-			<View style={styles.summaryTable}>
-				{/* Headers */}
-				<View style={styles.summaryRow}>
-					<Text style={[styles.summaryHeader, styles.summaryCol1]}>RESULT SUMMARY</Text>
-					<Text style={[styles.summaryHeader, styles.summaryCol2]}>CURRENT</Text>
-					<Text style={[styles.summaryHeader, styles.summaryCol3]}>REMARK</Text>
-					<Text style={[styles.summaryHeader, styles.summaryCol4]}>PREVIOUS</Text>
-					<Text style={[styles.summaryHeader, styles.summaryCol5]}>CUMULATIVE</Text>
+			{/* Summary Section */}
+			<View style={styles.summarySection}>
+				<Text style={styles.summaryTitle}>RESULT SUMMARY</Text>
+				<View style={styles.summaryTable}>
+					{/* Previous */}
+					<View style={styles.summaryColumn}>
+						<Text style={styles.summaryHeader}>PREVIOUS</Text>
+						<View style={styles.summaryRow}>
+							<Text style={styles.summaryLabel}>LTCU</Text>
+							<Text style={styles.summaryValue}>{summary.previous.ltcu}</Text>
+						</View>
+						<View style={styles.summaryRow}>
+							<Text style={styles.summaryLabel}>LTCA</Text>
+							<Text style={styles.summaryValue}>{summary.previous.ltca}</Text>
+						</View>
+						<View style={styles.summaryRow}>
+							<Text style={styles.summaryLabel}>LTGP</Text>
+							<Text style={styles.summaryValue}>{summary.previous.ltgp}</Text>
+						</View>
+						<View style={styles.summaryRow}>
+							<Text style={styles.summaryLabel}>LCGPA</Text>
+							<Text style={styles.summaryValue}>{summary.previous.lcgpa}</Text>
+						</View>
+					</View>
+
+					{/* Current */}
+					<View style={styles.summaryColumn}>
+						<Text style={styles.summaryHeader}>CURRENT</Text>
+						<View style={styles.summaryRow}>
+							<Text style={styles.summaryLabel}>TUC</Text>
+							<Text style={styles.summaryValue}>{summary.current.tcu}</Text>
+						</View>
+						<View style={styles.summaryRow}>
+							<Text style={styles.summaryLabel}>TCA</Text>
+							<Text style={styles.summaryValue}>{summary.current.tca}</Text>
+						</View>
+						<View style={styles.summaryRow}>
+							<Text style={styles.summaryLabel}>TGP</Text>
+							<Text style={styles.summaryValue}>{summary.current.tgp}</Text>
+						</View>
+						<View style={styles.summaryRow}>
+							<Text style={styles.summaryLabel}>GPA</Text>
+							<Text style={styles.summaryValue}>{summary.current.gpa.toFixed(2)}</Text>
+						</View>
+					</View>
+
+					{/* Cumulative */}
+					<View style={styles.summaryColumn}>
+						<Text style={styles.summaryHeader}>CUMULATIVE</Text>
+						<View style={styles.summaryRow}>
+							<Text style={styles.summaryLabel}>TCU</Text>
+							<Text style={styles.summaryValue}>{summary.cumulative.tcu}</Text>
+						</View>
+						<View style={styles.summaryRow}>
+							<Text style={styles.summaryLabel}>TCA</Text>
+							<Text style={styles.summaryValue}>{summary.cumulative.tca}</Text>
+						</View>
+						<View style={styles.summaryRow}>
+							<Text style={styles.summaryLabel}>TGP</Text>
+							<Text style={styles.summaryValue}>{summary.cumulative.tgp}</Text>
+						</View>
+						<View style={styles.summaryRow}>
+							<Text style={styles.summaryLabel}>CGPA</Text>
+							<Text style={styles.summaryValue}>{summary.cumulative.cgpa.toFixed(2)}</Text>
+						</View>
+					</View>
 				</View>
-				{/* TCU Row */}
-				<View style={styles.summaryRow}>
-					<Text style={[styles.summaryCell, styles.summaryCol1]}>TCU</Text>
-					<Text style={[styles.summaryCell, styles.summaryCol2]}>{summary.current.tcu}</Text>
-					<Text style={[styles.summaryCell, styles.summaryCol3]}>{summary.current.remark}</Text>
-					<Text style={[styles.summaryCell, styles.summaryCol4]}>LTCU</Text>
-					<Text style={[styles.summaryCell, styles.summaryCol5]}>{summary.cumulative.tcu}</Text>
-				</View>
-				{/* TCA Row */}
-				<View style={styles.summaryRow}>
-					<Text style={[styles.summaryCell, styles.summaryCol1]}>TCA</Text>
-					<Text style={[styles.summaryCell, styles.summaryCol2]}>{summary.current.tca}</Text>
-					<Text style={[styles.summaryCell, styles.summaryCol3]} />
-					<Text style={[styles.summaryCell, styles.summaryCol4]}>LTCA</Text>
-					<Text style={[styles.summaryCell, styles.summaryCol5]}>{summary.cumulative.tca}</Text>
-				</View>
-				{/* TGP Row */}
-				<View style={styles.summaryRow}>
-					<Text style={[styles.summaryCell, styles.summaryCol1]}>TGP</Text>
-					<Text style={[styles.summaryCell, styles.summaryCol2]}>{summary.current.tgp}</Text>
-					<Text style={[styles.summaryCell, styles.summaryCol3]} />
-					<Text style={[styles.summaryCell, styles.summaryCol4]}>LTGP</Text>
-					<Text style={[styles.summaryCell, styles.summaryCol5]}>{summary.cumulative.tgp}</Text>
-				</View>
-				{/* GPA Row */}
-				<View style={styles.summaryRow}>
-					<Text style={[styles.summaryCell, styles.summaryCol1]}>GPA</Text>
-					<Text style={[styles.summaryCell, styles.summaryCol2]}>{summary.current.gpa.toFixed(2)}</Text>
-					<Text style={[styles.summaryCell, styles.summaryCol3]} />
-					<Text style={[styles.summaryCell, styles.summaryCol4]}>LCGPA</Text>
-					<Text style={[styles.summaryCell, styles.summaryCol5]} />
-				</View>
-				{/* CGPA Row */}
-				<View style={styles.summaryRow}>
-					<Text style={[styles.summaryCell, styles.summaryCol1]} />
-					<Text style={[styles.summaryCell, styles.summaryCol2]} />
-					<Text style={[styles.summaryCell, styles.summaryCol3]} />
-					<Text style={[styles.summaryCell, styles.summaryCol4]} />
-					<Text style={[styles.summaryCell, styles.summaryCol5]}>CGPA {summary.cumulative.cgpa.toFixed(2)}</Text>
-				</View>
-				{/* Previous values rows if needed, but matching image */}
-				<View style={styles.summaryRow}>
-					<Text style={[styles.summaryCell, styles.summaryCol1]} />
-					<Text style={[styles.summaryCell, styles.summaryCol2]} />
-					<Text style={[styles.summaryCell, styles.summaryCol3]} />
-					<Text style={[styles.summaryCell, styles.summaryCol4]}>{summary.previous.ltcu}</Text>
-					<Text style={[styles.summaryCell, styles.summaryCol5]} />
-				</View>
-				<View style={styles.summaryRow}>
-					<Text style={[styles.summaryCell, styles.summaryCol1]} />
-					<Text style={[styles.summaryCell, styles.summaryCol2]} />
-					<Text style={[styles.summaryCell, styles.summaryCol3]} />
-					<Text style={[styles.summaryCell, styles.summaryCol4]}>{summary.previous.ltca}</Text>
-					<Text style={[styles.summaryCell, styles.summaryCol5]} />
-				</View>
-				<View style={styles.summaryRow}>
-					<Text style={[styles.summaryCell, styles.summaryCol1]} />
-					<Text style={[styles.summaryCell, styles.summaryCol2]} />
-					<Text style={[styles.summaryCell, styles.summaryCol3]} />
-					<Text style={[styles.summaryCell, styles.summaryCol4]}>{summary.previous.ltgp}</Text>
-					<Text style={[styles.summaryCell, styles.summaryCol5]} />
-				</View>
-				<View style={styles.summaryRow}>
-					<Text style={[styles.summaryCell, styles.summaryCol1]} />
-					<Text style={[styles.summaryCell, styles.summaryCol2]} />
-					<Text style={[styles.summaryCell, styles.summaryCol3]} />
-					<Text style={[styles.summaryCell, styles.summaryCol4]}>{summary.previous.lcgpa}</Text>
-					<Text style={[styles.summaryCell, styles.summaryCol5]} />
-				</View>
+				<Text style={styles.remarkText}>REMARK: {summary.current.remark}</Text>
+			</View>
+
+			{/* Date and Stamp */}
+			<View style={styles.dateAndStamp}>
+				<Text style={styles.dateText}>Date: {studentData.lastUpdated}</Text>
+				<Image style={styles.stamp} src="/stamp.png" />
 			</View>
 		</Page>
 	</Document>

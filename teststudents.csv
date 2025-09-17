@@ -1,3 +1,75 @@
-name,email,matricNo,department,level
-John Doe,john@example.com,123456,Pharmacy Technitian Training,200
-Jane Smith,jane@example.com,654321,Pharmacy Technitian Training,300
+name,email,matricNo,department,level,password
+ABDULAFEEZ AISHAT OPEYEMI,oshtche240001@omark.com,OSHT/CHE24/0001,Community Health Extension Worker,100,OSHT/CHE24/0001
+ABIOLA TIOLUWANI DESTINY,oshtche240003@omark.com,OSHT/CHE24/0003,Community Health Extension Worker,100,OSHT/CHE24/0003
+ABIONA WASILAT OYINDAMOLA,oshtche240004@omark.com,OSHT/CHE24/0004,Community Health Extension Worker,100,OSHT/CHE24/0004
+ADEBARI ADEREMI RASHEEDAT,oshtche240005@omark.com,OSHT/CHE24/0005,Community Health Extension Worker,100,OSHT/CHE24/0005
+ADEBAYO OLOLADE YETUNDE,oshtche240006@omark.com,OSHT/CHE24/0006,Community Health Extension Worker,100,OSHT/CHE24/0006
+ADEBIYI SAKIRAT OMOTOLA,oshtche240007@omark.com,OSHT/CHE24/0007,Community Health Extension Worker,100,OSHT/CHE24/0007
+ADEKOYA IFEOLUWA OLUWATOYIN,oshtche240012@omark.com,OSHT/CHE24/0012,Community Health Extension Worker,100,OSHT/CHE24/0012
+ADEWUNMI CHRISTIANA OLAMIDE,oshtche240020@omark.com,OSHT/CHE24/0020,Community Health Extension Worker,100,OSHT/CHE24/0020
+AGBAI MIRABEL ONYEDIKACHI,oshtche240025@omark.com,OSHT/CHE24/0025,Community Health Extension Worker,100,OSHT/CHE24/0025
+AJASA RONKE JANET,oshtche240028@omark.com,OSHT/CHE24/0028,Community Health Extension Worker,100,OSHT/CHE24/0028
+AKINDELE SARAH OLUWAFUNMILAYO,oshtche240032@omark.com,OSHT/CHE24/0032,Community Health Extension Worker,100,OSHT/CHE24/0032
+AKINDUTIRE GLORIOUS ADEDOLAPO,oshtche240033@omark.com,OSHT/CHE24/0033,Community Health Extension Worker,100,OSHT/CHE24/0033
+AKINFALA MARY ABOSEDE,oshtche240034@omark.com,OSHT/CHE24/0034,Community Health Extension Worker,100,OSHT/CHE24/0034
+AKINPELUMI JETOLUWA OLAMIDE ,oshtche240036@omark.com,OSHT/CHE24/0036,Community Health Extension Worker,100,OSHT/CHE24/0036
+ALADI CHIAMAKA PRECIOUS,oshtche240039@omark.com,OSHT/CHE24/0039,Community Health Extension Worker,100,OSHT/CHE24/0039
+ATOKWU ESTHER CHINELO,oshtche240052@omark.com,OSHT/CHE24/0052,Community Health Extension Worker,100,OSHT/CHE24/0052
+AZEEZ VICTORIA TOLUWANI,oshtche240053@omark.com,OSHT/CHE24/0053,Community Health Extension Worker,100,OSHT/CHE24/0053
+BABATUNDE ADIJAT OLUSHOLA,oshtche240054@omark.com,OSHT/CHE24/0054,Community Health Extension Worker,100,OSHT/CHE24/0054
+BISONG MIRACLE UMAYE,oshtche240057@omark.com,OSHT/CHE24/0057,Community Health Extension Worker,100,OSHT/CHE24/0057
+COMFORT EDE AFEYODION,oshtche240063@omark.com,OSHT/CHE24/0063,Community Health Extension Worker,100,OSHT/CHE24/0063
+EDET PATIENCE EEFIONG,oshtche240067@omark.com,OSHT/CHE24/0067,Community Health Extension Worker,100,OSHT/CHE24/0067
+ETIM SARAH OKON,oshtche240078@omark.com,OSHT/CHE24/0078,Community Health Extension Worker,100,OSHT/CHE24/0078
+ETTA IYANUOLUWA RHODA,oshtche240079@omark.com,OSHT/CHE24/0079,Community Health Extension Worker,100,OSHT/CHE24/0079
+EZEAFULUKWU BLESSING EBERE,oshtche240080@omark.com,OSHT/CHE24/0080,Community Health Extension Worker,100,OSHT/CHE24/0080
+GODDAY HAPPINESS UBOJO,oshtche240092@omark.com,OSHT/CHE24/0092,Community Health Extension Worker,100,OSHT/CHE24/0092
+HUSSEIN SALAMAT OZIOHU,oshtche240095@omark.com,OSHT/CHE24/0095,Community Health Extension Worker,100,OSHT/CHE24/0095
+IKPEAMA ROSEMARY CHEKWUBECHUKWU,oshtche240102@omark.com,OSHT/CHE24/0102,Community Health Extension Worker,100,OSHT/CHE24/0102
+JENNIFGER YAYA OKOATA,oshtche240104@omark.com,OSHT/CHE24/0104,Community Health Extension Worker,100,OSHT/CHE24/0104
+JOHNSON KEHINDE HANNAH,oshtche240107@omark.com,OSHT/CHE24/0107,Community Health Extension Worker,100,OSHT/CHE24/0107
+JONAH ABIGAIL IFUNAYACHI,oshtche240108@omark.com,OSHT/CHE24/0108,Community Health Extension Worker,100,OSHT/CHE24/0108
+KWATIN TEMITOPE,oshtche240113@omark.com,OSHT/CHE24/0113,Community Health Extension Worker,100,OSHT/CHE24/0113
+MAFO TEMILOLUWA ESTHER,oshtche240118@omark.com,OSHT/CHE24/0118,Community Health Extension Worker,100,OSHT/CHE24/0118
+MOSES OMOTOLA JOY,oshtche240121@omark.com,OSHT/CHE24/0121,Community Health Extension Worker,100,OSHT/CHE24/0121
+MUBARAQ OLABISI AMINAT,oshtche240122@omark.com,OSHT/CHE24/0122,Community Health Extension Worker,100,OSHT/CHE24/0122
+NWACHUKWU VICTORIA  KELECHI,oshtche240131@omark.com,OSHT/CHE24/0131,Community Health Extension Worker,100,OSHT/CHE24/0131
+NZEDIBENMA ESTHER EBSON,oshtche24 0137@omark.com,OSHT/CHE24/ 0137,Community Health Extension Worker,100,OSHT/CHE24/ 0137
+OBASI CHIEMERIE PRECIOUS ,oshtche240140@omark.com,OSHT/CHE24/0140,Community Health Extension Worker,100,OSHT/CHE24/0140
+OCHICHI JUSTINA IJEOMA,oshtche240144@omark.com,OSHT/CHE24/0144,Community Health Extension Worker,100,OSHT/CHE24/0144
+EZINNE BENICE ISIOMA,oshtche24 0146@omark.com,OSHT/CHE24/ 0146,Community Health Extension Worker,100,OSHT/CHE24/ 0146
+OGBONNA EBUBE UNITEGOODLUCK,oshtche240150@omark.com,OSHT/CHE24/0150,Community Health Extension Worker,100,OSHT/CHE24/0150
+OKAFOR CYNTHIA KOSISOCHUKWU,oshtche240157@omark.com,OSHT/CHE24/0157,Community Health Extension Worker,100,OSHT/CHE24/0157
+ OKENWA IJEOMA PRECIOUS,oshtche240162@omark.com,OSHT/CHE24/0162,Community Health Extension Worker,100,OSHT/CHE24/0162
+OKOGBUE EUNICE AMARACHI,oshtche240165@omark.com,OSHT/CHE24/0165,Community Health Extension Worker,100,OSHT/CHE24/0165
+OLALEYE ANUOLWAPO MORENIKEJI,oshtche240171@omark.com,OSHT/CHE24/0171,Community Health Extension Worker,100,OSHT/CHE24/0171
+OLANIRAN BOLUWATIFE WURAOLA,oshtche240172@omark.com,OSHT/CHE24/0172,Community Health Extension Worker,100,OSHT/CHE24/0172
+OLAONIPEKUN FAUZIYAH OLUWAKEMI,oshtche240173@omark.com,OSHT/CHE24/0173,Community Health Extension Worker,100,OSHT/CHE24/0173
+OLAWALE SULIYAT OYINDAMOLA,oshtche240174@omark.com,OSHT/CHE24/0174,Community Health Extension Worker,100,OSHT/CHE24/0174
+OLAYINKA ABOSEDE FUNMILAYO,oshtche240175@omark.com,OSHT/CHE24/0175,Community Health Extension Worker,100,OSHT/CHE24/0175
+OLOKWU PRECIOUS SUNDAY,oshtche240176@omark.com,OSHT/CHE24/0176,Community Health Extension Worker,100,OSHT/CHE24/0176
+OLOYEDE FOLAKE OMOLARA,oshtche240178@omark.com,OSHT/CHE24/0178,Community Health Extension Worker,100,OSHT/CHE24/0178
+OLUWABUNMI KANYINSOLA MARGRET,oshtche240181@omark.com,OSHT/CHE24/0181,Community Health Extension Worker,100,OSHT/CHE24/0181
+ORANEBO OLUCHI RITA,oshtche240187@omark.com,OSHT/CHE24/0187,Community Health Extension Worker,100,OSHT/CHE24/0187
+ORJI MIRACLE CHISOM,oshtche240188@omark.com,OSHT/CHE24/0188,Community Health Extension Worker,100,OSHT/CHE24/0188
+OYAKUNLE TOYOSI BLESSING,oshtche240193@omark.com,OSHT/CHE24/0193,Community Health Extension Worker,100,OSHT/CHE24/0193
+RAHEEM NIMOTA ADERONKE,oshtche240196@omark.com,OSHT/CHE24/0196,Community Health Extension Worker,100,OSHT/CHE24/0196
+RASAQ FATHIA ARINOLA,oshtche240197@omark.com,OSHT/CHE24/0197,Community Health Extension Worker,100,OSHT/CHE24/0197
+SHODEINDE SERAH ENIOLA,oshtche240202@omark.com,OSHT/CHE24/0202,Community Health Extension Worker,100,OSHT/CHE24/0202
+SULAIMON SHUKURAT OYINDAMOLA,oshtche240208@omark.com,OSHT/CHE24/0208,Community Health Extension Worker,100,OSHT/CHE24/0208
+SANNI YETUNDE RASHIDAT,oshtche240209@omark.com,OSHT/CHE24/0209,Community Health Extension Worker,100,OSHT/CHE24/0209
+PETER ESTHER AKHERE,oshtche240214@omark.com,OSHT/CHE24/0214,Community Health Extension Worker,100,OSHT/CHE24/0214
+ONYEBUEKE AMARACHI CATHERINE,oshtche240220@omark.com,OSHT/CHE24/0220,Community Health Extension Worker,100,OSHT/CHE24/0220
+UGOCHUKWU GIFT KELECHI,oshtche240222@omark.com,OSHT/CHE24/0222,Community Health Extension Worker,100,OSHT/CHE24/0222
+UGWUMBA OLUCHI BLESSING,oshtche240223@omark.com,OSHT/CHE24/0223,Community Health Extension Worker,100,OSHT/CHE24/0223
+UMEAHANONU OKWUCHI MELODY,oshtche240227@omark.com,OSHT/CHE24/0227,Community Health Extension Worker,100,OSHT/CHE24/0227
+UZAMOT BARAKAT OLUWATOYIN,oshtche240230@omark.com,OSHT/CHE24/0230,Community Health Extension Worker,100,OSHT/CHE24/0230
+VINCENT RACHEL ENIOLA,oshtche240231@omark.com,OSHT/CHE24/0231,Community Health Extension Worker,100,OSHT/CHE24/0231
+YUSUF MARIAM ADEOLA,oshtche240232@omark.com,OSHT/CHE24/0232,Community Health Extension Worker,100,OSHT/CHE24/0232
+IME ELIZABETH WISDOM,oshtche240234@omark.com,OSHT/CHE24/0234,Community Health Extension Worker,100,OSHT/CHE24/0234
+AMAOGARANYA JUDITH UGOCHI,oshtche240238@omark.com,OSHT/CHE24/0238,Community Health Extension Worker,100,OSHT/CHE24/0238
+EZE CHARITY TOCHUKWU,oshtche240239@omark.com,OSHT/CHE24/0239,Community Health Extension Worker,100,OSHT/CHE24/0239
+ONILUDE KUDIRAT ADEBOLA,oshtche240243@omark.com,OSHT/CHE24/0243,Community Health Extension Worker,100,OSHT/CHE24/0243
+ODUSANYA DOYINSOLA OLAIDE,oshtche240246@omark.com,OSHT/CHE24/0246,Community Health Extension Worker,100,OSHT/CHE24/0246
+NNAJI FAVOUR ONYEDIKACHI,oshtche240081@omark.com,OSHT/CHE24/0081,Community Health Extension Worker,100,OSHT/CHE24/0081
+CHUKWU FAVOUR PATIENCE,oshtche240061@omark.com,OSHT/CHE24/0061,Community Health Extension Worker,100,OSHT/CHE24/0061
