@@ -60,6 +60,11 @@ api.interceptors.request.use(
 // Response interceptor for automatic token refresh and CSRF token management
 api.interceptors.response.use(
   (response: AxiosResponse) => {
+    //navigate to login if its 401
+    if ([401, 402, 403].includes(response.status)) {
+      // Handle unauthorized access (e.g., redirect to login)
+      window.location.href = '/login';
+    }
     // Update access token if provided in response body
     if (response.data && response.data.accessToken) {
       accessToken = response.data.accessToken;
