@@ -1,7 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useUser } from "@/contexts/useUser";
 import { useGetStudentsSemesterResults, useGetCourses, useGetGradingTemplates } from "@/lib/api/queries";
-import { useState, useMemo, useEffect } from "react";
+import { useState, useEffect } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
@@ -72,8 +72,19 @@ const Results = () => {
 	// pagination
 	const [currentPage, setCurrentPage] = useState(1);
 	const [pageSize, setPageSize] = useState(10);
+	const [serverSearch, setServerSearch] = useState('');
+	const [serverLevel, setServerLevel] = useState('all');
 
-	const { data: results, isLoading, error } = useGetStudentsSemesterResults(semester, session);
+	const { data, isLoading, error } = useGetStudentsSemesterResults(
+		semester,
+		session,
+		currentPage,
+		pageSize,
+		serverSearch,
+		serverLevel
+	);
+	const results = data?.data || [];
+	const pagination = data?.pagination || { page: 1, limit: 10, total: 0, totalPages: 1, hasNext: false, hasPrev: false };
 	const { mutate: uploadResults } = useAdminUploadResults();
 	// Upload states
 	const [isUploadOpen, setIsUploadOpen] = useState(false);
@@ -154,46 +165,63 @@ const Results = () => {
 		});
 	};
 
-	const filteredResults = useMemo(() => {
-		if (!results) return [];
-		return results.filter((result) => {
-			const student = result.student;
-			const q = searchTerm.trim().toLowerCase();
-			const matchesSearch = !q ||
-				student.name.toLowerCase().includes(q) ||
-				student.matricNo.toLowerCase().includes(q);
-			const matchesLevel = !levelFilter || levelFilter === 'all' || student.level.toString() === levelFilter;
-			return matchesSearch && matchesLevel;
-		});
-	}, [results, searchTerm, levelFilter]);
-
-	// reset page when filters change
+	// Debounce search and level filter for server-side
 	useEffect(() => {
-		setCurrentPage(1);
+		const handler = setTimeout(() => {
+			setServerSearch(searchTerm);
+			setServerLevel(levelFilter);
+			setCurrentPage(1);
+		}, 400);
+		return () => clearTimeout(handler);
 	}, [searchTerm, levelFilter, semester, session, pageSize]);
 
-	const totalItems = filteredResults.length;
-	const totalPages = Math.max(1, Math.ceil(totalItems / pageSize));
-	const paginatedResults = filteredResults.slice((currentPage - 1) * pageSize, currentPage * pageSize);
+	const paginatedResults = results;
+	const totalItems = pagination.total;
+	const totalPages = pagination.totalPages;
 
 	// generate a compact page list for UI (windowed)
-	const getPageList = () => {
-		const maxButtons = 7;
-		if (totalPages <= maxButtons) return Array.from({ length: totalPages }, (_, i) => i + 1);
-		const pages: number[] = [];
-		const left = Math.max(1, currentPage - 2);
-		const right = Math.min(totalPages, currentPage + 2);
-		pages.push(1);
-		if (left > 2) pages.push(-1); // ellipsis
-		for (let i = left; i <= right; i++) {
-			if (i > 1 && i < totalPages) pages.push(i);
-		}
-		if (right < totalPages - 1) pages.push(-1);
-		if (totalPages > 1) pages.push(totalPages);
-		return pages;
-	};
 
-	if (userLoading || isLoading) return <div>Loading...</div>;
+
+	if (userLoading || isLoading) return (
+		<div className="container mx-auto p-6">
+			<Card>
+				<CardContent className="p-6">
+					<div className="flex flex-col gap-6 animate-pulse">
+						<div className="h-8 w-1/3 bg-slate-200 rounded mb-4" />
+						<div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+							{[...Array(4)].map((_, i) => (
+								<div key={i} className="h-10 bg-slate-100 rounded" />
+							))}
+						</div>
+						<div className="overflow-x-auto">
+							<table className="min-w-[600px] w-full text-sm">
+								<thead>
+									<tr className="bg-slate-100">
+										{[...Array(7)].map((_, i) => (
+											<th key={i} className="py-2 px-2 text-left text-slate-700">
+												<div className="h-4 w-20 bg-slate-200 rounded" />
+											</th>
+										))}
+									</tr>
+								</thead>
+								<tbody>
+									{[...Array(6)].map((_, i) => (
+										<tr key={i} className="border-b border-slate-100">
+											{[...Array(7)].map((_, j) => (
+												<td key={j} className="py-2 px-2">
+													<div className="h-4 w-24 bg-slate-100 rounded" />
+												</td>
+											))}
+										</tr>
+									))}
+								</tbody>
+							</table>
+						</div>
+					</div>
+				</CardContent>
+			</Card>
+		</div>
+	);
 	if (error) return <div>Error loading results</div>;
 
 	console.log(gradingTemplates, 'gradingTemplates')
@@ -391,13 +419,13 @@ const Results = () => {
 						</Dialog>
 					</div>
 
-					{!filteredResults.length && (
+					{totalItems === 0 && (
 						<div className="text-center py-8 text-muted-foreground">
 							No results found for the selected filters.
 						</div>
 					)}
 
-					{filteredResults.length > 0 && (
+					{totalItems > 0 && (
 						<>
 							<div className="overflow-x-auto">
 							<Table>
@@ -464,11 +492,33 @@ const Results = () => {
 								<div className="flex items-center gap-2">
 									<Button variant="outline" size="sm" disabled={currentPage <= 1} onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}>Previous</Button>
 									<div className="flex items-center gap-1">
-										{getPageList().map((p, idx) => p === -1 ? (
-											<span key={`el-${idx}`} className="px-2">&hellip;</span>
-										) : (
-											<Button key={`p-${p}`} variant={p === currentPage ? 'default' : 'ghost'} size="sm" onClick={() => setCurrentPage(p)}>{p}</Button>
-										))}
+												{/* Windowed pagination with ellipsis */}
+												{(() => {
+													const maxButtons = 7;
+													if (totalPages <= maxButtons) {
+														return Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
+															<Button key={`p-${p}`} variant={p === currentPage ? 'default' : 'ghost'} size="sm" onClick={() => setCurrentPage(p)}>{p}</Button>
+														));
+													}
+													const pages = [];
+													const left = Math.max(1, currentPage - 2);
+													const right = Math.min(totalPages, currentPage + 2);
+													pages.push(1);
+													if (left > 2) pages.push('ellipsis-left');
+													for (let i = left; i <= right; i++) {
+														if (i > 1 && i < totalPages) pages.push(i);
+													}
+													if (right < totalPages - 1) pages.push('ellipsis-right');
+													if (totalPages > 1) pages.push(totalPages);
+													return pages.map((p, idx) => {
+														if (p === 'ellipsis-left' || p === 'ellipsis-right') {
+															return <span key={p + idx} className="px-2">&hellip;</span>;
+														}
+														return (
+															<Button key={`p-${p}`} variant={p === currentPage ? 'default' : 'ghost'} size="sm" onClick={() => setCurrentPage(Number(p))}>{p}</Button>
+														);
+													});
+												})()}
 									</div>
 									<Button variant="outline" size="sm" disabled={currentPage >= Math.max(1, Math.ceil(totalItems / pageSize))} onClick={() => setCurrentPage((p) => Math.min(Math.max(1, Math.ceil(totalItems / pageSize)), p + 1))}>Next</Button>
 								</div>

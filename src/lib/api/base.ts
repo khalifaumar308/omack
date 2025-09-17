@@ -472,8 +472,25 @@ export const getSemesterResult = async (semester: string, session: string) => {
   return response.data;
 };
 
-export const getStudentsSemesterResults = async (semester: string, session: string) => {
-  const response = await api.get<StudentsSemesterResultsResponse[]>(`/course-registrations/semester-results?semester=${semester}&session=${session}`);
+export const getStudentsSemesterResults = async (
+  semester: string,
+  session: string,
+  page: number = 1,
+  limit: number = 10,
+  search: string = '',
+  level: string = 'all'
+) => {
+  const params = new URLSearchParams({
+    semester,
+    session,
+    page: page.toString(),
+    limit: limit.toString(),
+  });
+  if (search) params.append('search', search);
+  if (level && level !== 'all') params.append('level', level);
+  const response = await api.get<{ data: StudentsSemesterResultsResponse[]; pagination: any }>(
+    `/course-registrations/semester-results?${params.toString()}`
+  );
   return response.data;
 };
 

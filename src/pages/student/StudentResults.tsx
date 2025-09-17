@@ -2,7 +2,8 @@ import { useState, useMemo } from "react";
 import { useUser } from "@/contexts/useUser";
 import {
   useGetSemesterResult,
-  useGetTranscript
+  useGetTranscript,
+  useGetGradingTemplates
 } from "@/lib/api/queries";
 import {
   Select,
@@ -59,34 +60,12 @@ interface SummaryDisplay {
   remark: string;
 }
 
-const getGradePoints = (grade: string): number => {
-  const pointsMap: Record<string, number> = {
-    'A': 4,
-    'AB': 3.5,
-    'B': 3,
-    'BC': 2.5,
-    'C': 2,
-    'D': 1,
-    'F': 0,
-    // Add more if needed
-  };
-  return pointsMap[grade as keyof typeof pointsMap] || 0;
-};
-
-const getClassification = (gpa: number): string => {
-  // if (gpa >= 4.5) return 'DISTINCTION';
-  // if (gpa >= 3.5) return 'VERY GOOD';
-  // if (gpa >= 2.5) return 'GOOD';
-  // if (gpa >= 1.5) return 'PASS';
-  // return 'FAIL';
-  const remark = gpa >= 3.0 ? 'UPPER CREDIT' : gpa >= 2.5 ? 'LOWER CREDIT' : gpa >= 2 ? 'PASS' : 'FAIL';
-  return remark;
-};
-
 const Results = () => {
   const { user, isLoading: userLoading } = useUser();
   const [semester, setSemester] = useState(user?.school?.currentSemester || 'First');
   const [session, setSession] = useState(user?.school?.currentSession || '2025/2026');
+  const { data: gradingTemplatesRaw } = useGetGradingTemplates();
+  const gradingTemplates = Array.isArray(gradingTemplatesRaw) ? gradingTemplatesRaw : [];
 
   // const { data: semesterResults = [], isLoading: semesterLoading } = useGetStudentsSemesterResults(semester, session);
   const { data: semesterResult, isLoading: semesterLoading } = useGetSemesterResult(semester, session); // To refetch on semester/session change
@@ -94,6 +73,19 @@ const Results = () => {
 
   const currentUser = user && user.role === 'student' ? (user as PopulatedStudent) : null;
   const currentResult = semesterResult as StudentsSemesterResultsResponse | undefined; // Assume only current student's data
+
+  // Find grading template for student's department
+  const departmentId = currentUser?.department && typeof currentUser.department === 'object' ? currentUser.department.id : currentUser?.department;
+  const gradingTemplate = gradingTemplates.find(
+    (tpl) => (typeof tpl.department === 'string' ? tpl.department : tpl.department?.id) === departmentId
+  );
+  const gradeBands = useMemo(() => gradingTemplate?.gradeBands || [], [gradingTemplate]);
+
+  // Classification logic (same as before)
+  const getClassification = (gpa: number): string => {
+    const remark = gpa >= 3.0 ? 'UPPER CREDIT' : gpa >= 2.5 ? 'LOWER CREDIT' : gpa >= 2 ? 'PASS' : 'FAIL';
+    return remark;
+  };
 
   // Student data for PDFs - compute always, null if no user
   const studentData = useMemo<ResultPDFProps['studentData'] & TranscriptProps['studentData'] | null>(() => {
@@ -118,29 +110,37 @@ const Results = () => {
   // Format courses for display and PDF
   const courses: CourseDisplay[] = useMemo(() => {
     if (!currentResult?.courses) return [];
+    const getGradeAndPoint = (score: number): { grade: string; point: number } => {
+      for (const band of gradeBands) {
+        if (score >= band.minScore && score <= band.maxScore) {
+          return { grade: band.grade, point: band.point };
+        }
+      }
+      return { grade: '', point: 0 };
+    };
     return currentResult.courses.map((reg, index) => {
-      const grade = reg.grade || '';
-      const points = getGradePoints(grade);
-      const gradePoint = points * reg.course.creditUnits;
-      const remark = points > 0 ? 'PASSED' : (grade ? 'FAILED' : 'Not Graded');
+      const score = reg.score || 0;
+      const { grade, point } = getGradeAndPoint(score);
+      const gradePoint = point * reg.course.creditUnits;
+      const remark = grade ? (point > 0 ? 'PASSED' : 'FAILED') : 'Not Graded';
       return {
         sn: index + 1,
         code: reg.course.code,
         title: reg.course.title,
         credits: reg.course.creditUnits,
-        total: reg.score || 0,
+        total: score,
         grade,
         gradePoint,
         remark,
       };
     });
-  }, [currentResult?.courses]);
+  }, [currentResult?.courses, gradeBands]);
 
   // Summary for display and PDF
   const summary: SummaryDisplay = useMemo(() => {
     if (currentResult?.summary) {
       const s = currentResult.summary;
-      const remark = getClassification(s.GPA);
+      const remark = s.GPA >= 3.0 ? 'UPPER CREDIT' : s.GPA >= 2.5 ? 'LOWER CREDIT' : s.GPA >= 2 ? 'PASS' : 'FAIL';
       return {
         tcu: s.TCU,
         tca: s.TCU, // Assume TCA = TCU
@@ -156,7 +156,7 @@ const Results = () => {
     const tcu = courses.reduce((sum, c) => sum + c.credits, 0);
     const tgp = courses.reduce((sum, c) => sum + c.gradePoint, 0);
     const gpa = tcu > 0 ? tgp / tcu : 0;
-    const remark = getClassification(gpa);
+    const remark = gpa >= 3.0 ? 'UPPER CREDIT' : gpa >= 2.5 ? 'LOWER CREDIT' : gpa >= 2 ? 'PASS' : 'FAIL';
     return { tcu, tca: tcu, tgp, gpa, remark };
   }, [currentResult?.summary, courses]);
 
