@@ -69,7 +69,8 @@ export default function Courses() {
       instructors,
     };
     if (editingCourse) {
-      updateCourseMutation.mutate({ courseId: editingCourse.id, courseData });
+      console.log(editingCourse, 'editingcourse')
+      updateCourseMutation.mutate({ courseId: (editingCourse as any)._id, courseData });
     } else {
       addCourseMutation.mutate(courseData);
     }

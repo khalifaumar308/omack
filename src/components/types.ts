@@ -103,6 +103,8 @@ export interface School extends BaseEntity {
   currentSession: string;
   currentSemester: string;
   sessions?: string[];
+  registrationStatus: boolean; // Indicates if registration is open
+  registrationScope: 'firstSemester' | 'secondSemester' | 'both';
 }
 
 export interface Faculty extends BaseEntity {

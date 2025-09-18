@@ -20,6 +20,7 @@ import Results from "./pages/admin/Results";
 import StudentResults from "./pages/student/StudentResults";
 import StudentCourseRegistration from "./pages/student/StudentCourseRegistration";
 import GradingTemplates from "./pages/admin/GradingTemplates";
+import SchoolSettings from "./pages/admin/SchoolSettings";
 
 const queryClient = new QueryClient();
 function App() {
@@ -53,6 +54,7 @@ function App() {
                   <Route path="/admin/results" element={<Results />} />
                   <Route path="/admin/course-registrations" element={<CourseRegistrations />} />
                   <Route path="/admin/grading-templates" element={<GradingTemplates />} />
+                  <Route path="/admin/settings" element={<SchoolSettings />} />
                 </Route>
                 {/* Student Routes */}
                 <Route path="/student" element={

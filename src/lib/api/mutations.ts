@@ -1,3 +1,18 @@
+// School Mutations
+export const useUpdateSchool = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: { schoolId: string; schoolData: Partial<import("@/components/types").School> }) => api.updateSchool(data.schoolId, data.schoolData),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["user"] });
+      toast.success("School updated successfully");
+    },
+    onError: (error: unknown) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      toast.error((error as any)?.response?.data?.message || "Failed to update school. Please try again.");
+    },
+  });
+};
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import * as api from "./base";
 import { toast } from "sonner";
