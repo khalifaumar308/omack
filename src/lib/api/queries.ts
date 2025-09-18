@@ -74,10 +74,26 @@ export const useGetCourses = () => {
   });
 };
 
-export const useGetCourseRegistrations = (semester: string = 'all', session: string = 'all') => {
+export const useGetCourseRegistrations = (
+  semester: string = 'all',
+  session: string = 'all',
+  page: number = 1,
+  limit: number = 10,
+  search: string = '',
+  student: string = 'all',
+  department: string = 'all'
+) => {
   return useQuery({
-    queryKey: ["courseRegistrations", semester, session],
-    queryFn: () => api.getCourseRegistrations(semester === 'all' ? undefined : semester, session === 'all' ? undefined : session),
+    queryKey: ["courseRegistrations", semester, session, page, limit, search, student, department],
+    queryFn: () => api.getCourseRegistrations(
+      semester === 'all' ? undefined : semester,
+      session === 'all' ? undefined : session,
+      page,
+      limit,
+      search,
+      student === 'all' ? undefined : student,
+      department === 'all' ? undefined : department
+    ),
     placeholderData: undefined,
     refetchOnWindowFocus: false,
     enabled: true,

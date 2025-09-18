@@ -11,7 +11,6 @@ import type {
   CreateInstructorForm,
   PopulatedDepartment,
   PopulatedStudent,
-  IAdminCourseRegs,
   StudentsSemesterResultsResponse,
   AdminUploadResultsRequest,
   PopulatedUser,
@@ -418,17 +417,32 @@ export const registerSchoolAdmin = async (adminData: { name: string; email: stri
 // COURSE REGISTRATION APIs (Note: These routes need to be added to app.ts)
 // =============================================================================
 
-export const getCourseRegistrations = async (semester?: string, session?: string) => {
+export const getCourseRegistrations = async (
+  semester?: string,
+  session?: string,
+  page: number = 1,
+  limit: number = 10,
+  search: string = '',
+  student?: string,
+  department?: string
+) => {
   let url = '/course-registrations/registrations';
-  // Only attach query params when semester/session are provided and not equal to 'all'
-  const params: Record<string, string> = {};
-  if (semester && semester !== 'all') params.semester = semester;
-  if (session && session !== 'all') params.session = session;
-  if (Object.keys(params).length > 0) {
-    const query = new URLSearchParams(params);
-    url = `${url}?${query.toString()}`;
+  const params = new URLSearchParams();
+  if (semester && semester !== 'all') params.append('semester', semester);
+  if (session && session !== 'all') params.append('session', session);
+  if (page) params.append('page', String(page));
+  if (limit) params.append('limit', String(limit));
+  if (search) params.append('search', search);
+  if (student && student !== 'all') params.append('student', student);
+  if (department && department !== 'all') params.append('department', department);
+
+  if (Array.from(params).length > 0) {
+    url = `${url}?${params.toString()}`;
   }
-  const response = await api.get<IAdminCourseRegs[]>(url);
+
+  // Expect the backend to respond with either an array of registrations or an object
+  // { data: IAdminCourseRegs[], pagination: { page, limit, total, totalPages, hasNext, hasPrev } }
+  const response = await api.get<any>(url);
   return response.data;
 };
 

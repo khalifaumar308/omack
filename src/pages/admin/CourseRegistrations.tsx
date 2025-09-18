@@ -48,6 +48,7 @@ import {
   useGetCourseRegistrations,
   useGetCourses,
   useGetStudents,
+  useGetDepartments,
 } from "@/lib/api/queries";
 import {
   useAdminAddBulkRegistrations,
@@ -70,6 +71,7 @@ const CourseRegistrations = () => {
   const [selectedSemester, setSelectedSemester] = useState<string>(user?.school?.currentSemester || "all");
   const [selectedSession, setSelectedSession] = useState<string>(user?.school?.currentSession || "all");
   const [selectedStudent, setSelectedStudent] = useState<string>("all");
+  const [selectedDepartment, setSelectedDepartment] = useState<string>("all");
   
   const [formData, setFormData] = useState<RegisterCourseRequest>({
     course: "",
@@ -84,13 +86,27 @@ const CourseRegistrations = () => {
   const [selectedRegistration, setSelectedRegistration] = useState<IAdminCourseRegs | null>(null);
 
   // fetch registrations with current selected semester/session (use 'all' to fetch unfiltered)
-  const { data: registrations, isLoading, isError, error, refetch } = useGetCourseRegistrations(selectedSemester || 'all', selectedSession || 'all');
+  const [pageSize, setPageSize] = useState(10);
+  const { data: registrationsRaw, isLoading, isError, error, refetch } = useGetCourseRegistrations(
+    selectedSemester || 'all',
+    selectedSession || 'all',
+    currentPage,
+    pageSize,
+    searchTerm,
+    selectedStudent || 'all',
+    selectedDepartment || 'all'
+  );
+
+  // registrationsRaw may be either an array (legacy) or { data, pagination }
+  const registrationsData = Array.isArray(registrationsRaw) ? registrationsRaw : registrationsRaw?.data || [];
+  const pagination = registrationsRaw && !Array.isArray(registrationsRaw) ? registrationsRaw.pagination : { page: currentPage, limit: pageSize, total: registrationsData.length, totalPages: 1, hasNext: false, hasPrev: false };
   const { data: courses } = useGetCourses();
   const { data: students } = useGetStudents(1, 100); // Get more students for filtering
+  const { data: departments } = useGetDepartments();
   const registerCourseMutation = useRegisterCourse();
   const registerManyCourseMutation = useAdminAddBulkRegistrations();
 
-  const courseRegistrations: IAdminCourseRegs[] = registrations || [];
+  const courseRegistrations: IAdminCourseRegs[] = registrationsData || [];
 
   // React Query will refetch automatically when selectedSemester/selectedSession change
   
@@ -177,26 +193,10 @@ const CourseRegistrations = () => {
     setSelectedFile(null);
   };
 
-  // client-side filtering
-  // Filter the grouped registrations. Note: IAdminCourseRegs groups a student with
-  // an array of populated course registrations, and semester/session live on
-  // each nested course registration entry. We treat a group as matching if any
-  // nested registration matches the chosen semester/session.
-  const filteredRegistrationsAll = courseRegistrations.filter((registration) => {
-    const q = searchTerm.trim().toLowerCase();
-    const matchesSearch = !q || registration.student.name.toLowerCase().includes(q) || registration.student.matricNo?.toLowerCase().includes(q);
-    const matchesSemester = !selectedSemester || selectedSemester === "all" || registration.courseRegistrations.some((cr) => cr.semester === selectedSemester);
-    const matchesSession = !selectedSession || selectedSession === "all" || registration.courseRegistrations.some((cr) => cr.session === selectedSession);
-    const matchesStudent = !selectedStudent || selectedStudent === "all" || registration.student.id === selectedStudent;
-
-    return matchesSearch && matchesStudent && matchesSemester && matchesSession;
-  });
-
-  // client-side pagination
-  const [limit] = useState(10);
-  const startIdx = (currentPage - 1) * limit;
-  const pagesAfterFilter = Math.max(1, Math.ceil(filteredRegistrationsAll.length / limit));
-  const filteredRegistrations = filteredRegistrationsAll.slice(startIdx, startIdx + limit);
+  // server-side filtering/pagination: server handles search, semester, session, student, page, limit
+  const filteredRegistrations = courseRegistrations;
+  const startIdx = (currentPage - 1) * pageSize;
+  const pagesAfterFilter = Math.max(1, Math.ceil((pagination?.total || filteredRegistrations.length) / pageSize));
 
   // const getGradeBadgeVariant = (grade?: string) => {
   //   if (!grade) return "secondary";
@@ -491,6 +491,19 @@ const CourseRegistrations = () => {
                 ))}
               </SelectContent>
             </Select>
+            <Select value={selectedDepartment} onValueChange={(val) => { setSelectedDepartment(val); setCurrentPage(1); }}>
+              <SelectTrigger>
+                <SelectValue placeholder="All Departments" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="all">All Departments</SelectItem>
+                {departments?.map((d) => (
+                  <SelectItem key={(d as any).id || (d as any)._id} value={(d as any).id || (d as any)._id}>
+                    {(d as any).name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
           </div>
         </CardContent>
       </Card>
@@ -676,25 +689,39 @@ const CourseRegistrations = () => {
               </Table>
             </div>
           )}
-           <div className="flex items-center justify-between">
+          <div className="flex items-center justify-between">
         <div className="text-sm text-muted-foreground">
-          Showing {startIdx + 1} - {Math.min(startIdx + limit, filteredRegistrationsAll.length)} of {filteredRegistrationsAll.length}
+          Showing {startIdx + 1} - {Math.min(startIdx + pageSize, pagination?.total || filteredRegistrations.length)} of {pagination?.total || filteredRegistrations.length}
         </div>
         <div className="flex items-center space-x-2">
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-muted-foreground">Rows per page:</span>
+            <Select value={String(pageSize)} onValueChange={(v) => { setPageSize(parseInt(v)); setCurrentPage(1); }}>
+              <SelectTrigger className="w-[80px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="5">5</SelectItem>
+                <SelectItem value="10">10</SelectItem>
+                <SelectItem value="25">25</SelectItem>
+                <SelectItem value="50">50</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
           <Button
             variant="outline"
             size="sm"
-            disabled={currentPage <= 1}
+            disabled={currentPage <= 1 || !pagination?.hasPrev}
             onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
           >
             Previous
           </Button>
-          <div className="text-sm">Page {currentPage} of {pagesAfterFilter}</div>
+          <div className="text-sm">Page {pagination?.page || currentPage} of {pagesAfterFilter}</div>
           <Button
             variant="outline"
             size="sm"
-            disabled={currentPage >= pagesAfterFilter}
-            onClick={() => setCurrentPage((p) => Math.min(pagesAfterFilter, p + 1))}
+            disabled={!pagination?.hasNext || currentPage >= (pagination?.totalPages || pagesAfterFilter)}
+            onClick={() => setCurrentPage((p) => Math.min((pagination?.totalPages || pagesAfterFilter), p + 1))}
           >
             Next
           </Button>

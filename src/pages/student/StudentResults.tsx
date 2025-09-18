@@ -39,7 +39,6 @@ import type {
   PopulatedDepartment,
   PopulatedFaculty
 } from "@/components/types";
-
 // Types for display
 interface CourseDisplay {
   sn: number;
@@ -80,7 +79,7 @@ const Results = () => {
     (tpl) => (typeof tpl.department === 'string' ? tpl.department : tpl.department?.id) === departmentId
   );
   const gradeBands = useMemo(() => gradingTemplate?.gradeBands || [], [gradingTemplate]);
-
+  console.log(gradingTemplates, 'gradingTemplate', user)
   // Classification logic (same as before)
   const getClassification = (gpa: number): string => {
     const remark = gpa >= 3.0 ? 'UPPER CREDIT' : gpa >= 2.5 ? 'LOWER CREDIT' : gpa >= 2 ? 'PASS' : 'FAIL';
