@@ -360,38 +360,6 @@ const CourseRegistrations = () => {
                     </SelectContent>
                   </Select>
                 </div>
-                {/* <div>
-                  <Label htmlFor="courses">Courses (select multiple)</Label>
-                  <Select onValueChange={(value) => {
-                    const newCourses = bulkFormData.courses.includes(value) 
-                      ? bulkFormData.courses.filter(c => c !== value)
-                      : [...bulkFormData.courses, value];
-                    setBulkFormData({ ...bulkFormData, courses: newCourses });
-                  }}>
-                    <SelectTrigger className="w-full">
-                      <SelectValue placeholder="Select Courses" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {courses?.map((course) => (
-                        <SelectItem key={course.id} value={course.id}>
-                          {course.code} - {course.title}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                  {bulkFormData.courses.length > 0 && (
-                    <div className="mt-2 flex flex-wrap gap-1">
-                      {bulkFormData.courses.map((courseId) => {
-                        const course = courses?.find(c => c.id === courseId);
-                        return course ? (
-                          <Badge key={courseId} variant="secondary" className="text-xs">
-                            {course.code}
-                          </Badge>
-                        ) : null;
-                      })}
-                    </div>
-                  )}
-                </div> */}
                 <div>
                   <Label htmlFor="csv-file">Upload CSV File</Label>
                   <Input
@@ -403,6 +371,25 @@ const CourseRegistrations = () => {
                   <p className="text-xs text-muted-foreground mt-1">
                     CSV format: matricNo, course-codes
                   </p>
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    className="mt-2"
+                    onClick={() => {
+                      const csvContent = 'matricNo,course-codes\n';
+                      const blob = new Blob([csvContent], { type: 'text/csv' });
+                      const url = URL.createObjectURL(blob);
+                      const a = document.createElement('a');
+                      a.href = url;
+                      a.download = 'bulk_course_registration_template.csv';
+                      document.body.appendChild(a);
+                      a.click();
+                      document.body.removeChild(a);
+                      URL.revokeObjectURL(url);
+                    }}
+                  >
+                    Download CSV Template
+                  </Button>
                 </div>
                 <div className="flex justify-end space-x-2">
                   <Button type="button" variant="outline" onClick={() => {

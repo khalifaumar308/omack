@@ -380,6 +380,26 @@ export default function Students() {
               <div className="space-y-4">
                 <div>
                   <Label htmlFor="csv-file">Select CSV File</Label>
+                  <Button
+                    type="button"
+                    variant="secondary"
+                    className="mb-2"
+                    onClick={() => {
+                      // Template: name,email,matricNo,department,level,password
+                      const csvContent = 'name,email,matricNo,department,level,password\n';
+                      const blob = new Blob([csvContent], { type: 'text/csv' });
+                      const url = URL.createObjectURL(blob);
+                      const a = document.createElement('a');
+                      a.href = url;
+                      a.download = 'students_upload_template.csv';
+                      document.body.appendChild(a);
+                      a.click();
+                      document.body.removeChild(a);
+                      URL.revokeObjectURL(url);
+                    }}
+                  >
+                    Download CSV Template
+                  </Button>
                   <Input
                     id="csv-file"
                     type="file"
