@@ -79,7 +79,7 @@ export default function Students() {
   //     deleteStudentMutation.mutate(studentId);
   //   }
   // };
-
+  // console.log(departments);
   const resetForm = () => {
     setFormData({
       name: "",
@@ -118,7 +118,7 @@ export default function Students() {
           school: user?.school?.id || "",
           level: parseInt(level.trim()) || 100,
           matricNo: matricNo.trim(),
-          department: departments?.find(dep => dep.name === department.trim())?.id || "",
+          department: departments?.find(dep => dep.name.trim() === department.trim())?.id || "",
         };
       }).filter(s => s?.name && s?.email && s?.matricNo);
       if (students.length > 0) {
