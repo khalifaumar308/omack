@@ -36,6 +36,15 @@ import { Button } from "@/components/ui/button";
 // }
 
 export function DashboardLayout() {
+// Sidebar item type definition
+type SidebarItem = {
+  title: string;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  icon: any;
+  url?: string;
+  items?: { title: string; url: string }[];
+};
+
   const location = useLocation();
   const { user, isLoading } = useUser();
   if (!isLoading && !user) {
@@ -55,10 +64,10 @@ export function DashboardLayout() {
     }
   };
 
-  const getFilteredSidebarItems = () => {
+  const getFilteredSidebarItems = (): SidebarItem[] => {
     if (!user) return []; // Loading or error, show nothing
     const role = user.role;
-    const allItems = [
+    const allItems: SidebarItem[] = [
       {
         title: "Dashboard",
         icon: Home,
@@ -124,7 +133,7 @@ export function DashboardLayout() {
     );
   };
 
-    const adminRoutes = [
+  const adminRoutes: SidebarItem[] = [
       {
         title: "Dashboard",
         icon: Home,
@@ -162,7 +171,7 @@ export function DashboardLayout() {
   //   { id: 'department-change', icon: ArrowRightLeft, label: 'Department Change' },
   //   { id: 'account-settings', icon: Settings, label: 'Account Settings' },
   // ];
-  const studentRoutes = [
+  const studentRoutes: SidebarItem[] = [
     { title: "Dashboard", icon: Home, url: "/student/" },
     { title: "Course Registration", icon: BookOpen, url: "/student/course-registration" },
     { title: "Results", icon: FileText, url: "/student/results" },
