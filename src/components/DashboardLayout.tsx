@@ -151,8 +151,25 @@ export function DashboardLayout() {
         ]
       },
     ]
+  // const menuItems = [
+  //   { id: 'dashboard', icon: Home, label: 'Dashboard' },
+  //   { id: 'course-registration', icon: BookOpen, label: 'Course Registration' },
+  //   { id: 'application-slip', icon: FileText, label: 'Application Slip' },
+  //   { id: 'result-checker', icon: FileText, label: 'Result Checker' },
+  //   { id: 'result-analysis', icon: BookOpen, label: 'Result Analysis' },
+  //   { id: 'student-manual', icon: Book, label: 'Student Manual' },
+  //   { id: 'payment', icon: CreditCard, label: 'Payment' },
+  //   { id: 'department-change', icon: ArrowRightLeft, label: 'Department Change' },
+  //   { id: 'account-settings', icon: Settings, label: 'Account Settings' },
+  // ];
+  const studentRoutes = [
+    { title: "Dashboard", icon: Home, url: "/student/" },
+    { title: "Course Registration", icon: BookOpen, url: "/student/course-registration" },
+    { title: "Results", icon: FileText, url: "/student/results" },
+    { title: "Settings", icon: Settings, url: "/student/settings" },
+  ]
 
-  const filteredSidebarItems = user?.role === 'school-admin' ? adminRoutes : (user?.role==='student'?[]:getFilteredSidebarItems());
+  const filteredSidebarItems = user?.role === 'school-admin' ? adminRoutes : (user?.role==='student'?studentRoutes:getFilteredSidebarItems());
 
   return (
     <SidebarProvider>
@@ -179,7 +196,7 @@ export function DashboardLayout() {
                             {item.title}
                           </SidebarGroupLabel>
                           <SidebarMenu className="ml-4">
-                            {item.items.map((subItem) => (
+                            {item.items?.map((subItem) => (
                               <SidebarMenuItem key={subItem.url}>
                                 <SidebarMenuButton
                                   asChild

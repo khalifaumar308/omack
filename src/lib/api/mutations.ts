@@ -302,7 +302,7 @@ export const useStudentRegisterManyCourses = () => {
   return useMutation({
     mutationFn: (data: { courses: string[]; semester: string; session: string }) => api.studentRegisterManyCourses(data.courses, data.semester, data.session),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ["courseRegistrations"] });
+      queryClient.invalidateQueries({ queryKey: ["courseRegistrations", "courseRegistration"] });
       toast.success("Courses registered successfully");
     },
     // eslint-disable-next-line @typescript-eslint/no-explicit-any

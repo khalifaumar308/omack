@@ -376,3 +376,10 @@ export interface GradeInfo {
   grade: string;
   points: number;
 }
+
+export interface StudentRegistrationsInfo {
+  session: string;
+  semester: string;
+  courses: PopulatedCourseRegistration[];
+  approved: boolean;
+}

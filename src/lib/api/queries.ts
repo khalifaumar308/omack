@@ -100,6 +100,15 @@ export const useGetCourseRegistrations = (
   });
 };
 
+export const useGetCourseRegistrationInfo = () => {
+  return useQuery({
+    queryKey: ["courseRegistration"],
+    queryFn: () => api.getStudentRegstrationsInfo(),
+    enabled: true,
+    refetchOnWindowFocus: false,
+  });
+}
+
 export const useGetStudentsSemesterResults = (
   semester: string = 'First',
   session: string = '2024/2025',

@@ -17,10 +17,11 @@ import type {
   GradingTemplateListResponse,
   CreateGradingTemplateRequest,
   UpdateGradingTemplateRequest,
+  StudentRegistrationsInfo,
 } from '@/components/types';
 
 // Configure your API base URL
-const API_BASE_URL = 'https://hmsms-api.onrender.com/api';
+const API_BASE_URL = 'http://localhost:5000/api';
 
 
 // =============================================================================
@@ -597,6 +598,11 @@ export const gradeToPoint = (grade: string): number => {
     default: return 0;
   }
 };
+
+export const getStudentRegstrationsInfo = async () => {
+  const response = await api.get<StudentRegistrationsInfo[]>(`/course-registrations/student-regs`);
+  return response.data;
+}
 
 // Calculate GPA from course registrations
 export const calculateGPA = (registrations: CourseRegistration[]): number => {
