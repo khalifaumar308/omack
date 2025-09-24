@@ -148,6 +148,7 @@ export interface CourseRegistration extends BaseEntity {
   session: string;
   score?: number;
   grade?: string;
+  status: "pending" | "approved" | "rejected";
 }
 
 export interface ResultSummary extends BaseEntity {

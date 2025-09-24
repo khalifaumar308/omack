@@ -19,6 +19,7 @@ interface IProps {
 	courses: Course[];
 	semester?: string;
 	status?: "pending" | "approved" | "rejected";
+	onSuccess?: () => void;
 }
 const SemesterCourseReg = (Props: IProps) => {
 	const { user } = useUser()
@@ -45,7 +46,17 @@ const SemesterCourseReg = (Props: IProps) => {
 			studentId: Props.courseReg?.studentId || "",
 			newCourseIds: courses, status: updateStatus
 		}
-		updateRegMutation.mutate(update)
+		updateRegMutation.mutate(update, {
+			onSuccess: () => {
+				toast.success('Registration updated');
+				if (Props.onSuccess) {
+					Props.onSuccess();
+				}
+			},
+			onError: (error: any) => {
+				toast.error(error?.response?.data?.message || 'Update failed. Please try again.');
+			}
+		})
 	}
 
 	const submitRegistration = () => {
@@ -85,8 +96,17 @@ const SemesterCourseReg = (Props: IProps) => {
 
 	const totalCredits = selectedCourses.reduce((sum, course) => sum + course.creditUnits, 0);
 	return (
-		<div>
-			<div >
+		<div className="relative">
+				{ (updateRegMutation.isPending || submitRegistrationMutation.isPending) && (
+					<div className="absolute inset-0 bg-white/70 z-50 flex flex-col items-center justify-center">
+											<svg className="animate-spin h-12 w-12 text-blue-500 mb-4" viewBox="0 0 24 24">
+												<circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+												<path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
+											</svg>
+						<div className="text-sm font-medium text-gray-700">{updateRegMutation.isPending ? 'Updating registration...' : 'Submitting registration...'}</div>
+					</div>
+				)}
+				<div >
 				{/* Semester & Session Selection */}
 				<div className="lg:col-span-2 flex flex-wrap gap-4 mb-4 items-center">
 					<div>
@@ -131,6 +151,16 @@ const SemesterCourseReg = (Props: IProps) => {
 								studentId: Props.courseReg?.studentId || "", 
 								status: updateStatus, semester: Props.courseReg?.semester || "", 
 								session: Props.courseReg?.session || ""
+							}, {
+								onSuccess: () => {
+									toast.success('Registration updated');
+									if (Props.onSuccess) {
+										Props.onSuccess();
+									}
+								},
+								onError: (error: any) => {
+									toast.error(error?.response?.data?.message || 'Update failed. Please try again.');
+								}
 							})
 						}} className="bg-[#155DFC]">{updateRegMutation.isPending?"Updating...":"Update"}</Button>
 					</div>

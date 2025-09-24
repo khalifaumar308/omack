@@ -19,7 +19,6 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { Badge } from "@/components/ui/badge";
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
 import {
@@ -39,6 +38,8 @@ import {
   FileText,
   Users,
   Calendar,
+  Eye,
+  Edit2,
 } from "lucide-react";
 import type {
   IAdminCourseRegs,
@@ -54,6 +55,7 @@ import {
   useAdminAddBulkRegistrations,
   useRegisterCourse,
 } from "@/lib/api/mutations";
+import SemesterCourseReg from "@/components/SemesterCourseReg";
 import { useUser } from "@/contexts/useUser";
 import { toast } from "sonner";
 
@@ -84,6 +86,8 @@ const CourseRegistrations = () => {
   const [bulkSession, setBulkSession] = useState("");
   const [viewModalOpen, setViewModalOpen] = useState(false);
   const [selectedRegistration, setSelectedRegistration] = useState<IAdminCourseRegs | null>(null);
+  const [editModalOpen, setEditModalOpen] = useState(false);
+  const [registrationToEdit, setRegistrationToEdit] = useState<IAdminCourseRegs | null>(null);
 
   // fetch registrations with current selected semester/session (use 'all' to fetch unfiltered)
   const [pageSize, setPageSize] = useState(10);
@@ -192,9 +196,9 @@ const CourseRegistrations = () => {
     // setIsBulkDialogOpen(false);
     setSelectedFile(null);
   };
-
   // server-side filtering/pagination: server handles search, semester, session, student, page, limit
   const filteredRegistrations = courseRegistrations;
+  // console.log(filteredRegistrations[0], 'fil')
   const startIdx = (currentPage - 1) * pageSize;
   const pagesAfterFilter = Math.max(1, Math.ceil((pagination?.total || filteredRegistrations.length) / pageSize));
 
@@ -542,6 +546,53 @@ const CourseRegistrations = () => {
           </div>
         </DialogContent>
       </Dialog>
+      {/* Edit Registration Modal (Admin) */}
+      <Dialog open={editModalOpen} onOpenChange={(open) => {
+        if (!open) {
+          setRegistrationToEdit(null);
+          refetch();
+        }
+        setEditModalOpen(open);
+      }}>
+        <DialogContent className="max-w-2xl max-h-[80vh] overflow-auto">
+          <DialogHeader>
+            <DialogTitle>Edit Student Registration</DialogTitle>
+          </DialogHeader>
+          <div>
+            {registrationToEdit ? (
+              <div>
+                <div className="mb-2">
+                  <div className="font-semibold">{registrationToEdit.student.name}</div>
+                  <div className="text-sm text-muted-foreground">{registrationToEdit.student.matricNo}</div>
+                </div>
+                <div>
+                  <SemesterCourseReg
+                    edit={true}
+                    courseReg={{
+                      studentId: (registrationToEdit.student as any).id || (registrationToEdit.student as any)._id || '',
+                      semester: registrationToEdit.courseRegistrations?.[0]?.semester || user?.school?.currentSemester || '',
+                      session: registrationToEdit.courseRegistrations?.[0]?.session || user?.school?.currentSession || '',
+                      courses: registrationToEdit.courseRegistrations || [],
+                      status: (registrationToEdit as any).status || 'pending',
+                    }}
+                    courses={courses || []}
+                    onSuccess={() => {
+                      setEditModalOpen(false);
+                      setRegistrationToEdit(null);
+                      refetch();
+                    }}
+                  />
+                </div>
+                <div className="mt-4 flex justify-end">
+                  <Button variant="outline" onClick={() => setEditModalOpen(false)}>Close</Button>
+                </div>
+              </div>
+            ) : (
+              <div className="text-center text-muted-foreground">Select a registration to edit</div>
+            )}
+          </div>
+        </DialogContent>
+      </Dialog>
       {/* Pagination Controls */}
 
       {/* Statistics Cards */}
@@ -626,19 +677,41 @@ const CourseRegistrations = () => {
                         {registration.courseRegistrations.reduce((total, reg) => total + (reg.course.creditUnits || 0), 0)} UCs
                       </TableCell>
                       <TableCell>
-                        <Badge variant="secondary">Approved</Badge>
+                        {registration.courseRegistrations[0]?.status === "approved" ? (
+                          <span className="px-2 py-1 rounded bg-green-100 text-green-700 text-xs">Approved</span>
+                        ) : registration.courseRegistrations[0]?.status === "pending"?(
+                          <span className="px-2 py-1 rounded bg-yellow-100 text-yellow-700 text-xs">Pending</span>
+                        ):(
+                          <span className="px-2 py-1 rounded bg-red-100 text-red-700 text-xs">Rejected</span>
+                        )}
                       </TableCell>
                       <TableCell>
-                        <Button
-                          variant="outline"
-                          size="sm"
-                          onClick={() => {
-                            setSelectedRegistration(registration);
-                            setViewModalOpen(true);
-                          }}
-                        >
-                          View
-                        </Button>
+                        <div className="flex items-center space-x-2">
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => {
+                              setSelectedRegistration(registration);
+                              setViewModalOpen(true);
+                            }}
+                          >
+                            <Eye className="mr-2 h-4 w-4" />
+                            <span className="hidden sm:inline">View</span>
+                          </Button>
+                          {(user?.role === 'school-admin' || user?.role === 'super-admin') && (
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => {
+                                setRegistrationToEdit(registration);
+                                setEditModalOpen(true);
+                              }}
+                            >
+                              <Edit2 className="mr-2 h-4 w-4 text-green-600" />
+                              <span className="hidden sm:inline">Edit</span>
+                            </Button>
+                          )}
+                        </div>
                       </TableCell>
                       {/* <TableCell>
                         <Badge variant="secondary">
