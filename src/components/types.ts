@@ -381,5 +381,5 @@ export interface StudentRegistrationsInfo {
   session: string;
   semester: string;
   courses: PopulatedCourseRegistration[];
-  approved: boolean;
+  status: "pending" | "approved" | "rejected";
 }

@@ -21,7 +21,7 @@ import type {
 } from '@/components/types';
 
 // Configure your API base URL
-const API_BASE_URL = 'https://hmsms-api.onrender.com/api';
+const API_BASE_URL = 'http://localhost:5000/api';
 
 
 // =============================================================================
@@ -446,6 +446,17 @@ export const getCourseRegistrations = async (
   const response = await api.get<any>(url);
   return response.data;
 };
+
+export const updateSemesterCourseReg = async (body: 
+  {
+    studentId: string; semester: string; 
+    session: string, newCourseIds?:string[]; 
+    status?:"pending" | "approved" | "rejected"
+  }
+) => {
+  const response = await api.patch("/course-registrations/edit", body);
+  return response.data
+}
 
 export const registerCourse = async (registrationData: RegisterCourseRequest) => {
   const response = await api.post<CourseRegistration>("/course-registrations", registrationData);

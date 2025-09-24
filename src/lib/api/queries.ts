@@ -102,7 +102,7 @@ export const useGetCourseRegistrations = (
 
 export const useGetCourseRegistrationInfo = () => {
   return useQuery({
-    queryKey: ["courseRegistration"],
+    queryKey: ["studentCourseRegistration"],
     queryFn: () => api.getStudentRegstrationsInfo(),
     enabled: true,
     refetchOnWindowFocus: false,

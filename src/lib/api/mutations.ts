@@ -1,3 +1,9 @@
+import { useMutation, useQueryClient } from "@tanstack/react-query";
+import * as api from "./base";
+import { toast } from "sonner";
+import type { AdminUploadResultsRequest, CreateCourseForm, CreateDepartmentForm, CreateFacultyForm, CreateGradingTemplateRequest, CreateStudentForm, RegisterCourseRequest, RegisterManyCoursesRequest, UpdateGradingTemplateRequest } from "@/components/types";
+
+
 // School Mutations
 export const useUpdateSchool = () => {
   const queryClient = useQueryClient();
@@ -13,10 +19,25 @@ export const useUpdateSchool = () => {
     },
   });
 };
-import { useMutation, useQueryClient } from "@tanstack/react-query";
-import * as api from "./base";
-import { toast } from "sonner";
-import type { AdminUploadResultsRequest, CreateCourseForm, CreateDepartmentForm, CreateFacultyForm, CreateGradingTemplateRequest, CreateStudentForm, RegisterCourseRequest, RegisterManyCoursesRequest, UpdateGradingTemplateRequest } from "@/components/types";
+
+export const useUpdateStudentSemesterReg = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (body:{
+    studentId: string; semester: string; 
+    session: string, newCourseIds?:string[]; 
+    status?:"pending" | "approved" | "rejected"
+  } ) => api.updateSemesterCourseReg(body),
+  onSuccess: () => {
+    queryClient.invalidateQueries({ queryKey: ["studentCourseRegistration"] });
+    toast.success("Course Reg updated successfully");
+  },
+   onError: (error: unknown) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      toast.error((error as any)?.response?.data?.message || "Failed to update Course Regs. Please try again.");
+    },
+  })
+}
 
 // export const useAddSchool = () => {
 //   const queryClient = useQueryClient();
