@@ -122,7 +122,6 @@ export default function Students() {
         };
       }).filter(s => s?.name && s?.email && s?.matricNo);
       if (students.length > 0) {
-        console.log(students);
         const final = JSON.parse(JSON.stringify(students)) as CreateStudentForm[];
         bulkAddStudentMutation.mutate(final);
       }

@@ -16,7 +16,7 @@ export default function Login() {
     login({ email, password }, {
       onSuccess: (data) => {
         // Save token to localStorage or context
-        console.log(data, 'success')
+        // console.log(data, 'success')
         const role = data.user.role
         if(role === 'super-admin'){
           window.location.href = "/super-admin/schools";

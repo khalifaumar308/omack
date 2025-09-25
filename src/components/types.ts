@@ -15,6 +15,7 @@ export interface UpdateGradingTemplateRequest {
   name?: string;
   gradeBands?: GradeBand[];
   department?:string;
+  commentBands?: CommentBand[];
 }
 
 export interface GradingTemplateResponse {
@@ -37,11 +38,19 @@ export interface GradeBand {
   point: number;
 }
 
+export interface CommentBand  {
+  minScore: number; // inclusive
+  maxScore: number; // inclusive
+  comment: string;
+}
+
+
 export interface GradingTemplate {
   _id: string;
   department: string | Department; // department id or populated object
   name: string;
   gradeBands: GradeBand[];
+  commentBands: CommentBand[];
   createdAt: string;
   updatedAt: string;
 }
@@ -161,6 +170,12 @@ export interface ResultSummary extends BaseEntity {
   cumulativeTCU: number;
   cumulativeTGP: number;
   CGPA: number; // Cumulative Grade Point Average
+  previous: {
+    TCU: number;
+    TGP: number;
+    CGPA: number;
+  };
+  comment: string;
 }
 
 // =============================================================================

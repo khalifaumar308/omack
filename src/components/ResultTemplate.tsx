@@ -366,7 +366,7 @@ const ResultTemplate: React.FC<PDFProps> = ({ studentData, courses, summary }) =
 						<Text style={[styles.courseCell, styles.codeCol]}>{course.code}</Text>
 						<Text style={[styles.courseCell, styles.titleCol]}>{course.title}</Text>
 						<Text style={[styles.courseCell, styles.creditsCol]}>{course.credits}</Text>
-						<Text style={[styles.courseCell, styles.totalCol]}>{course.total.toFixed(2)}</Text>
+						<Text style={[styles.courseCell, styles.totalCol]}>{course.total}</Text>
 						<Text style={[styles.courseCell, styles.gradeCol]}>{course.grade}</Text>
 						<Text style={[styles.courseCell, styles.gradePointCol]}>{course.gradePoint}</Text>
 						<Text style={[styles.courseCell, styles.remarkCol]}>{course.remark}</Text>

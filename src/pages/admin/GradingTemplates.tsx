@@ -27,11 +27,13 @@ import type { GradeBand as AppGradeBand, PopulatedDepartment } from "@/component
 // --- Types ---
 type GradeBand = AppGradeBand;
 type Department = PopulatedDepartment;
+type CommentBand = { minScore: number; maxScore: number; comment: string };
 type GradingTemplate = {
   _id: string;
   name: string;
   department: string | Department;
   gradeBands: GradeBand[];
+  commentBands?: CommentBand[];
 };
 
 const GradingTemplates = () => {
@@ -58,6 +60,7 @@ const GradingTemplates = () => {
     name: "",
     department: "",
     grades: "",
+    comments: "",
   });
 
   // Reset form when modal closes/opens
@@ -72,10 +75,13 @@ const GradingTemplates = () => {
         grades: (template.gradeBands || [])
           .map((g) => `${g.grade}:${g.minScore}-${g.maxScore}:${g.point}`)
           .join(", "),
+        comments: (template.commentBands || [])
+          .map((c) => `${c.minScore}-${c.maxScore}:${c.comment}`)
+          .join(", "),
       });
     } else {
       setEditTemplate(null);
-      setForm({ name: "", department: "", grades: "" });
+      setForm({ name: "", department: "", grades: "", comments: "" });
     }
     setModalOpen(true);
   };
@@ -83,7 +89,7 @@ const GradingTemplates = () => {
   const handleCloseModal = () => {
     setModalOpen(false);
     setEditTemplate(null);
-    setForm({ name: "", department: "", grades: "" });
+    setForm({ name: "", department: "", grades: "", comments: "" });
   };
 
   // Parse grades string to array (format: A:70-100:5, B:60-69:4, ...)
@@ -102,6 +108,21 @@ const GradingTemplates = () => {
       .filter((g) => g.grade && !isNaN(g.minScore) && !isNaN(g.maxScore) && !isNaN(g.point));
   };
 
+  // Parse comments string to array (format: 70-100:Excellent, 60-69:Good, ...)
+  const parseComments = (commentsStr: string): { minScore: number; maxScore: number; comment: string }[] => {
+    return commentsStr
+      .split(",")
+      .map((c) => c.trim())
+      .filter(Boolean)
+      .map((c) => {
+        // Accepts format: min-max:comment (e.g. 70-100:Excellent)
+        const [range, comment] = c.split(":");
+        const [minScore, maxScore] = (range || "").split("-").map(Number);
+        return { minScore, maxScore, comment: (comment || "").trim() };
+      })
+      .filter((c) => !isNaN(c.minScore) && !isNaN(c.maxScore) && c.comment);
+  };
+
   // Handle form submit
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -109,12 +130,13 @@ const GradingTemplates = () => {
       name: form.name,
       department: form.department,
       gradeBands: parseGrades(form.grades),
+      commentBands: parseComments(form.comments),
     };
     try {
       if (editTemplate) {
         await updateGradingTemplate.mutateAsync({
           id: editTemplate._id,
-          data: payload,
+          data:payload,
         });
         toast.success("Template updated!");
       } else {
@@ -232,6 +254,7 @@ const GradingTemplates = () => {
                 <th className="py-2 px-2 text-left text-slate-700">Name</th>
                 <th className="py-2 px-2 text-left text-slate-700">Department</th>
                 <th className="py-2 px-2 text-left text-slate-700">Grades</th>
+                <th className="py-2 px-2 text-left text-slate-700">Comments</th>
                 <th className="py-2 px-2 text-left text-slate-700">Actions</th>
               </tr>
             </thead>
@@ -254,6 +277,11 @@ const GradingTemplates = () => {
                         (g) =>
                           `${g.grade}: ${g.minScore}-${g.maxScore} (${g.point})`
                       )
+                      .join(", ")}
+                  </td>
+                  <td className="py-2 px-2 text-slate-700">
+                    {(t.commentBands || [])
+                      .map((c: CommentBand) => `${c.minScore}-${c.maxScore}: ${c.comment}`)
                       .join(", ")}
                   </td>
                   <td className="py-2 px-2 flex gap-2">
@@ -343,6 +371,22 @@ const GradingTemplates = () => {
               />
               <div className="text-xs text-slate-500 mt-1">
                 Format: <code>Grade:MinScore-MaxScore:Point</code> (e.g. <code>A:70-100:5</code>)
+              </div>
+            </div>
+            <div>
+              <label className="block mb-1 font-medium text-slate-700">
+                Comments <span className="text-xs text-slate-500">(e.g. 3-4:Upper Credit, 2-3:Lower Credit)</span>
+              </label>
+              <Input
+                value={form.comments}
+                onChange={(e) =>
+                  setForm((f) => ({ ...f, comments: e.target.value }))
+                }
+                placeholder="3-4:Upper Credit, 2-3:Lower Credit"
+                className="bg-slate-50 border-slate-200 text-slate-700"
+              />
+              <div className="text-xs text-slate-500 mt-1">
+                Format: <code>MinScore-MaxScore:Comment</code> (e.g. <code>70-100:Excellent</code>)
               </div>
             </div>
             <DialogFooter>

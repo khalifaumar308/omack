@@ -31,7 +31,6 @@ const Dapartments = () => {
     const addDepartmentMutation = useAddDepartment();
     const updateDepartmentMutation = useUpdateDepartment();
     const deleteDepartmentMutation = useDeleteDepartment();
-    console.log(data)
 
     const departments: PopulatedDepartment[] = data || [];
 

@@ -26,7 +26,6 @@ const StudentCourseRegistration: React.FC = () => {
 
   const { data: registrationInfo, isLoading, isError } = useGetCourseRegistrationInfo()
   //get courses
-  console.log(registrationInfo, 'reg')
   const { data: courses, isLoading: courseLoading } = useGetCourses()
 
   // Auto-populate failed courses on component mount

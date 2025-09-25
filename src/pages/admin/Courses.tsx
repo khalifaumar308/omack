@@ -69,7 +69,6 @@ export default function Courses() {
       instructors,
     };
     if (editingCourse) {
-      console.log(editingCourse, 'editingcourse')
       updateCourseMutation.mutate({ courseId: (editingCourse as any)._id, courseData });
     } else {
       addCourseMutation.mutate(courseData);
@@ -136,7 +135,6 @@ export default function Courses() {
       </div>
     );
   }
-  console.log(departments, 'departments')
   return (
     <div className="space-y-6">
       <div className="flex items-center justify-between">
@@ -289,7 +287,6 @@ export default function Courses() {
                         const newCourses = lines.map(line => {
                           const [code, title, department, creditUnits, instructorsStr] = line.split(',');
                           const instructors = instructorsStr ? instructorsStr.split(',').map(i => i.trim()).filter(Boolean) : [];
-                          console.log(department, 'dep')
                           return {
                             code: code?.trim(),
                             title: title?.trim(),
@@ -299,7 +296,6 @@ export default function Courses() {
                             creditUnits: parseInt(creditUnits?.trim() || "0") || 0,
                           };
                         }).filter(c => c.code && c.title && c.department);
-                        console.log(newCourses, 'newcourses')
                         newCourses.forEach(course => addCourseMutation.mutate(course));
                       };
                       reader.readAsText(selectedFile);

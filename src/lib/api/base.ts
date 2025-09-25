@@ -21,7 +21,7 @@ import type {
 } from '@/components/types';
 
 // Configure your API base URL
-const API_BASE_URL = 'https://hmsms-api.onrender.com/api';
+const API_BASE_URL = 'http://localhost:5000/api';
 
 
 // =============================================================================
@@ -41,6 +41,7 @@ const api: AxiosInstance = axios.create({
   withCredentials: true, // Include cookies automatically
   headers: {
     'Content-Type': 'application/json',
+    'Authorization': `Bearer ${accessToken}`,
   },
 });
 

@@ -306,8 +306,8 @@ export const useAdminUploadResults = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (resultsData: AdminUploadResultsRequest) => api.adminUploadResults(resultsData),
-    onSuccess: (data) => {
-      console.log(data, 'upload response');
+    onSuccess: () => {
+      // console.log(data, 'upload response');
       queryClient.invalidateQueries({ queryKey: ["studentsSemesterResults"] });
       toast.success("Results uploaded successfully");
     },
