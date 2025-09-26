@@ -271,6 +271,21 @@ export const useAdminAddBulkRegistrations = () => {
   });
 };
 
+export const useAdminUpdateBulkRegStatus = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (body: { studentId: string[]; semester: string; session: string; status: "pending" | "approved" | "rejected" }) => api.updateCourseRegsStatus(body),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["courseRegistrations"] });
+      toast.success("Bulk registration status updated successfully");
+    },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.message || "Failed to update bulk registration status. Please try again.");
+    },
+  });
+};
+
 // Course Registration Mutations
 export const useRegisterCourse = () => {
   const queryClient = useQueryClient();

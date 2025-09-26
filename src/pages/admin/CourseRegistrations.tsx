@@ -53,6 +53,7 @@ import {
 } from "@/lib/api/queries";
 import {
   useAdminAddBulkRegistrations,
+  useAdminUpdateBulkRegStatus,
   useRegisterCourse,
 } from "@/lib/api/mutations";
 import SemesterCourseReg from "@/components/SemesterCourseReg";
@@ -109,8 +110,10 @@ const CourseRegistrations = () => {
   const { data: departments } = useGetDepartments();
   const registerCourseMutation = useRegisterCourse();
   const registerManyCourseMutation = useAdminAddBulkRegistrations();
-
+  const updateBulkRegStatusMutation = useAdminUpdateBulkRegStatus();
   const courseRegistrations: IAdminCourseRegs[] = registrationsData || [];
+  const [selectedIds, setSelectedIds] = useState<string[]>([]);
+  const [bulkStatus, setBulkStatus] = useState<'pending'|'approved'|'rejected'>('approved');
 
   // React Query will refetch automatically when selectedSemester/selectedSession change
   
@@ -123,7 +126,11 @@ const CourseRegistrations = () => {
       resetForm();
       resetBulkForm();
     }
-  }, [registerCourseMutation.isSuccess, registerManyCourseMutation.isSuccess, refetch]);
+    if (updateBulkRegStatusMutation.isSuccess) {
+      setSelectedIds([]);
+      // refetch is triggered by mutation onSuccess
+    }
+  }, [registerCourseMutation.isSuccess, registerManyCourseMutation.isSuccess, updateBulkRegStatusMutation.isSuccess, refetch]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -643,6 +650,47 @@ const CourseRegistrations = () => {
           <CardTitle>Course Registrations</CardTitle>
         </CardHeader>
         <CardContent>
+          {(user?.role === 'school-admin' || user?.role === 'super-admin') && (
+            <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-2 mb-4">
+              <div className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  checked={selectedIds.length > 0 && selectedIds.length === courseRegistrations.length}
+                  onChange={(e) => {
+                    if (e.target.checked) {
+                      setSelectedIds(courseRegistrations.map(r => (r.student as any).id || (r.student as any)._id || ''))
+                    } else {
+                      setSelectedIds([])
+                    }
+                  }}
+                  className="h-4 w-4"
+                />
+                <span className="text-sm text-muted-foreground">Select all</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Select value={bulkStatus} onValueChange={(v) => setBulkStatus(v as 'pending'|'approved'|'rejected')}>
+                  <SelectTrigger className="w-40">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="approved">Approve</SelectItem>
+                    <SelectItem value="pending">Pending</SelectItem>
+                    <SelectItem value="rejected">Reject</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Button
+                  onClick={() => {
+                    if (selectedIds.length === 0) { toast.error('No students selected'); return; }
+                    // call mutation with selectedIds, using current filters for semester/session
+                    updateBulkRegStatusMutation.mutate({ studentId: selectedIds, semester: selectedSemester === 'all' ? user?.school?.currentSemester || '' : selectedSemester, session: selectedSession === 'all' ? user?.school?.currentSession || '' : selectedSession, status: bulkStatus })
+                  }}
+                  disabled={updateBulkRegStatusMutation.isPending || selectedIds.length === 0}
+                >
+                  Apply
+                </Button>
+              </div>
+            </div>
+          )}
           {isLoading ? (
             <LoadingSkeleton />
           ) : (
@@ -650,6 +698,7 @@ const CourseRegistrations = () => {
               <Table>
                 <TableHeader>
                   <TableRow>
+                    <TableHead><input type="checkbox" className="h-4 w-4" readOnly /></TableHead>
                     <TableHead>Name</TableHead>
                     <TableHead>Total Courses</TableHead>
                     <TableHead>TCU</TableHead>
@@ -658,84 +707,79 @@ const CourseRegistrations = () => {
                   </TableRow>
                 </TableHeader>
                 <TableBody className="text-left">
-                  {filteredRegistrations.map((registration) => (
-                    <TableRow key={registration.student.matricNo}>
-                      <TableCell className="font-medium">
-                        <div>
-                          <div>{registration.student.name}</div>
-                          <div className="text-sm text-muted-foreground">
-                            {registration.student.matricNo}
-                          </div>
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        <div>
-                          {registration.courseRegistrations.length} courses
-                        </div>
-                      </TableCell>
-                      <TableCell>
-                        {registration.courseRegistrations.reduce((total, reg) => total + (reg.course.creditUnits || 0), 0)} UCs
-                      </TableCell>
-                      <TableCell>
-                        {registration.courseRegistrations[0]?.status === "approved" ? (
-                          <span className="px-2 py-1 rounded bg-green-100 text-green-700 text-xs">Approved</span>
-                        ) : registration.courseRegistrations[0]?.status === "pending"?(
-                          <span className="px-2 py-1 rounded bg-yellow-100 text-yellow-700 text-xs">Pending</span>
-                        ):(
-                          <span className="px-2 py-1 rounded bg-red-100 text-red-700 text-xs">Rejected</span>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        <div className="flex items-center space-x-2">
-                          <Button
-                            variant="outline"
-                            size="sm"
-                            onClick={() => {
-                              setSelectedRegistration(registration);
-                              setViewModalOpen(true);
+                  {filteredRegistrations.map((registration) => {
+                    const sid = (registration.student as any).id || (registration.student as any)._id || registration.student.matricNo;
+                    const totalUC = registration.courseRegistrations.reduce((total, reg) => total + (reg.course.creditUnits || 0), 0);
+                    const status = registration.courseRegistrations?.[0]?.status || 'pending';
+                    return (
+                      <TableRow key={sid}>
+                        <TableCell>
+                          <input
+                            type="checkbox"
+                            checked={selectedIds.includes(sid)}
+                            onChange={(e) => {
+                              if (e.target.checked) setSelectedIds(prev => Array.from(new Set([...prev, sid])));
+                              else setSelectedIds(prev => prev.filter(id => id !== sid));
                             }}
-                          >
-                            <Eye className="mr-2 h-4 w-4" />
-                            <span className="hidden sm:inline">View</span>
-                          </Button>
-                          {(user?.role === 'school-admin' || user?.role === 'super-admin') && (
+                            className="h-4 w-4"
+                          />
+                        </TableCell>
+                        <TableCell className="font-medium">
+                          <div>
+                            <div>{registration.student.name}</div>
+                            <div className="text-sm text-muted-foreground">
+                              {registration.student.matricNo}
+                            </div>
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          <div>
+                            {registration.courseRegistrations.length} courses
+                          </div>
+                        </TableCell>
+                        <TableCell>
+                          {totalUC} UCs
+                        </TableCell>
+                        <TableCell>
+                          {status === "approved" ? (
+                            <span className="px-2 py-1 rounded bg-green-100 text-green-700 text-xs">Approved</span>
+                          ) : status === "pending" ? (
+                            <span className="px-2 py-1 rounded bg-yellow-100 text-yellow-700 text-xs">Pending</span>
+                          ) : (
+                            <span className="px-2 py-1 rounded bg-red-100 text-red-700 text-xs">Rejected</span>
+                          )}
+                        </TableCell>
+                        <TableCell>
+                          <div className="flex items-center space-x-2">
                             <Button
                               variant="outline"
                               size="sm"
                               onClick={() => {
-                                setRegistrationToEdit(registration);
-                                setEditModalOpen(true);
+                                setSelectedRegistration(registration);
+                                setViewModalOpen(true);
                               }}
                             >
-                              <Edit2 className="mr-2 h-4 w-4 text-green-600" />
-                              <span className="hidden sm:inline">Edit</span>
+                              <Eye className="mr-2 h-4 w-4" />
+                              <span className="hidden sm:inline">View</span>
                             </Button>
-                          )}
-                        </div>
-                      </TableCell>
-                      {/* <TableCell>
-                        <Badge variant="secondary">
-                          {registration.session}
-                        </Badge>
-                      </TableCell>
-                      <TableCell>
-                        {registration.score !== undefined ? (
-                          <span className="font-medium">{registration.score}</span>
-                        ) : (
-                          <span className="text-muted-foreground">-</span>
-                        )}
-                      </TableCell>
-                      <TableCell>
-                        {registration.grade ? (
-                          <Badge variant={getGradeBadgeVariant(registration.grade)}>
-                            {registration.grade}
-                          </Badge>
-                        ) : (
-                          <span className="text-muted-foreground">-</span>
-                        )}
-                      </TableCell> */}
-                    </TableRow>
-                  ))}
+                            {(user?.role === 'school-admin' || user?.role === 'super-admin') && (
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => {
+                                  setRegistrationToEdit(registration);
+                                  setEditModalOpen(true);
+                                }}
+                              >
+                                <Edit2 className="mr-2 h-4 w-4 text-green-600" />
+                                <span className="hidden sm:inline">Edit</span>
+                              </Button>
+                            )}
+                          </div>
+                        </TableCell>
+                      </TableRow>
+                    )
+                  })}
                   {filteredRegistrations.length === 0 && !isLoading && (
                     <TableRow>
                       <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
