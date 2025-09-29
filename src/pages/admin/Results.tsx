@@ -92,7 +92,7 @@ const Results = () => {
 	const [uploadFile, setUploadFile] = useState<File | null>(null);
 	const [parsedData, setParsedData] = useState<UploadData[]>([]);
 
-	const { data: coursesData } = useGetCourses();
+	const { data: coursesData } = useGetCourses(1, 1000);
 	// Fetch grading templates (inside component)
 	const { data: gradingTemplatesRaw } = useGetGradingTemplates();
 	const gradingTemplates: GradingTemplate[] = Array.isArray(gradingTemplatesRaw) ? gradingTemplatesRaw : [];
@@ -124,7 +124,7 @@ const Results = () => {
 				values.slice(1).forEach((score, index) => {
 					const cc = {
 						//get course id from course code
-						course: (coursesData?.find(c => c.code === headers[index + 1]) as any)?._id,
+						course: (coursesData?.find((c: any) => c.code === headers[index + 1]) as any)?._id,
 						// course: headers[index + 1],
 						score: parseFloat(score) || 0,
 						matricNo: values[0],

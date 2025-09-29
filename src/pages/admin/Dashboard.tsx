@@ -1,22 +1,14 @@
 import { useUser } from "@/contexts/useUser";
-import { useGetStudents, useGetCourses, useGetDepartments, useGetFaculties } from "@/lib/api/queries";
+import { useGetAdminDashboard } from "@/lib/api/queries";
 import { Link } from "react-router";
 import type { School } from "@/components/types";
 
 function Dashboard() {
   // Fetch analytics data
   const { user } = useUser();
-  const { data: studentsData, isLoading: studentsLoading } = useGetStudents(1, 10000); // fetch all students (assuming <10k)
-  const { data: coursesData, isLoading: coursesLoading } = useGetCourses();
-  const { data: departmentsData, isLoading: departmentsLoading } = useGetDepartments();
-  const { data: facultiesData, isLoading: facultiesLoading } = useGetFaculties();
-
+  const { data: adminData, isLoading } = useGetAdminDashboard();
   // Calculate totals
-  const totalStudents = Array.isArray(studentsData) ? studentsData.length : 0;
-  const totalCourses = Array.isArray(coursesData) ? coursesData.length : 0;
-  const totalDepartments = Array.isArray(departmentsData) ? departmentsData.length : 0;
-  const totalFaculties = Array.isArray(facultiesData) ? facultiesData.length : 0;
-
+  console.log(adminData, 'adminD')
   // School details (from user.school)
   const school = user?.school as School | undefined;
 
@@ -42,19 +34,19 @@ function Dashboard() {
       {/* Analytics */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6 mb-10">
         <div className="bg-white text-slate-800 rounded-xl shadow border border-slate-100 p-6 flex flex-col items-center">
-          <div className="text-4xl font-bold text-slate-700">{studentsLoading ? '...' : totalStudents}</div>
+          <div className="text-4xl font-bold text-slate-700">{isLoading ? '...' : adminData?.studentCount}</div>
           <div className="mt-2 text-lg text-slate-500">Students</div>
         </div>
         <div className="bg-white text-slate-800 rounded-xl shadow border border-slate-100 p-6 flex flex-col items-center">
-          <div className="text-4xl font-bold text-slate-700">{coursesLoading ? '...' : totalCourses}</div>
+          <div className="text-4xl font-bold text-slate-700">{isLoading ? '...' : adminData?.courseCount}</div>
           <div className="mt-2 text-lg text-slate-500">Courses</div>
         </div>
         <div className="bg-white text-slate-800 rounded-xl shadow border border-slate-100 p-6 flex flex-col items-center">
-          <div className="text-4xl font-bold text-slate-700">{departmentsLoading ? '...' : totalDepartments}</div>
+          <div className="text-4xl font-bold text-slate-700">{isLoading ? '...' : adminData?.departmentCount}</div>
           <div className="mt-2 text-lg text-slate-500">Departments</div>
         </div>
         <div className="bg-white text-slate-800 rounded-xl shadow border border-slate-100 p-6 flex flex-col items-center">
-          <div className="text-4xl font-bold text-slate-700">{facultiesLoading ? '...' : totalFaculties}</div>
+          <div className="text-4xl font-bold text-slate-700">{isLoading ? '...' : adminData?.facultyCount}</div>
           <div className="mt-2 text-lg text-slate-500">Faculties</div>
         </div>
       </div>

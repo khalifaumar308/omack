@@ -22,6 +22,7 @@ import StudentCourseRegistration from "./pages/student/StudentCourseRegistration
 import GradingTemplates from "./pages/admin/GradingTemplates";
 import SchoolSettings from "./pages/admin/SchoolSettings";
 import StudentDashboard from "./pages/student/StudentDashboard";
+import StudentProfile from "./pages/student/StudentProfile";
 
 const queryClient = new QueryClient();
 function App() {
@@ -65,6 +66,7 @@ function App() {
                 }>
                   <Route index element={<StudentDashboard />} />
                   <Route path="/student/results" element={<StudentResults />} />
+                  <Route path="/student/settings" element={<StudentProfile />} />
                   <Route path="/student/course-registration" element={<StudentCourseRegistration />} />
                 </Route>
               {/* </UserProvider> */}

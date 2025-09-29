@@ -16,17 +16,24 @@ interface IProps {
 	courseReg?: TCourseReg;
 	session?: string;
 	toRetake?: Course[];
-	courses: Course[];
+	courses: Course[] | { data: Course[]; pagination?: { page: number; limit: number; total: number; totalPages: number; hasNext: boolean; hasPrev: boolean } };
 	semester?: string;
 	status?: "pending" | "approved" | "rejected";
 	onSuccess?: () => void;
 }
 const SemesterCourseReg = (Props: IProps) => {
+	// console.log("PProps", Props, 'props in sem reg')
 	const { user } = useUser()
 	const [semester, setSemester] = useState(Props.courseReg?.semester || Props.semester || "");
 	const [courseSearch, setCourseSearch] = useState("");
+	const [page, setPage] = useState<number>(1);
+	const [pageSize, setPageSize] = useState<number>(10);
 	const [selectedCourses, setSelectedCourses] = useState<Course[]>([]);
 	const [updateStatus, setUpdateStatus] = useState<"pending" | "approved" | "rejected">(Props.status || "pending");
+
+	// Derived courses array and pagination
+	const coursesArray: Course[] = Array.isArray(Props.courses) ? Props.courses : (Props.courses?.data || []);
+	const pagination = !Array.isArray(Props.courses) ? Props.courses?.pagination : undefined;
 
 	useEffect(() => {
 		if (Props.courseReg) {
@@ -34,6 +41,8 @@ const SemesterCourseReg = (Props: IProps) => {
 			setSelectedCourses(courses);
 		}
 	}, [Props.courseReg])
+
+	// When server-driven pagination is available and refetch provided, call it on page/search/pageSize change
 
 	const updateRegMutation = useUpdateStudentSemesterReg()
 	const submitRegistrationMutation = useStudentRegisterManyCourses()
@@ -97,16 +106,16 @@ const SemesterCourseReg = (Props: IProps) => {
 	const totalCredits = selectedCourses.reduce((sum, course) => sum + course.creditUnits, 0);
 	return (
 		<div className="relative">
-				{ (updateRegMutation.isPending || submitRegistrationMutation.isPending) && (
-					<div className="absolute inset-0 bg-white/70 z-50 flex flex-col items-center justify-center">
-											<svg className="animate-spin h-12 w-12 text-blue-500 mb-4" viewBox="0 0 24 24">
-												<circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
-												<path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
-											</svg>
-						<div className="text-sm font-medium text-gray-700">{updateRegMutation.isPending ? 'Updating registration...' : 'Submitting registration...'}</div>
-					</div>
-				)}
-				<div >
+			{(updateRegMutation.isPending || submitRegistrationMutation.isPending) && (
+				<div className="absolute inset-0 bg-white/70 z-50 flex flex-col items-center justify-center">
+					<svg className="animate-spin h-12 w-12 text-blue-500 mb-4" viewBox="0 0 24 24">
+						<circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+						<path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z" />
+					</svg>
+					<div className="text-sm font-medium text-gray-700">{updateRegMutation.isPending ? 'Updating registration...' : 'Submitting registration...'}</div>
+				</div>
+			)}
+			<div >
 				{/* Semester & Session Selection */}
 				<div className="lg:col-span-2 flex flex-wrap gap-4 mb-4 items-center">
 					<div>
@@ -142,14 +151,14 @@ const SemesterCourseReg = (Props: IProps) => {
 							<option value="approved">Approved</option>
 							<option value="rejected">Rejected</option>
 						</select>
-						<Button disabled={updateRegMutation.isPending} onClick={()=> {
-							if(updateStatus === Props.status) {
+						<Button disabled={updateRegMutation.isPending} onClick={() => {
+							if (updateStatus === Props.status) {
 								toast.error("Status is unchanged")
 								return
 							}
-							updateRegMutation.mutate({ 
-								studentId: Props.courseReg?.studentId || "", 
-								status: updateStatus, semester: Props.courseReg?.semester || "", 
+							updateRegMutation.mutate({
+								studentId: Props.courseReg?.studentId || "",
+								status: updateStatus, semester: Props.courseReg?.semester || "",
 								session: Props.courseReg?.session || ""
 							}, {
 								onSuccess: () => {
@@ -162,7 +171,7 @@ const SemesterCourseReg = (Props: IProps) => {
 									toast.error(error?.response?.data?.message || 'Update failed. Please try again.');
 								}
 							})
-						}} className="bg-[#155DFC]">{updateRegMutation.isPending?"Updating...":"Update"}</Button>
+						}} className="bg-[#155DFC]">{updateRegMutation.isPending ? "Updating..." : "Update"}</Button>
 					</div>
 				)}
 				{/* Failed Courses Notice */}
@@ -186,37 +195,65 @@ const SemesterCourseReg = (Props: IProps) => {
 					{/* Available Courses */}
 					<div className="bg-white p-6 rounded-lg shadow-sm border">
 						<h2 className="text-lg font-semibold text-gray-800 mb-4">Available Courses</h2>
-						<input
-							type="text"
-							className="mb-4 w-full px-3 py-2 border rounded focus:outline-none focus:ring focus:border-blue-300"
-							placeholder="Search by code or title..."
-							value={courseSearch}
-							onChange={e => setCourseSearch(e.target.value)}
-						/>
+						<div className="flex gap-2 mb-4 items-center">
+							<input
+								type="text"
+								className="flex-1 px-3 py-2 border rounded focus:outline-none focus:ring focus:border-blue-300"
+								placeholder="Search by code or title..."
+								value={courseSearch}
+								onChange={e => { setCourseSearch(e.target.value); setPage(1); }}
+							/>
+							<select value={pageSize} onChange={e => { setPageSize(parseInt(e.target.value)); setPage(1); }} className="px-3 py-2 border rounded">
+								<option value={5}>5</option>
+								<option value={10}>10</option>
+								<option value={20}>20</option>
+							</select>
+						</div>
+
 						<div className="space-y-4 max-h-96 overflow-y-auto">
-							{Props.courses?.filter(course =>
-								course.code.toLowerCase().includes(courseSearch.toLowerCase()) ||
-								course.title.toLowerCase().includes(courseSearch.toLowerCase())
-							).map(course => (
-								<div key={course.id} className="border rounded-lg p-4 hover:bg-gray-50 transition-colors">
-									<div className="flex items-center justify-between">
-										<div className="flex-1">
-											<h3 className="font-medium text-gray-800">{course.code}</h3>
-											<p className="text-sm text-gray-600">{course.title}</p>
-											<p className="text-xs text-gray-500 mt-1">
-												{course.creditUnits} credits
-											</p>
+							{coursesArray
+								.filter(course => {
+									if (!courseSearch) return true;
+									return course.code.toLowerCase().includes(courseSearch.toLowerCase()) || course.title.toLowerCase().includes(courseSearch.toLowerCase())
+								})
+								.slice((page - 1) * pageSize, (page - 1) * pageSize + pageSize)
+								.map(course => (
+									<div key={(course as any).id || (course as any)._id} className="border rounded-lg p-4 hover:bg-gray-50 transition-colors">
+										<div className="flex items-center justify-between">
+											<div className="flex-1">
+												<h3 className="font-medium text-gray-800">{(course as any).code}</h3>
+												<p className="text-sm text-gray-600">{(course as any).title}</p>
+												<p className="text-xs text-gray-500 mt-1">
+													{(course as any).creditUnits} credits
+												</p>
+											</div>
+											<button
+												onClick={() => addCourse(course)}
+												disabled={selectedCourses.some(c => c.code === (course as any).code)}
+												className="ml-4 p-2 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+											>
+												<Plus size={16} />
+											</button>
 										</div>
-										<button
-											onClick={() => addCourse(course)}
-											disabled={selectedCourses.some(c => c.code === course.code)}
-											className="ml-4 p-2 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
-										>
-											<Plus size={16} />
-										</button>
 									</div>
-								</div>
-							))}
+								))}
+						</div>
+
+						{/* Pagination controls (use server pagination if provided) */}
+						<div className="mt-3 flex items-center justify-between">
+							<div className="text-sm text-gray-600">{pagination ? `Showing page ${pagination.page} of ${pagination.totalPages}` : `Showing ${(page - 1) * pageSize + 1}-${Math.min((page) * pageSize, coursesArray.length)} of ${coursesArray.length}`}</div>
+							<div className="flex items-center space-x-2">
+								<Button type="button" variant="outline" size="sm" onClick={() => setPage(p => Math.max(1, p - 1))} disabled={pagination ? !pagination.hasPrev : page === 1}>Prev</Button>
+								<div className="text-sm text-gray-700">{pagination ? pagination.page : page}</div>
+								<Button type="button" variant="outline" size="sm" onClick={() => {
+									if (pagination) {
+										if (!pagination.hasNext) return;
+										setPage(p => p + 1);
+									} else {
+										setPage(p => p + 1);
+									}
+								}} disabled={pagination ? !pagination.hasNext : (page * pageSize >= coursesArray.length)}>Next</Button>
+							</div>
 						</div>
 					</div>
 

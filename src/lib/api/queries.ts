@@ -65,12 +65,14 @@ export const useGetUser = () => {
 }
 
 //courses
-export const useGetCourses = () => {
+export const useGetCourses = (page: number = 1, limit: number = 50, search: string = '', department: string = '') => {
   return useQuery({
-    queryKey: ["courses"],
-    queryFn: () => api.getCourses(),
+    queryKey: ["courses", page, limit, search, department],
+    queryFn: () => api.getCourses(page, limit, search || undefined, department || undefined),
     placeholderData: undefined,
     refetchOnWindowFocus: false,
+  staleTime: 1000 * 60 * 2, // 2 minutes
+    retry: 2,
   });
 };
 
@@ -86,8 +88,8 @@ export const useGetCourseRegistrations = (
   return useQuery({
     queryKey: ["courseRegistrations", semester, session, page, limit, search, student, department],
     queryFn: () => api.getCourseRegistrations(
-      semester === 'all' ? undefined : semester,
-      session === 'all' ? undefined : session,
+      semester,
+      session,
       page,
       limit,
       search,
@@ -105,6 +107,15 @@ export const useGetCourseRegistrationInfo = () => {
     queryKey: ["studentCourseRegistration"],
     queryFn: () => api.getStudentRegstrationsInfo(),
     enabled: true,
+    refetchOnWindowFocus: false,
+  });
+}
+
+export const useGetAdminDashboard = () => {
+  return useQuery({
+    queryKey: ["adminDashboard"],
+    queryFn: () => api.getadmindashBoardData(),
+    placeholderData: undefined,
     refetchOnWindowFocus: false,
   });
 }

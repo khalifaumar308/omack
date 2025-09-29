@@ -51,14 +51,17 @@ export default function Courses() {
   });
 
   const { user } = useUser();
-  const { data, isLoading, isError, error, refetch } = useGetCourses();
+  const { data, isLoading, isError, error, refetch } = useGetCourses(currentPage, limit, searchTerm, selectedDepartment);
   const addCourseMutation = useAddCourse();
   const updateCourseMutation = useUpdateCourse();
   const deleteCourseMutation = useDeleteCourse();
-
-  const courses = data || [];
-  const totalCourses = courses.length;
-  const totalPages = Math.ceil(totalCourses / limit);
+  // support both array response and paginated { data, pagination }
+  const coursesData = Array.isArray(data) ? data : data?.data || [];
+  const pagination = data?.pagination || { page: currentPage, limit, total: coursesData.length, totalPages: Math.ceil(coursesData.length / limit) };
+  const courses = coursesData || [];
+  const totalCourses = pagination.total || courses.length;
+  const totalPages = pagination.totalPages || Math.ceil(totalCourses / limit);
+  console.log( coursesData);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -106,20 +109,20 @@ export default function Courses() {
     setIsDialogOpen(true);
   };
 
-  const filteredCourses = courses.filter((course) => {
-    const matchesSearch = course.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      course.title.toLowerCase().includes(searchTerm.toLowerCase());
+  // const filteredCourses = courses.filter((course: Course) => {
+  //   const matchesSearch = course.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
+  //     course.title.toLowerCase().includes(searchTerm.toLowerCase());
 
-    const courseDeptId = typeof course.department === 'string' ? course.department : (course.department as any)?.id || (course.department as any)?.name;
-    const matchesDepartment = selectedDepartment === 'all' || courseDeptId === selectedDepartment;
+  //   const courseDeptId = typeof course.department === 'string' ? course.department : (course.department as any)?.id || (course.department as any)?.name;
+  //   const matchesDepartment = selectedDepartment === 'all' || courseDeptId === selectedDepartment;
 
-    return matchesSearch && matchesDepartment;
-  });
+  //   return matchesSearch && matchesDepartment;
+  // });
 
-  const paginatedCourses = filteredCourses.slice(
-    (currentPage - 1) * limit,
-    currentPage * limit
-  );
+  // const paginatedCourses = courses.slice(
+  //   (currentPage - 1) * limit,
+  //   currentPage * limit
+  // );
 
   const getDepartmentName = (departmentId: string) => {
     return departments?.find(d => d.id === departmentId)?.name || departmentId;
@@ -391,7 +394,7 @@ export default function Courses() {
                   </TableRow>
                 </TableHeader>
                 <TableBody className="text-left">
-                  {paginatedCourses.map((course) => (
+                  {coursesData.map((course: Course) => (
                     <TableRow key={course.id}>
                       <TableCell className="font-medium">
                         {course.code}
@@ -412,7 +415,7 @@ export default function Courses() {
                       </TableCell>
                     </TableRow>
                   ))}
-                  {paginatedCourses.length === 0 && !isLoading && (
+                  {coursesData.length === 0 && !isLoading && (
                     <TableRow>
                       <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
                         {searchTerm ? "No courses match your search." : "No courses found. Add one to get started."}

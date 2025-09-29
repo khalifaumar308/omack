@@ -49,7 +49,7 @@ const api: AxiosInstance = axios.create({
 // Request interceptor to add Authorization header when we have an access token
 api.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
-  if (!config.headers) (config.headers as any) = {};
+    if (!config.headers) (config.headers as any) = {};
     const token = typeof window !== 'undefined' ? localStorage.getItem('accessToken') : accessToken;
     if (token) {
       config.headers['Authorization'] = `Bearer ${token}`;
@@ -177,7 +177,7 @@ export const authManager = {
   // Handle authentication failure
   handleAuthFailure: (): void => {
     authManager.clearAccessToken();
-    
+
     // Dispatch logout event for React components to handle
     if (typeof window !== 'undefined') {
       window.dispatchEvent(new CustomEvent('auth:logout', {
@@ -245,30 +245,30 @@ export const checkAuthStatus = async () => {
 
 //grading template
 
-export const getGradingTemplates = async () =>{
+export const getGradingTemplates = async () => {
   const response = await api.get<GradingTemplateListResponse>("/grading-templates");
   return response.data
 }
 
-export const createGradingTemplate = async(template:CreateGradingTemplateRequest) => {
+export const createGradingTemplate = async (template: CreateGradingTemplateRequest) => {
   const response = await api.post("/grading-templates", template);
   return response.data
 }
 
-export const updateGradingTemplate = async (id:string, update:UpdateGradingTemplateRequest) => {
- const responce = await api.put(`/grading-templates/${id}`, update)
- return responce.data
-} 
+export const updateGradingTemplate = async (id: string, update: UpdateGradingTemplateRequest) => {
+  const responce = await api.put(`/grading-templates/${id}`, update)
+  return responce.data
+}
 
-export const getGradingTemplateById = async (id:string) => {
- const responce = await api.get(`/grading-templates/${id}`)
- return responce.data
-} 
+export const getGradingTemplateById = async (id: string) => {
+  const responce = await api.get(`/grading-templates/${id}`)
+  return responce.data
+}
 
-export const deleteGradingTemplate = async (id:string) => {
- const responce = await api.delete(`/grading-templates/${id}`)
- return responce.data
-} 
+export const deleteGradingTemplate = async (id: string) => {
+  const responce = await api.delete(`/grading-templates/${id}`)
+  return responce.data
+}
 // =============================================================================
 // SCHOOL MANAGEMENT APIs
 // =============================================================================
@@ -421,7 +421,7 @@ export const registerSchoolAdmin = async (adminData: { name: string; email: stri
 // =============================================================================
 
 export const updateCourseRegsStatus = async (body: { studentId: string[]; semester: string; session: string; status: "pending" | "approved" | "rejected" }) => {
-  const response = await api.patch("/course-registrations/registrations/bulk-status", {...body, studentIds: body.studentId});
+  const response = await api.patch("/course-registrations/registrations/bulk-status", { ...body, studentIds: body.studentId });
   return response.data;
 };
 
@@ -436,8 +436,9 @@ export const getCourseRegistrations = async (
 ) => {
   let url = '/course-registrations/registrations';
   const params = new URLSearchParams();
-  if (semester && semester !== 'all') params.append('semester', semester);
-  if (session && session !== 'all') params.append('session', session);
+  console.log(semester, session, ');');
+  if (semester) params.append('semester', semester);
+  if (session) params.append('session', session);
   if (page) params.append('page', String(page));
   if (limit) params.append('limit', String(limit));
   if (search) params.append('search', search);
@@ -454,11 +455,11 @@ export const getCourseRegistrations = async (
   return response.data;
 };
 
-export const updateSemesterCourseReg = async (body: 
+export const updateSemesterCourseReg = async (body:
   {
-    studentId: string; semester: string; 
-    session: string, newCourseIds?:string[]; 
-    status?:"pending" | "approved" | "rejected"
+    studentId: string; semester: string;
+    session: string, newCourseIds?: string[];
+    status?: "pending" | "approved" | "rejected"
   }
 ) => {
   const response = await api.patch("/course-registrations/edit", body);
@@ -490,7 +491,7 @@ export const uploadResult = async (registrationId: string, resultData: UploadRes
   return response.data;
 };
 
-export const adminUploadResults = async (results:AdminUploadResultsRequest) => {
+export const adminUploadResults = async (results: AdminUploadResultsRequest) => {
   const response = await api.post<{ message: string; registration: CourseRegistration }>(`/course-registrations/admin-results`, results);
   return response.data;
 };
@@ -536,20 +537,36 @@ export const getTranscript = async () => {
 // COURSE MANAGEMENT APIs (You may need to implement these endpoints)
 // =============================================================================
 
-export const createCourse = async (courseData: { 
-  code: string; 
-  title: string; 
-  department: string; 
-  school: string; 
-  instructors: string[]; 
-  creditUnits: number; 
+export const createCourse = async (courseData: {
+  code: string;
+  title: string;
+  department: string;
+  school: string;
+  instructors: string[];
+  creditUnits: number;
 }) => {
   const response = await api.post<Course>("/courses", courseData);
   return response.data;
 };
 
-export const getCourses = async () => {
-  const response = await api.get<Course[]>("/courses");
+export const getadmindashBoardData = async () => {
+  const response = await api.get<{
+    studentCount: number,
+    courseCount: number,
+    departmentCount: number,
+    facultyCount: number
+  }>(`/schools/admin-dashboard`);
+  return response.data;
+};
+
+export const getCourses = async (page?: number, limit?: number, search?: string, department?: string) => {
+  const params: Record<string, string> = {};
+  if (page) params.page = String(page);
+  if (limit) params.limit = String(limit);
+  if (search) params.search = search;
+  if (department) params.department = department;
+
+  const response = await api.get<any>(`/courses`, { params });
   return response.data;
 };
 
@@ -563,13 +580,13 @@ export const getCoursesByInstructor = async (instructorId: string) => {
   return response.data;
 };
 
-export const updateCourse = async (id: string, courseData: Partial<{ 
-  code: string; 
-  title: string; 
-  department: string; 
-  school: string; 
-  instructors: string[]; 
-  creditUnits: number; 
+export const updateCourse = async (id: string, courseData: Partial<{
+  code: string;
+  title: string;
+  department: string;
+  school: string;
+  instructors: string[];
+  creditUnits: number;
 }>) => {
   const response = await api.put<Course>(`/courses/${id}`, courseData);
   return response.data;
@@ -676,36 +693,36 @@ export const handleApiError = (error: any): ApiError => {
 export const queryKeys = {
   // Auth
   currentUser: ['auth', 'currentUser'] as const,
-  
+
   // Schools
   schools: ['schools'] as const,
   school: (id: string) => ['schools', id] as const,
-  
+
   // Faculties
   faculties: ['faculties'] as const,
   faculty: (id: string) => ['faculties', id] as const,
-  
+
   // Departments
   departments: ['departments'] as const,
   department: (id: string) => ['departments', id] as const,
   departmentsByFaculty: (facultyId: string) => ['departments', 'faculty', facultyId] as const,
-  
+
   // Students
   students: ['students'] as const,
   student: (id: string) => ['students', id] as const,
   studentsByDepartment: (departmentId: string) => ['students', 'department', departmentId] as const,
-  
+
   // Instructors
   instructors: ['instructors'] as const,
   instructor: (id: string) => ['instructors', id] as const,
   instructorsByDepartment: (departmentId: string) => ['instructors', 'department', departmentId] as const,
-  
+
   // Courses
   courses: ['courses'] as const,
   course: (id: string) => ['courses', id] as const,
   coursesByDepartment: (departmentId: string) => ['courses', 'department', departmentId] as const,
   coursesByInstructor: (instructorId: string) => ['courses', 'instructor', instructorId] as const,
-  
+
   // Course Registrations
   courseRegistrations: ['courseRegistrations'] as const,
   semesterResult: (semester: string, session: string) => ['courseRegistrations', 'semester', semester, session] as const,
@@ -720,36 +737,36 @@ export default {
   getCurrentUser,
   checkAuthStatus,
   authManager,
-  
+
   // Legacy (deprecated)
   setAuthToken,
   clearAuthToken,
-  
+
   // Schools
   createSchool,
   getSchools,
   updateSchool,
   deleteSchool,
-  
+
   // Faculties
   createFaculty,
   getFaculties,
   updateFaculty,
   deleteFaculty,
-  
+
   // Departments
   createDepartment,
   getDepartments,
   updateDepartment,
   deleteDepartment,
-  
+
   // Students
   createStudent,
   bulkCreateStudents,
   getStudents,
   updateStudent,
   deleteStudent,
-  
+
   // Instructors
   createInstructor,
   bulkCreateInstructors,
@@ -758,7 +775,7 @@ export default {
   deleteInstructor,
   createSuperAdmin,
   registerSchoolAdmin,
-  
+
   // Course Registrations
   getCourseRegistrations,
   registerCourse,
@@ -767,7 +784,7 @@ export default {
   uploadMultipleResults,
   getSemesterResult,
   getTranscript,
-  
+
   // Courses
   createCourse,
   getCourses,
@@ -775,7 +792,7 @@ export default {
   getCoursesByInstructor,
   updateCourse,
   deleteCourse,
-  
+
   // Utilities
   scoreToGrade,
   gradeToPoint,

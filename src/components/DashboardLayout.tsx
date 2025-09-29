@@ -25,15 +25,9 @@ import {
   Radio,
 } from "lucide-react";
 import { Link, useLocation, Outlet } from "react-router";
-// import { UserProvider } from "@/contexts/UserContext";
 import { useUser } from "@/contexts/useUser";
 import { userLogout } from "@/lib/api/base";
 import { Button } from "@/components/ui/button";
-
-
-// interface DashboardLayoutProps {
-//   children: React.ReactNode;
-// }
 
 export function DashboardLayout() {
 // Sidebar item type definition

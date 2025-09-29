@@ -71,18 +71,24 @@ const CourseRegistrations = () => {
   const [isBulkDialogOpen, setIsBulkDialogOpen] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   // default filters to 'all' so the Select components start in a neutral state
-  const [selectedSemester, setSelectedSemester] = useState<string>(user?.school?.currentSemester || "all");
-  const [selectedSession, setSelectedSession] = useState<string>(user?.school?.currentSession || "all");
-  const [selectedStudent, setSelectedStudent] = useState<string>("all");
+  const [selectedSemester, setSelectedSemester] = useState<string>("");
+  const [selectedSession, setSelectedSession] = useState<string>("");
   const [selectedDepartment, setSelectedDepartment] = useState<string>("all");
-  
+
+  useEffect(() => {
+    if (user?.school) {
+      setSelectedSemester(user.school.currentSemester);
+      setSelectedSession(user.school.currentSession);
+    }
+  }, [user?.school]);
+
   const [formData, setFormData] = useState<RegisterCourseRequest>({
     course: "",
     semester: "",
     session: "",
   });
 
-  const [bulkFormData, setBulkFormData] = useState<{student:string; course:string; semester:string; session:string}[]|[]>([]);
+  const [bulkFormData, setBulkFormData] = useState<{ student: string; course: string; semester: string; session: string }[] | []>([]);
   const [bulkSemester, setBulkSemester] = useState("");
   const [bulkSession, setBulkSession] = useState("");
   const [viewModalOpen, setViewModalOpen] = useState(false);
@@ -93,19 +99,19 @@ const CourseRegistrations = () => {
   // fetch registrations with current selected semester/session (use 'all' to fetch unfiltered)
   const [pageSize, setPageSize] = useState(10);
   const { data: registrationsRaw, isLoading, isError, error, refetch } = useGetCourseRegistrations(
-    selectedSemester || 'all',
-    selectedSession || 'all',
+    selectedSemester,
+    selectedSession,
     currentPage,
     pageSize,
     searchTerm,
-    selectedStudent || 'all',
     selectedDepartment || 'all'
   );
-
   // registrationsRaw may be either an array (legacy) or { data, pagination }
   const registrationsData = Array.isArray(registrationsRaw) ? registrationsRaw : registrationsRaw?.data || [];
   const pagination = registrationsRaw && !Array.isArray(registrationsRaw) ? registrationsRaw.pagination : { page: currentPage, limit: pageSize, total: registrationsData.length, totalPages: 1, hasNext: false, hasPrev: false };
-  const { data: courses } = useGetCourses();
+  const { data: courses } = useGetCourses(1, 1000);
+  // request a larger page of courses for selects and lookups
+  // keep previous data behavior is handled by react-query hook options
   const { data: students } = useGetStudents(1, 100); // Get more students for filtering
   const { data: departments } = useGetDepartments();
   const registerCourseMutation = useRegisterCourse();
@@ -113,10 +119,10 @@ const CourseRegistrations = () => {
   const updateBulkRegStatusMutation = useAdminUpdateBulkRegStatus();
   const courseRegistrations: IAdminCourseRegs[] = registrationsData || [];
   const [selectedIds, setSelectedIds] = useState<string[]>([]);
-  const [bulkStatus, setBulkStatus] = useState<'pending'|'approved'|'rejected'>('approved');
+  const [bulkStatus, setBulkStatus] = useState<'pending' | 'approved' | 'rejected'>('approved');
 
   // React Query will refetch automatically when selectedSemester/selectedSession change
-  
+
 
   useEffect(() => {
     if (registerCourseMutation.isSuccess || registerManyCourseMutation.isSuccess) {
@@ -173,7 +179,7 @@ const CourseRegistrations = () => {
     reader.onload = (event) => {
       const csv = event.target?.result as string;
       const lines = csv.split('\n').slice(1); // Skip header
-      const registrations: { student: string; course: string, semester:string, session:string }[] = [];
+      const registrations: { student: string; course: string, semester: string, session: string }[] = [];
       lines.forEach(line => {
         const [matricNo, courseCodes] = line.split(',');
         // console.log(matricNo, courseCodes, 'matricNo, courseCodes')
@@ -183,12 +189,12 @@ const CourseRegistrations = () => {
         }
         const studentId = (students?.find(student => student.matricNo === matricNo.trim()) as any)?._id;
         const courseCds = courseCodes?.trim().split(';');
-        const courseIds = courses?.filter(course => courseCds.includes(course.code)).map((course:any) => course._id);
+        const courseIds = courses?.filter((course: any) => courseCds.includes(course.code)).map((course: any) => course._id);
         if (studentId === "") {
           console.log(matricNo, 'student not found');
         }
         if (studentId && courseIds && courseIds.length > 0 && studentId !== "") {
-          courseIds.forEach(courseId => {
+          courseIds.forEach((courseId: string) => {
             registrations.push({ student: studentId, course: courseId, semester: bulkSemester, session: bulkSession });
           });
         }
@@ -245,7 +251,13 @@ const CourseRegistrations = () => {
       </div>
     );
   }
-
+  // console.log({
+  //   studentId: (registrationToEdit?.student as any)?.id || (registrationToEdit?.student as any)?._id || '',
+  //   semester: registrationToEdit?.courseRegistrations?.[0]?.semester || user?.school?.currentSemester || '',
+  //   session: registrationToEdit?.courseRegistrations?.[0]?.session || user?.school?.currentSession || '',
+  //   courses: registrationToEdit?.courseRegistrations || [],
+  //   status: (registrationToEdit as any)?.status || 'pending',
+  // })
   return (
     <div className="space-y-6">
       {/* Header Section */}
@@ -254,7 +266,7 @@ const CourseRegistrations = () => {
           <BookOpen className="h-8 w-8 text-primary" />
           <h1 className="text-2xl sm:text-3xl font-bold tracking-tight">Course Registrations</h1>
         </div>
-        
+
         <div className="flex flex-wrap gap-2">
           {/* Individual Registration Dialog */}
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
@@ -277,7 +289,7 @@ const CourseRegistrations = () => {
                       <SelectValue placeholder="Select Course" />
                     </SelectTrigger>
                     <SelectContent>
-                      {courses?.map((course) => (
+                      {courses?.data.map((course: any) => (
                         <SelectItem key={course.id} value={course.id}>
                           {course.code} - {course.title}
                         </SelectItem>
@@ -414,8 +426,8 @@ const CourseRegistrations = () => {
                       Process CSV
                     </Button>
                   ) : (
-                    <Button 
-                      type="submit" 
+                    <Button
+                      type="submit"
                       disabled={registerManyCourseMutation.isPending || bulkFormData.length === 0}
                     >
                       {registerManyCourseMutation.isPending ? "Registering..." : "Register All"}
@@ -455,7 +467,7 @@ const CourseRegistrations = () => {
                 <SelectValue placeholder="All Semesters" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">All Semesters</SelectItem>
+                {/* <SelectItem value="all">All Semesters</SelectItem> */}
                 {semesters.map((semester) => (
                   <SelectItem key={semester} value={semester}>
                     {semester} Semester
@@ -476,7 +488,7 @@ const CourseRegistrations = () => {
                 ))}
               </SelectContent>
             </Select>
-            <Select value={selectedStudent} onValueChange={setSelectedStudent}>
+            {/* <Select value={selectedStudent} onValueChange={setSelectedStudent}>
               <SelectTrigger>
                 <SelectValue placeholder="All Students" />
               </SelectTrigger>
@@ -488,7 +500,7 @@ const CourseRegistrations = () => {
                   </SelectItem>
                 ))}
               </SelectContent>
-            </Select>
+            </Select> */}
             <Select value={selectedDepartment} onValueChange={(val) => { setSelectedDepartment(val); setCurrentPage(1); }}>
               <SelectTrigger>
                 <SelectValue placeholder="All Departments" />
@@ -561,7 +573,7 @@ const CourseRegistrations = () => {
         }
         setEditModalOpen(open);
       }}>
-        <DialogContent className="max-w-2xl max-h-[80vh] overflow-auto">
+        <DialogContent className="sm:min-w-3xl max-w-3xl max-h-[80vh] overflow-auto">
           <DialogHeader>
             <DialogTitle>Edit Student Registration</DialogTitle>
           </DialogHeader>
@@ -582,7 +594,7 @@ const CourseRegistrations = () => {
                       courses: registrationToEdit.courseRegistrations || [],
                       status: (registrationToEdit as any).status || 'pending',
                     }}
-                    courses={courses || []}
+                    courses={courses?.data || []}
                     onSuccess={() => {
                       setEditModalOpen(false);
                       setRegistrationToEdit(null);
@@ -668,7 +680,7 @@ const CourseRegistrations = () => {
                 <span className="text-sm text-muted-foreground">Select all</span>
               </div>
               <div className="flex items-center gap-2">
-                <Select value={bulkStatus} onValueChange={(v) => setBulkStatus(v as 'pending'|'approved'|'rejected')}>
+                <Select value={bulkStatus} onValueChange={(v) => setBulkStatus(v as 'pending' | 'approved' | 'rejected')}>
                   <SelectTrigger className="w-40">
                     <SelectValue />
                   </SelectTrigger>
@@ -783,7 +795,7 @@ const CourseRegistrations = () => {
                   {filteredRegistrations.length === 0 && !isLoading && (
                     <TableRow>
                       <TableCell colSpan={6} className="text-center py-8 text-muted-foreground">
-                        {searchTerm || selectedSemester || selectedSession || selectedStudent
+                        {searchTerm || selectedSemester || selectedSession
                           ? "No registrations match your filters."
                           : "No course registrations found. Add some to get started."}
                       </TableCell>
@@ -794,43 +806,43 @@ const CourseRegistrations = () => {
             </div>
           )}
           <div className="flex items-center justify-between">
-        <div className="text-sm text-muted-foreground">
-          Showing {startIdx + 1} - {Math.min(startIdx + pageSize, pagination?.total || filteredRegistrations.length)} of {pagination?.total || filteredRegistrations.length}
-        </div>
-        <div className="flex items-center space-x-2">
-          <div className="flex items-center gap-2">
-            <span className="text-sm text-muted-foreground">Rows per page:</span>
-            <Select value={String(pageSize)} onValueChange={(v) => { setPageSize(parseInt(v)); setCurrentPage(1); }}>
-              <SelectTrigger className="w-[80px]">
-                <SelectValue />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="5">5</SelectItem>
-                <SelectItem value="10">10</SelectItem>
-                <SelectItem value="25">25</SelectItem>
-                <SelectItem value="50">50</SelectItem>
-              </SelectContent>
-            </Select>
+            <div className="text-sm text-muted-foreground">
+              Showing {startIdx + 1} - {Math.min(startIdx + pageSize, pagination?.total || filteredRegistrations.length)} of {pagination?.total || filteredRegistrations.length}
+            </div>
+            <div className="flex items-center space-x-2">
+              <div className="flex items-center gap-2">
+                <span className="text-sm text-muted-foreground">Rows per page:</span>
+                <Select value={String(pageSize)} onValueChange={(v) => { setPageSize(parseInt(v)); setCurrentPage(1); }}>
+                  <SelectTrigger className="w-[80px]">
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="5">5</SelectItem>
+                    <SelectItem value="10">10</SelectItem>
+                    <SelectItem value="25">25</SelectItem>
+                    <SelectItem value="50">50</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={currentPage <= 1 || !pagination?.hasPrev}
+                onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
+              >
+                Previous
+              </Button>
+              <div className="text-sm">Page {pagination?.page || currentPage} of {pagesAfterFilter}</div>
+              <Button
+                variant="outline"
+                size="sm"
+                disabled={!pagination?.hasNext || currentPage >= (pagination?.totalPages || pagesAfterFilter)}
+                onClick={() => setCurrentPage((p) => Math.min((pagination?.totalPages || pagesAfterFilter), p + 1))}
+              >
+                Next
+              </Button>
+            </div>
           </div>
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={currentPage <= 1 || !pagination?.hasPrev}
-            onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
-          >
-            Previous
-          </Button>
-          <div className="text-sm">Page {pagination?.page || currentPage} of {pagesAfterFilter}</div>
-          <Button
-            variant="outline"
-            size="sm"
-            disabled={!pagination?.hasNext || currentPage >= (pagination?.totalPages || pagesAfterFilter)}
-            onClick={() => setCurrentPage((p) => Math.min((pagination?.totalPages || pagesAfterFilter), p + 1))}
-          >
-            Next
-          </Button>
-        </div>
-      </div>
         </CardContent>
       </Card>
     </div>
