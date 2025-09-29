@@ -37,8 +37,10 @@ import type {
   ResultSummary,
   PopulatedStudent,
   PopulatedDepartment,
-  PopulatedFaculty
+  PopulatedFaculty,
+  GradingTemplate
 } from "@/components/types";
+import { scoreToComment } from "@/lib/utils";
 // Types for display
 interface CourseDisplay {
   sn: number;
@@ -57,6 +59,11 @@ interface SummaryDisplay {
   tgp: number;
   gpa: number;
   remark: string;
+  previous?: {
+    TCU: number;
+    TGP: number;
+    CGPA: number;
+  };
 }
 
 const Results = () => {
@@ -64,26 +71,21 @@ const Results = () => {
   const [semester, setSemester] = useState(user?.school?.currentSemester || 'First');
   const [session, setSession] = useState(user?.school?.currentSession || '2025/2026');
   const { data: gradingTemplatesRaw } = useGetGradingTemplates();
-  const gradingTemplates = Array.isArray(gradingTemplatesRaw) ? gradingTemplatesRaw : [];
+  // const gradingTemplates = Array.isArray(gradingTemplatesRaw) ? gradingTemplatesRaw : [];
 
   // const { data: semesterResults = [], isLoading: semesterLoading } = useGetStudentsSemesterResults(semester, session);
   const { data: semesterResult, isLoading: semesterLoading } = useGetSemesterResult(semester, session); // To refetch on semester/session change
   const { data: transcript = [], isLoading: transcriptLoading } = useGetTranscript();
-
+  console.log(gradingTemplatesRaw);
   const currentUser = user && user.role === 'student' ? (user as PopulatedStudent) : null;
   const currentResult = semesterResult as StudentsSemesterResultsResponse | undefined; // Assume only current student's data
 
   // Find grading template for student's department
   const departmentId = currentUser?.department && typeof currentUser.department === 'object' ? currentUser.department.id : currentUser?.department;
-  const gradingTemplate = gradingTemplates.find(
+  const gradingTemplate = (gradingTemplatesRaw ? (JSON.parse(JSON.stringify(gradingTemplatesRaw)) as GradingTemplate[]) : []).find(
     (tpl) => (typeof tpl.department === 'string' ? tpl.department : tpl.department?.id) === departmentId
   );
   const gradeBands = useMemo(() => gradingTemplate?.gradeBands || [], [gradingTemplate]);
-  // Classification logic (same as before)
-  const getClassification = (gpa: number): string => {
-    const remark = gpa >= 3.0 ? 'UPPER CREDIT' : gpa >= 2.5 ? 'LOWER CREDIT' : gpa >= 2 ? 'PASS' : 'FAIL';
-    return remark;
-  };
 
   // Student data for PDFs - compute always, null if no user
   const studentData = useMemo<ResultPDFProps['studentData'] & TranscriptProps['studentData'] | null>(() => {
@@ -138,13 +140,14 @@ const Results = () => {
   const summary: SummaryDisplay = useMemo(() => {
     if (currentResult?.summary) {
       const s = currentResult.summary;
-      const remark = s.GPA >= 3.0 ? 'UPPER CREDIT' : s.GPA >= 2.5 ? 'LOWER CREDIT' : s.GPA >= 2 ? 'PASS' : 'FAIL';
+      const remark = scoreToComment(gradingTemplate!, s.GPA);
       return {
         tcu: s.TCU,
         tca: s.TCU, // Assume TCA = TCU
         tgp: s.TGP,
         gpa: s.GPA,
         remark,
+        previous: s.previous
       };
     }
     // Calculate if no summary
@@ -154,14 +157,19 @@ const Results = () => {
     const tcu = courses.reduce((sum, c) => sum + c.credits, 0);
     const tgp = courses.reduce((sum, c) => sum + c.gradePoint, 0);
     const gpa = tcu > 0 ? tgp / tcu : 0;
-    const remark = gpa >= 3.0 ? 'UPPER CREDIT' : gpa >= 2.5 ? 'LOWER CREDIT' : gpa >= 2 ? 'PASS' : 'FAIL';
+    const remark = scoreToComment(gradingTemplate!, gpa);;
     return { tcu, tca: tcu, tgp, gpa, remark };
-  }, [currentResult?.summary, courses]);
+  }, [currentResult?.summary, courses, gradingTemplate]);
 
-  // For ResultTemplate Summary interface
+  // For ResultTemplate Summary interfaceltcu
   const pdfSummary = useMemo(() => ({
     current: summary,
-    previous: { ltcu: 'NIL', ltca: 'NIL', ltgp: 'NIL', lcgpa: 'NIL' },
+    previous: { 
+      ltcu: `${summary.previous?.TCU || 0}`, 
+      ltca: `${summary.previous?.TCU || 0}`, 
+      ltgp: `${summary.previous?.TGP || 0}`, 
+      lcgpa: `${summary.previous?.CGPA || 0}` 
+    },
     cumulative: { tcu: summary.tcu, tca: summary.tca, tgp: summary.tgp, cgpa: summary.gpa },
   }), [summary]);
 
@@ -334,7 +342,7 @@ const Results = () => {
                         <TableCell>{s.semester}</TableCell>
                         <TableCell>{s.GPA.toFixed(2)}</TableCell>
                         <TableCell>{s.CGPA.toFixed(2)}</TableCell>
-                        <TableCell>{getClassification(s.CGPA)}</TableCell>
+                        <TableCell>{scoreToComment(gradingTemplate!, s.CGPA)}</TableCell>
                       </TableRow>
                     ))}
                   </TableBody>

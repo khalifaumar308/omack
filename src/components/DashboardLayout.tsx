@@ -233,36 +233,36 @@ type SidebarItem = {
         </Sidebar>
         <SidebarInset className="flex-1">
           <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-sm border-b border-slate-100 shadow-sm">
-            <div className="flex items-center h-16 px-4 md:px-6">
-              <div className="flex items-center gap-3">
+            <div className="flex items-center h-16 px-3 md:px-6">
+              <div className="flex items-center gap-3 flex-shrink-0">
                 <SidebarTrigger className="-ml-1" />
                 <div className="flex items-center gap-2">
                   <GraduationCap className="h-6 w-6 text-primary" />
-                  <div className="hidden sm:block">
+                  <div className="hidden sm:flex flex-col leading-tight">
                     <div className="text-sm font-semibold text-slate-800">SKOOL_MS</div>
-                    <div className="text-xs text-muted-foreground">{user?.school?.name}</div>
+                    <div className="text-xs text-muted-foreground truncate max-w-[200px]">{user?.school?.name}</div>
                   </div>
                 </div>
               </div>
 
-              {/* center - optional search */}
-              <div className="mx-auto w-full max-w-2xl px-4">
-                <div className="hidden md:flex items-center bg-slate-50 border border-slate-100 rounded-lg px-3 py-1">
-                  <Search className="h-4 w-4 text-slate-400 mr-2" />
+              {/* center - responsive search (min-w-0 allows truncation) */}
+              <div className="flex-1 px-2 min-w-0">
+                <div className="flex items-center bg-slate-50 border border-slate-100 rounded-lg px-2 py-1 w-full max-w-2xl mx-auto">
+                  <Search className="h-4 w-4 text-slate-400 mr-2 flex-shrink-0" />
                   <input
-                    className="w-full bg-transparent text-sm focus:outline-none"
+                    className="w-full bg-transparent text-sm focus:outline-none min-w-0 truncate"
                     placeholder="Search courses, students, pages..."
                     aria-label="Global search"
                   />
                 </div>
               </div>
 
-              <div className="ml-auto flex items-center gap-3">
-                <div className="hidden sm:flex flex-col text-right mr-2">
-                  <span className="text-sm font-medium text-slate-700">{user?.name}</span>
-                  <span className="text-xs text-muted-foreground">{user?.role}</span>
+              <div className="ml-3 flex items-center gap-3 flex-shrink-0">
+                <div className="hidden sm:flex flex-col text-right mr-2 max-w-[140px] min-w-0">
+                  <span className="text-sm font-medium text-slate-700 truncate">{user?.name}</span>
+                  <span className="text-xs text-muted-foreground truncate">{user?.role}</span>
                 </div>
-                <div className="h-9 w-9 rounded-full bg-slate-100 flex items-center justify-center text-slate-700 font-medium">{user?.name?.split(' ').map(n=>n[0]).slice(0,2).join('') || 'U'}</div>
+                <div className="h-9 w-9 rounded-full bg-slate-100 flex items-center justify-center text-slate-700 font-medium flex-shrink-0">{((user?.name || '') as string).split(' ').map(n=>n?.[0]).slice(0,2).join('') || 'U'}</div>
                 <Button variant="ghost" size="sm" onClick={handleLogout} className="ml-1">
                   Logout
                 </Button>
