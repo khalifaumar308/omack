@@ -23,6 +23,7 @@ import {
   Award,
   Building,
   Radio,
+  Search,
 } from "lucide-react";
 import { Link, useLocation, Outlet } from "react-router";
 import { useUser } from "@/contexts/useUser";
@@ -231,16 +232,41 @@ type SidebarItem = {
           <SidebarRail />
         </Sidebar>
         <SidebarInset className="flex-1">
-          <header className="flex h-16 shrink-0 items-center gap-2 border-b px-6">
-            <div className="flex items-center align-middle gap-2">
-              <SidebarTrigger className="-ml-1" />
-              <p className="hidden md:flex text-sm font-bold">{user?.school?.name}</p>
-            </div>
-            <div className="ml-auto flex items-center gap-2">
-              <span className="text-sm font-medium">{user?.name}</span>
-              <Button className="bg-red-500 text-white" variant="outline" size="sm" onClick={handleLogout}>
-                Logout
-              </Button>
+          <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-sm border-b border-slate-100 shadow-sm">
+            <div className="flex items-center h-16 px-4 md:px-6">
+              <div className="flex items-center gap-3">
+                <SidebarTrigger className="-ml-1" />
+                <div className="flex items-center gap-2">
+                  <GraduationCap className="h-6 w-6 text-primary" />
+                  <div className="hidden sm:block">
+                    <div className="text-sm font-semibold text-slate-800">SKOOL_MS</div>
+                    <div className="text-xs text-muted-foreground">{user?.school?.name}</div>
+                  </div>
+                </div>
+              </div>
+
+              {/* center - optional search */}
+              <div className="mx-auto w-full max-w-2xl px-4">
+                <div className="hidden md:flex items-center bg-slate-50 border border-slate-100 rounded-lg px-3 py-1">
+                  <Search className="h-4 w-4 text-slate-400 mr-2" />
+                  <input
+                    className="w-full bg-transparent text-sm focus:outline-none"
+                    placeholder="Search courses, students, pages..."
+                    aria-label="Global search"
+                  />
+                </div>
+              </div>
+
+              <div className="ml-auto flex items-center gap-3">
+                <div className="hidden sm:flex flex-col text-right mr-2">
+                  <span className="text-sm font-medium text-slate-700">{user?.name}</span>
+                  <span className="text-xs text-muted-foreground">{user?.role}</span>
+                </div>
+                <div className="h-9 w-9 rounded-full bg-slate-100 flex items-center justify-center text-slate-700 font-medium">{user?.name?.split(' ').map(n=>n[0]).slice(0,2).join('') || 'U'}</div>
+                <Button variant="ghost" size="sm" onClick={handleLogout} className="ml-1">
+                  Logout
+                </Button>
+              </div>
             </div>
           </header>
           <main className="flex-1 p-6">

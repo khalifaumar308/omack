@@ -276,7 +276,7 @@ const StudentCourseRegistration: React.FC = () => {
                             </button>
                           )}
                         </PDFDownloadLink>
-                        <button onClick={() => {
+                        <button disabled={reg.status === "approved"} onClick={() => {
                           setCourseRegEdit(reg);
                           setEdit(true)
                           setActiveTab("register")

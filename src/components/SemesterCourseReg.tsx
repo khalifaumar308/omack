@@ -103,7 +103,7 @@ const SemesterCourseReg = (Props: IProps) => {
 		setSelectedCourses(selectedCourses.filter(course => course.code !== courseCode));
 	};
 
-	const totalCredits = selectedCourses.reduce((sum, course) => sum + course.creditUnits, 0);
+	const totalCredits = selectedCourses.reduce((sum, course) => sum + course.creditUnits, 0) + (Props.toRetake ? Props.toRetake.reduce((sum, course) => sum + course.creditUnits, 0) : 0);
 	return (
 		<div className="relative">
 			{(updateRegMutation.isPending || submitRegistrationMutation.isPending) && (
@@ -262,7 +262,7 @@ const SemesterCourseReg = (Props: IProps) => {
 						<div className="flex items-center justify-between mb-4">
 							<h2 className="text-lg font-semibold text-gray-800">Selected Courses</h2>
 							<span className="text-sm text-gray-600">
-								Total Credits: {totalCredits}/24
+								Total Credits: {totalCredits}
 							</span>
 						</div>
 
