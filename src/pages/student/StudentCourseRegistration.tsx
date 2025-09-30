@@ -26,7 +26,7 @@ const StudentCourseRegistration: React.FC = () => {
 
   const { data: registrationInfo, isLoading, isError } = useGetCourseRegistrationInfo()
   //get courses (request more rows for client-side use where needed)
-  const { data: courses, isLoading: courseLoading } = useGetCourses(1, 1000)
+  const { data: courses, isLoading: courseLoading } = useGetCourses(1, 10)
 
   // Auto-populate failed courses on component mount
   useEffect(() => {

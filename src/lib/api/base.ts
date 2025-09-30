@@ -21,8 +21,8 @@ import type {
 } from '@/components/types';
 
 // Configure your API base URL
-// const API_BASE_URL = 'https://hmsms-api.onrender.com/api';
-const API_BASE_URL = 'http://localhost:5000/api';
+const API_BASE_URL = 'https://hmsms-api.onrender.com/api';
+// const API_BASE_URL = 'http://localhost:5000/api';
 
 
 // =============================================================================
@@ -547,6 +547,11 @@ export const createCourse = async (courseData: {
 }) => {
   const response = await api.post<Course>("/courses", courseData);
   return response.data;
+};
+
+export const getCourseIdsFromCodes = async (courseCodes: string[]) => {
+  const response = await api.post<{ courses: { id: string; code: string }[] }>("/courses/ids", { courseCodes });
+  return response.data.courses;
 };
 
 export const getadmindashBoardData = async () => {

@@ -76,6 +76,15 @@ export const useGetCourses = (page: number = 1, limit: number = 50, search: stri
   });
 };
 
+export const useGetCoursesId = (codes: string[]) => {
+  return useQuery({
+    queryKey: ["course", codes],
+    queryFn: () => api.getCourseIdsFromCodes(codes),
+    enabled: !!codes.length,
+    refetchOnWindowFocus: false,
+  });
+};
+
 export const useGetCourseRegistrations = (
   semester: string = 'all',
   session: string = 'all',

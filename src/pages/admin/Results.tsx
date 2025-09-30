@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useUser } from "@/contexts/useUser";
-import { useGetStudentsSemesterResults, useGetCourses, useGetGradingTemplates } from "@/lib/api/queries";
+import { useGetStudentsSemesterResults, useGetGradingTemplates, useGetCoursesId } from "@/lib/api/queries";
 import { useState, useEffect } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
@@ -68,7 +68,10 @@ const Results = () => {
 	const [session, setSession] = useState(user?.school?.currentSession || '2025/2026');
 	const [searchTerm, setSearchTerm] = useState('');
 	const [levelFilter, setLevelFilter] = useState('all');
-	// pagination
+	const [courseCodes, setCourseCodes] = useState<string[]>([]);
+	const [courseCodesToFetch, setCourseCodesToFetch] = useState<string[]>([]);
+	const { data: courseIds, isLoading: courseIdsLoading, isError: courseIdsError } = useGetCoursesId(courseCodesToFetch);
+
 	const [currentPage, setCurrentPage] = useState(1);
 	const [pageSize, setPageSize] = useState(10);
 	const [serverSearch, setServerSearch] = useState('');
@@ -92,8 +95,6 @@ const Results = () => {
 	const [uploadFile, setUploadFile] = useState<File | null>(null);
 	const [parsedData, setParsedData] = useState<UploadData[]>([]);
 
-	const { data: coursesData } = useGetCourses(1, 1000);
-	// Fetch grading templates (inside component)
 	const { data: gradingTemplatesRaw } = useGetGradingTemplates();
 	const gradingTemplates: GradingTemplate[] = Array.isArray(gradingTemplatesRaw) ? gradingTemplatesRaw : [];
 
@@ -112,19 +113,14 @@ const Results = () => {
 			}
 
 			const headers = lines[0].split(',').map(h => h.trim());
-			// const expectedHeaders = ['matric no', 'score', 'grade'];
-			// if (!expectedHeaders.every(h => headers.includes(h))) {
-			// 	console.error('Invalid CSV headers. Expected: Matric No, Score, Grade');
-			// 	return;
-			// }
 			const data: UploadData[] = []
 			lines.slice(1).forEach((line) => {
 				const values = line.split(',').map(v => v.trim());
 				// index 0 is matric no, the rest are course scores
 				values.slice(1).forEach((score, index) => {
 					const cc = {
-						//get course id from course code
-						course: (coursesData?.find((c: any) => c.code === headers[index + 1]) as any)?._id,
+						//get course id from courseIds
+						course: (courseIds?.find((c) => c.code === headers[index + 1]))?.id || "",
 						// course: headers[index + 1],
 						score: parseFloat(score) || 0,
 						matricNo: values[0],
@@ -174,8 +170,6 @@ const Results = () => {
 	const paginatedResults = results;
 	const totalItems = pagination.total;
 	const totalPages = pagination.totalPages;
-
-	// generate a compact page list for UI (windowed)
 
 
 	if (userLoading || isLoading) return (
@@ -286,7 +280,7 @@ const Results = () => {
 			},
 			cumulative: {
 				tcu: rsummary?.cumulativeTCU || tcu,
-				tca: rsummary?.cumulativeTCU || tcu, 
+				tca: rsummary?.cumulativeTCU || tcu,
 				tgp: rsummary?.cumulativeTGP || tgp,
 				cgpa: rsummary?.CGPA || gpa
 			},
@@ -372,22 +366,7 @@ const Results = () => {
 								</DialogHeader>
 								<div className="space-y-4">
 									<div className="flex flex-col gap-4">
-										<div>
-											{/* <Label htmlFor="course">Course</Label>
-											<Select onValueChange={val => setSelectedCourse(val)} value={selectedCourse}>
-												<SelectTrigger>
-													<SelectValue placeholder="Select Course" />
-												</SelectTrigger>
-												<SelectContent className="w-full">
-													<SelectItem value="-">--Select course--</SelectItem>
-													{coursesData?.map((course) => (
-														<SelectItem key={course.id} value={course.code}>
-															{course.code}
-														</SelectItem>
-													))}
-												</SelectContent>
-											</Select> */}
-										</div>
+
 										<div>
 											<Label htmlFor="semester">Semester</Label>
 											<Select value={uploadSemester} onValueChange={setUploadSemester}>
@@ -414,31 +393,68 @@ const Results = () => {
 											</Select>
 										</div>
 									</div>
-									<div>
-										<Label htmlFor="file">CSV File</Label>
-										<Button
-											type="button"
-											variant="secondary"
-											className="mb-2"
-											onClick={() => {
-												// Generate header: matricNo,<courseCode1>,<courseCode2>,...
-												const courseCodes = ['<courseCode1>', '<courseCode2>', '<courseCode3>']; // Replace with actual course codes as needed
-												const header = ['matricNo', ...courseCodes].join(',') + '\n';
-												const blob = new Blob([header], { type: 'text/csv' });
-												const url = URL.createObjectURL(blob);
-												const a = document.createElement('a');
-												a.href = url;
-												a.download = 'results_upload_template.csv';
-												document.body.appendChild(a);
-												a.click();
-												document.body.removeChild(a);
-												URL.revokeObjectURL(url);
-											}}
-										>
-											Download CSV Template
-										</Button>
-										<Input id="file" type="file" accept=".csv" onChange={handleFileUpload} />
+									<div className="mb-4 flex flex-col gap-2">
+										<Label htmlFor="courseCodes">Course Codes Separated by Comma</Label>
+										<div className="flex gap-2">
+											<Input
+												id="courseCodes"
+												type="text"
+												placeholder="Enter course code and press Enter"
+												value={courseCodes.join(', ')}
+												onChange={(e) => {
+													const codes = e.target.value.split(',').map(c => c.trim().toUpperCase()).filter(c => c);
+													setCourseCodes(codes);
+												}}	
+											/>
+											<Button
+												variant="destructive"
+												onClick={() => {
+													setCourseCodes([]);
+													setCourseCodesToFetch([]);
+													setParsedData([]);
+													setUploadFile(null);
+												}}
+											>
+												Clear
+											</Button>
+											<Button
+												onClick={() => {
+													// Trigger fetch of course IDs
+													setCourseCodesToFetch(courseCodes);
+												}}
+												disabled={courseCodes.length === 0 || courseIdsLoading}
+											>
+												{courseIdsLoading ? 'Fetching...' : 'Fetch Courses'}
+											</Button>
+										</div>
 									</div>
+									<p className="text-red-500">{courseIdsError&&"Fail to Get Course IDs"}</p>
+									{courseIds && (
+										<div>
+											<Label htmlFor="file">CSV File</Label>
+											<Button
+												type="button"
+												variant="secondary"
+												className="mb-2"
+												onClick={() => {
+													// Generate header: matricNo,<courseCode1>,<courseCode2>,...
+													const courseCodes = courseIds.map(c => c.code);
+													const header = ['matricNo', ...courseCodes].join(',') + '\n';
+													const blob = new Blob([header], { type: 'text/csv' });
+													const url = URL.createObjectURL(blob);
+													const a = document.createElement('a');
+													a.href = url;
+													a.download = 'results_upload_template.csv';
+													document.body.appendChild(a);
+													a.click();
+													document.body.removeChild(a);
+													URL.revokeObjectURL(url);
+												}}
+											>
+												Download CSV Template
+											</Button>
+											<Input id="file" type="file" accept=".csv" onChange={handleFileUpload} />
+										</div>)}
 									{parsedData.length > 0 && (
 										<div className="text-sm text-muted-foreground">
 											Parsed {parsedData.length} rows successfully.
