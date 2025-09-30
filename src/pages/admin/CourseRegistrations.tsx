@@ -109,7 +109,7 @@ const CourseRegistrations = () => {
   // registrationsRaw may be either an array (legacy) or { data, pagination }
   const registrationsData = Array.isArray(registrationsRaw) ? registrationsRaw : registrationsRaw?.data || [];
   const pagination = registrationsRaw && !Array.isArray(registrationsRaw) ? registrationsRaw.pagination : { page: currentPage, limit: pageSize, total: registrationsData.length, totalPages: 1, hasNext: false, hasPrev: false };
-  const { data: courses } = useGetCourses(1, 1000);
+  const { data: courses, isLoading: isLoadingCourses } = useGetCourses(1, 1000);
   // request a larger page of courses for selects and lookups
   // keep previous data behavior is handled by react-query hook options
   const { data: students } = useGetStudents(1, 100); // Get more students for filtering
@@ -189,7 +189,7 @@ const CourseRegistrations = () => {
         }
         const studentId = (students?.find(student => student.matricNo === matricNo.trim()) as any)?._id;
         const courseCds = courseCodes?.trim().split(';');
-        const courseIds = courses?.filter((course: any) => courseCds.includes(course.code)).map((course: any) => course._id);
+        const courseIds = courses?.data?.filter((course: any) => courseCds.includes(course.code)).map((course: any) => course._id);
         if (studentId === "") {
           console.log(matricNo, 'student not found');
         }
@@ -703,7 +703,7 @@ const CourseRegistrations = () => {
               </div>
             </div>
           )}
-          {isLoading ? (
+          {(isLoading || isLoadingCourses) ? (
             <LoadingSkeleton />
           ) : (
             <div className="overflow-x-auto">
