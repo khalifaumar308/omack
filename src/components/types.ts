@@ -90,6 +90,15 @@ export interface Student extends User {
   matricNo: string;
   department: string; // ObjectId as string
   school: string; // ObjectId as string
+  phone?: string;
+  homeAddress?: string;
+  dateOfBirth?: Date;
+  picture?: string;
+  guardian?: {
+    name?: string;
+    email?: string;
+    phone?: string;
+  };
 }
 
 export interface Instructor extends User {

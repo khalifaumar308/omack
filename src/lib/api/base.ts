@@ -368,12 +368,26 @@ export const getStudent = async (id: string) => {
 };
 
 export const updateStudent = async (id: string, studentData: Partial<CreateStudentForm>) => {
+  console.log("Updating student:", id, studentData);
   const response = await api.put<Student>(`/students/${id}`, studentData);
   return response.data;
 };
 
 export const deleteStudent = async (id: string) => {
   const response = await api.delete<{ message: string }>(`/students/${id}`);
+  return response.data;
+};
+
+// Upload file using multipart/form-data to server upload route
+export const uploadFile = async (formData: FormData) => {
+  const response = await api.post('/uploads/file', formData, {
+    headers: {
+      // Let browser set the Content-Type with boundary
+      'Content-Type': 'multipart/form-data',
+    },
+    // increase timeout for uploads
+    timeout: 30000,
+  });
   return response.data;
 };
 

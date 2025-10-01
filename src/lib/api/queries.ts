@@ -60,7 +60,7 @@ export const useGetUser = () => {
     queryKey: ["user"],
     queryFn: () => api.getCurrentUser(),
     refetchOnWindowFocus: false,
-    staleTime: 1000 * 60 * 100, // 10 minutes,
+    staleTime: 1000 * 60 * 200, // 20 minutes,
   });
 }
 

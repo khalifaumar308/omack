@@ -99,6 +99,7 @@ const ResultRow = memo(function ResultRow({
   semester,
   style,
   school,
+  variant = 'row',
 }: {
   result: StudentsSemesterResultsResponse;
   gradingTemplates: GradingTemplate[];
@@ -106,6 +107,7 @@ const ResultRow = memo(function ResultRow({
   semester: string;
   style?: React.CSSProperties;
   school: School;
+  variant?: 'row' | 'card';
 }) {
   const passed = useMemo(() => result.courses.filter((c: any) => c.grade && c.grade !== 'F').length, [result.courses]);
   const failed = useMemo(() => result.courses.filter((c: any) => c.grade === 'F').length, [result.courses]);
@@ -116,19 +118,28 @@ const ResultRow = memo(function ResultRow({
     return <NewResultTemplate {...props} />;
   }, [result, gradingTemplates, session, semester, school]);
   const nameShort = result.student.name.split(" ").slice(0,2).join(" ");
-  return (
-      <div
-        style={style}
-        className="grid grid-cols-9 gap-2 border-b py-2 px-2"
-      >
-        <div className='flex sm:hidden text-sm col-span-2'>{nameShort}</div>
-        <div className="hidden sm:flex font-medium pr-2 col-span-2">{result.student.name}</div>
-        <div className="col-span-[2]">{result.student.matricNo}</div>
-        <div className="col-span-[1]">{result.student.level}</div>
-        <div className="col-span-1">{passed}</div>
-        <div className="col-span-1">{failed}</div>
-        <div className="col-span-1">{gpa !== undefined ? gpa.toFixed(2) : 'N/A'}</div>
-        <div className="col-span-1">
+  if (variant === 'card') {
+    return (
+      <div style={style} className="bg-white dark:bg-card p-4 rounded-lg shadow-sm border mb-3">
+        <div className="flex items-center justify-between mb-2">
+          <div>
+            <div className="text-sm text-muted-foreground">{result.student.matricNo}</div>
+            <div className="font-semibold text-lg">{result.student.name}</div>
+            <div className="text-sm text-muted-foreground">{result.student.level} • {school?.name}</div>
+          </div>
+          <div className="text-right">
+            <div className="text-sm">GPA</div>
+            <div className="font-medium text-lg">{gpa !== undefined ? gpa.toFixed(2) : 'N/A'}</div>
+          </div>
+        </div>
+
+        <div className="flex items-center justify-between text-sm text-muted-foreground mb-3">
+          <div>Passed: <span className="text-foreground font-medium">{passed}</span></div>
+          <div>Failed: <span className="text-foreground font-medium">{failed}</span></div>
+          <div>Courses: <span className="text-foreground font-medium">{result.courses.length}</span></div>
+        </div>
+
+        <div className="flex gap-2">
           <PDFDownloadLink document={pdfDocument} fileName={`${result.student.name}-result.pdf`}>
             {({ loading }) => (
               <Button variant="ghost" size="sm" disabled={loading}>
@@ -138,6 +149,31 @@ const ResultRow = memo(function ResultRow({
           </PDFDownloadLink>
         </div>
       </div>
+    );
+  }
+
+  return (
+    <div
+      style={style}
+      className="grid grid-cols-9 gap-2 border-b py-2 px-2"
+    >
+      <div className='flex sm:hidden text-sm col-span-2'>{nameShort}</div>
+      <div className="hidden sm:flex font-medium pr-2 col-span-2">{result.student.name}</div>
+      <div className="col-span-[2]">{result.student.matricNo}</div>
+      <div className="col-span-[1]">{result.student.level}</div>
+      <div className="col-span-1">{passed}</div>
+      <div className="col-span-1">{failed}</div>
+      <div className="col-span-1">{gpa !== undefined ? gpa.toFixed(2) : 'N/A'}</div>
+      <div className="col-span-1">
+        <PDFDownloadLink document={pdfDocument} fileName={`${result.student.name}-result.pdf`}>
+          {({ loading }) => (
+            <Button variant="ghost" size="sm" disabled={loading}>
+              {loading ? 'Generating...' : 'Download PDF'}
+            </Button>
+          )}
+        </PDFDownloadLink>
+      </div>
+    </div>
   );
 });
 

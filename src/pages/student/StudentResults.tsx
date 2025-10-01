@@ -71,8 +71,6 @@ const Results = () => {
   const [semester, setSemester] = useState(user?.school?.currentSemester || 'First');
   const [session, setSession] = useState(user?.school?.currentSession || '2025/2026');
   const { data: gradingTemplatesRaw } = useGetGradingTemplates();
-  // const gradingTemplates = Array.isArray(gradingTemplatesRaw) ? gradingTemplatesRaw : [];
-
   // const { data: semesterResults = [], isLoading: semesterLoading } = useGetStudentsSemesterResults(semester, session);
   const { data: semesterResult, isLoading: semesterLoading } = useGetSemesterResult(semester, session); // To refetch on semester/session change
   const { data: transcript = [], isLoading: transcriptLoading } = useGetTranscript();

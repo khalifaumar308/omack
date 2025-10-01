@@ -124,7 +124,7 @@ export const useDeleteDepartment = () => {
 export const useUpdateStudent = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (data: { studentId: string; studentData: CreateStudentForm }) => api.updateStudent(data.studentId, data.studentData),
+  mutationFn: (data: { studentId: string; studentData: Partial<CreateStudentForm> }) => api.updateStudent(data.studentId, data.studentData as unknown as Partial<CreateStudentForm>),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["students"] });
       toast.success("Student updated successfully");
