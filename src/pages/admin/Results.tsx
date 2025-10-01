@@ -1,9 +1,7 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useUser } from "@/contexts/useUser";
 import { useGetStudentsSemesterResults, useGetGradingTemplates, useGetCoursesId } from "@/lib/api/queries";
-import { useState, useEffect } from "react";
+import React, { useState, useEffect, useMemo } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
@@ -17,42 +15,14 @@ import {
 	DialogTitle,
 	DialogTrigger,
 } from "@/components/ui/dialog";
-import { PDFDownloadLink } from "@react-pdf/renderer";
-import ResultTemplate from "@/components/ResultTemplate";
-import type { StudentsSemesterResultsResponse, PopulatedDepartment, PopulatedFaculty, GradingTemplate, GradeBand, CommentBand } from "@/components/types";
+import ResultRow from "./ResultRow";
+import { FixedSizeList as List } from 'react-window';
+import type { ListChildComponentProps } from 'react-window';
+import type { GradingTemplate } from "@/components/types";
 import { useAdminUploadResults } from "@/lib/api/mutations";
 import { toast } from "sonner";
 
 // Types for ResultTemplate
-interface Course {
-	sn: number;
-	code: string;
-	title: string;
-	credits: number;
-	total: number;
-	grade: string;
-	gradePoint: number;
-	remark: string;
-}
-
-interface StudentData {
-	lastUpdated: string;
-	matric: string;
-	name: string;
-	session: string;
-	programme: string;
-	semester: string;
-	department: string;
-	level: string;
-	faculty: string;
-	approvalStatus: string;
-}
-
-interface Summary {
-	current: { tcu: number; tca: number; tgp: number; gpa: number; remark: string };
-	previous: { ltcu: string; ltca: string; ltgp: string; lcgpa: string };
-	cumulative: { tcu: number; tca: number; tgp: number; cgpa: number };
-}
 
 interface UploadData {
 	matricNo: string;
@@ -71,7 +41,7 @@ const Results = () => {
 	const [courseCodes, setCourseCodes] = useState<string[]>([]);
 	const [courseCodesToFetch, setCourseCodesToFetch] = useState<string[]>([]);
 	const { data: courseIds, isLoading: courseIdsLoading, isError: courseIdsError } = useGetCoursesId(courseCodesToFetch);
-
+	console.log(user?.school, "school");
 	const [currentPage, setCurrentPage] = useState(1);
 	const [pageSize, setPageSize] = useState(10);
 	const [serverSearch, setServerSearch] = useState('');
@@ -85,7 +55,6 @@ const Results = () => {
 		serverSearch,
 		serverLevel
 	);
-	const results = data?.data || [];
 	const pagination = data?.pagination || { page: 1, limit: 10, total: 0, totalPages: 1, hasNext: false, hasPrev: false };
 	const { mutate: uploadResults } = useAdminUploadResults();
 	// Upload states
@@ -167,9 +136,27 @@ const Results = () => {
 		return () => clearTimeout(handler);
 	}, [searchTerm, levelFilter, semester, session, pageSize]);
 
-	const paginatedResults = results;
+	const paginatedResults = useMemo(() => data?.data || [], [data]);
 	const totalItems = pagination.total;
 	const totalPages = pagination.totalPages;
+
+	const pageButtons = useMemo(() => {
+		const maxButtons = 7;
+		if (totalPages <= maxButtons) {
+			return Array.from({ length: totalPages }, (_, i) => i + 1);
+		}
+		const pages: (number | 'ellipsis-left' | 'ellipsis-right')[] = [];
+		const left = Math.max(1, currentPage - 2);
+		const right = Math.min(totalPages, currentPage + 2);
+		pages.push(1);
+		if (left > 2) pages.push('ellipsis-left');
+		for (let i = left; i <= right; i++) {
+			if (i > 1 && i < totalPages) pages.push(i);
+		}
+		if (right < totalPages - 1) pages.push('ellipsis-right');
+		if (totalPages > 1) pages.push(totalPages);
+		return pages;
+	}, [totalPages, currentPage]);
 
 
 	if (userLoading || isLoading) return (
@@ -213,92 +200,7 @@ const Results = () => {
 		</div>
 	);
 	if (error) return <div>Error loading results</div>;
-	// Find grading template for a department
-	const getDepartmentTemplate = (departmentId: string): GradingTemplate | undefined => {
-		return gradingTemplates.find(
-			(tpl) => (typeof tpl.department === 'string' ? tpl.department : tpl.department?.id) === departmentId
-		);
-	};
-
-	// Given a score and gradeBands, return grade and point
-	const getGradeAndPoint = (score: number, gradeBands: GradeBand[]): { grade: string; point: number } => {
-		for (const band of gradeBands) {
-			if (score >= band.minScore && score <= band.maxScore) {
-				return { grade: band.grade, point: band.point };
-			}
-		}
-		return { grade: '', point: 0 };
-	};
-
-	// Given a point, return comment
-	const getCommentForPoint = (point: number, commentBands: CommentBand[]): string => {
-		for (const band of commentBands) {
-			if (point >= band.minScore && point <= band.maxScore) {
-				return band.comment;
-			}
-		}
-		return '';
-	};
-
-	const formatForResultTemplate = (result: StudentsSemesterResultsResponse) => {
-		const student = result.student;
-		const department = student.department as unknown as PopulatedDepartment;
-		const faculty = department.faculty as unknown as PopulatedFaculty;
-		const currentDate = new Date().toISOString().slice(0, 19).replace('T', ' ');
-		const rsummary = result.summary;
-		// Find grading template for this department
-		const template = getDepartmentTemplate((department as any)._id);
-		const gradeBands = template?.gradeBands || [];
-		const courses: Course[] = result.courses.map((reg, index) => {
-			const score = reg.score || 0;
-			// const regGrade = reg.grade;
-			const { grade, point } = getGradeAndPoint(score, gradeBands);
-
-			return {
-				sn: index + 1,
-				code: reg.course.code,
-				title: reg.course.title,
-				credits: reg.course.creditUnits,
-				total: Math.trunc(score),
-				grade: grade,
-				gradePoint: point * reg.course.creditUnits,
-				remark: grade ? (point > 0 ? 'PASSED' : 'FAILED') : 'Not Graded',
-			};
-		});
-		const tcu = rsummary?.TCU || courses.reduce((sum, c) => sum + c.credits, 0);
-		const tgp = rsummary?.TGP || courses.reduce((sum, c) => sum + c.gradePoint, 0);
-		const gpa = rsummary?.GPA || (tcu > 0 ? tgp / tcu : 0);
-		// Optionally, use template to determine remark (e.g., based on GPA bands)
-		const remark = getCommentForPoint(gpa, template?.commentBands ?? []) || rsummary?.comment || "Not Set";
-		const summary: Summary = {
-			current: { tcu: rsummary?.TCU || tcu, tca: tcu, tgp: rsummary?.TGP || tgp, gpa: rsummary?.GPA || gpa, remark },
-			previous: {
-				ltcu: `${rsummary?.previous.TCU}` || 'Nill',
-				ltca: `${rsummary?.previous.TCU}` || 'Nill',
-				ltgp: `${rsummary?.previous.TGP}` || 'Nill',
-				lcgpa: `${rsummary?.previous.CGPA.toFixed(2)}` || 'Nill'
-			},
-			cumulative: {
-				tcu: rsummary?.cumulativeTCU || tcu,
-				tca: rsummary?.cumulativeTCU || tcu,
-				tgp: rsummary?.cumulativeTGP || tgp,
-				cgpa: rsummary?.CGPA || gpa
-			},
-		};
-		const studentData: StudentData = {
-			lastUpdated: currentDate,
-			matric: student.matricNo,
-			name: student.name,
-			session,
-			programme: department.name,
-			semester,
-			department: department.name,
-			level: student.level.toString(),
-			faculty: faculty?.name,
-			approvalStatus: 'approved',
-		};
-		return { studentData, courses, summary };
-	};
+	// ResultRow is extracted to ./ResultRow and react-window is used for virtualization
 
 	return (
 		<div className="container mx-auto p-6">
@@ -479,49 +381,40 @@ const Results = () => {
 					{totalItems > 0 && (
 						<>
 							<div className="overflow-x-auto">
-								<Table>
-									<TableHeader>
-										<TableRow>
-											<TableHead>Student Name</TableHead>
-											<TableHead>Matric No.</TableHead>
-											<TableHead>Level</TableHead>
-											<TableHead>Passed</TableHead>
-											<TableHead>Failed</TableHead>
-											<TableHead>GPA</TableHead>
-											<TableHead>Actions</TableHead>
-										</TableRow>
-									</TableHeader>
-									<TableBody className="text-left">
-										{paginatedResults.map((result: StudentsSemesterResultsResponse, id) => {
-											const passed = result.courses.filter(c => c.grade && c.grade !== 'F').length;
-											const failed = result.courses.filter(c => c.grade === 'F').length;
-											const gpa = result.summary?.GPA;
-
-											return (
-												<TableRow key={id}>
-													<TableCell className="font-medium">{result.student.name}</TableCell>
-													<TableCell>{result.student.matricNo}</TableCell>
-													<TableCell>{result.student.level}</TableCell>
-													<TableCell>{passed}</TableCell>
-													<TableCell>{failed}</TableCell>
-													<TableCell>{gpa !== undefined ? gpa.toFixed(2) : 'N/A'}</TableCell>
-													<TableCell>
-														<PDFDownloadLink
-															document={<ResultTemplate {...formatForResultTemplate(result)} />}
-															fileName={`${result.student.name}-result.pdf`}
-														>
-															{({ loading }) => (
-																<Button variant="ghost" size="sm" disabled={loading}>
-																	{loading ? 'Generating...' : 'Download PDF'}
-																</Button>
-															)}
-														</PDFDownloadLink>
-													</TableCell>
-												</TableRow>
-											);
-										})}
-									</TableBody>
-								</Table>
+								<div className="w-full">
+									<div className="grid grid-cols-9 gap-2 border-b py-2 px-2 font-medium bg-slate-100">
+										<div className="col-span-2">Student Name</div>
+										<div className="col-span-2">Matric No.</div>
+										<div className="col-span-1">Level</div>
+										<div className="col-span-1">Passed</div>
+										<div className="col-span-1">Failed</div>
+										<div className="col-span-1">GPA</div>
+										<div className="col-span-1">Actions</div>
+									</div>
+									<div>
+										<List
+											height={Math.min(400, pageSize * 56)}
+											itemCount={paginatedResults.length}
+											itemSize={56}
+											width="100%"
+										>
+											{({ index, style }: ListChildComponentProps) => {
+												const result = paginatedResults[index];
+												return (
+													<ResultRow
+														key={result.student.matricNo}
+														result={result}
+														gradingTemplates={gradingTemplates}
+														session={session}
+														semester={semester}
+														style={style}
+														school={user!.school!}
+													/>
+												);
+											}}
+										</List>
+									</div>
+								</div>
 							</div>
 
 							{/* Pagination Controls */}
@@ -544,32 +437,14 @@ const Results = () => {
 									<Button variant="outline" size="sm" disabled={currentPage <= 1} onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}>Previous</Button>
 									<div className="flex items-center gap-1">
 										{/* Windowed pagination with ellipsis */}
-										{(() => {
-											const maxButtons = 7;
-											if (totalPages <= maxButtons) {
-												return Array.from({ length: totalPages }, (_, i) => i + 1).map((p) => (
-													<Button key={`p-${p}`} variant={p === currentPage ? 'default' : 'ghost'} size="sm" onClick={() => setCurrentPage(p)}>{p}</Button>
-												));
+										{pageButtons.map((p, idx) => {
+											if (p === 'ellipsis-left' || p === 'ellipsis-right') {
+												return <span key={String(p) + idx} className="px-2">&hellip;</span>;
 											}
-											const pages = [];
-											const left = Math.max(1, currentPage - 2);
-											const right = Math.min(totalPages, currentPage + 2);
-											pages.push(1);
-											if (left > 2) pages.push('ellipsis-left');
-											for (let i = left; i <= right; i++) {
-												if (i > 1 && i < totalPages) pages.push(i);
-											}
-											if (right < totalPages - 1) pages.push('ellipsis-right');
-											if (totalPages > 1) pages.push(totalPages);
-											return pages.map((p, idx) => {
-												if (p === 'ellipsis-left' || p === 'ellipsis-right') {
-													return <span key={p + idx} className="px-2">&hellip;</span>;
-												}
-												return (
-													<Button key={`p-${p}`} variant={p === currentPage ? 'default' : 'ghost'} size="sm" onClick={() => setCurrentPage(Number(p))}>{p}</Button>
-												);
-											});
-										})()}
+											return (
+												<Button key={`p-${p}`} variant={p === currentPage ? 'default' : 'ghost'} size="sm" onClick={() => setCurrentPage(Number(p))}>{p}</Button>
+											);
+										})}
 									</div>
 									<Button variant="outline" size="sm" disabled={currentPage >= Math.max(1, Math.ceil(totalItems / pageSize))} onClick={() => setCurrentPage((p) => Math.min(Math.max(1, Math.ceil(totalItems / pageSize)), p + 1))}>Next</Button>
 								</div>

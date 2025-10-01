@@ -256,7 +256,9 @@ export interface PDFProps {
 	summary: Summary;
 }
 
-const ResultTemplate: React.FC<PDFProps> = ({ studentData, courses, summary }) => (
+const ResultTemplate: React.FC<PDFProps> = ({ studentData, courses, summary }) => {
+	console.log({ studentData, courses, summary })
+	return(
 	<Document>
 		<Page size="A4" style={styles.page}>
 			{/* Header Section */}
@@ -451,7 +453,7 @@ const ResultTemplate: React.FC<PDFProps> = ({ studentData, courses, summary }) =
 			</View>
 		</Page>
 	</Document>
-);
+)};
 
 export default ResultTemplate;
 

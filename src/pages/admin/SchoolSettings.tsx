@@ -21,6 +21,7 @@ export default function SchoolSettings() {
   const [logo, setLogo] = useState<string>(school?.logo || "");
   const [address, setAddress] = useState<string>(school?.address || "");
   const [contactEmail, setContactEmail] = useState<string>(school?.email || "");
+  const [phone, setPhone] = useState<string>(school?.phone || "");
   const updateSchoolMutation = useUpdateSchool();
 
   useEffect(() => {
@@ -56,7 +57,7 @@ export default function SchoolSettings() {
         address,
         email: contactEmail,
         registrationStatus: registrationStatus === "open",
-  registrationScope: registrationScope as "firstSemester" | "secondSemester" | "both",
+        registrationScope: registrationScope as "firstSemester" | "secondSemester" | "both",
         sessions,
         logo,
       },
@@ -82,7 +83,11 @@ export default function SchoolSettings() {
                 <Input value={address} onChange={e => setAddress(e.target.value)} placeholder="Street, City, Country" />
                 <p className="text-xs text-muted-foreground mt-1">Physical address displayed on reports.</p>
               </div>
-
+              <div>
+                <Label className="mb-2">Phone Number</Label>
+                <Input value={phone} onChange={e => setPhone(e.target.value)} placeholder="123-456-7890" />
+                <p className="text-xs text-muted-foreground mt-1">Contact phone number for the school.</p>
+              </div>
               <div>
                 <Label className="mb-2">Current Semester</Label>
                 <Select value={currentSemester} onValueChange={setCurrentSemester}>

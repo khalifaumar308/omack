@@ -109,6 +109,7 @@ export interface School extends BaseEntity {
   email: string;
   logo?: string;
   status: SchoolStatus;
+  phone?: string;
   currentSession: string;
   currentSemester: string;
   sessions?: string[];
