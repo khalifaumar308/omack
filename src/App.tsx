@@ -23,8 +23,6 @@ import GradingTemplates from "./pages/admin/GradingTemplates";
 import SchoolSettings from "./pages/admin/SchoolSettings";
 import StudentDashboard from "./pages/student/StudentDashboard";
 import StudentProfile from "./pages/student/StudentProfile";
-import { PDFViewer } from "@react-pdf/renderer";
-import NewResultTemplate from "./components/NewResultTemplate";
 
 const queryClient = new QueryClient();
 function App() {
@@ -73,12 +71,6 @@ function App() {
                 </Route>
               {/* </UserProvider> */}
               <Route path="/login" element={<Login />} />
-              //Pdf renderer test
-              <Route path="/test" element={<div>
-                <PDFViewer style={{ width: '100%', height: '100vh' }}>
-                  <NewResultTemplate  />
-                </PDFViewer>
-              </div>} />
               <Route path="*" element={<div>404 Not Found</div>} />
             </Routes>
           </BrowserRouter>
