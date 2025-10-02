@@ -55,6 +55,17 @@ export const useGetStudent = (id: string) => {
   });
 };
 
+export const useGetStudentSummary = () => {
+  return useQuery({
+    queryKey: ["studentSummary"],
+    queryFn: () => api.getStudentSummary(),
+    refetchOnWindowFocus: false,
+    staleTime: 1000 * 60 * 50, // 5 minutes
+  });
+}
+
+//user
+
 export const useGetUser = () => {
   return useQuery({
     queryKey: ["user"],

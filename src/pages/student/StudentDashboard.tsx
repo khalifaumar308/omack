@@ -1,19 +1,120 @@
+import { useMemo, memo } from 'react';
+import type { ComponentType } from 'react';
 import { useUser } from '@/contexts/useUser';
+import { useGetStudentSummary } from '@/lib/api/queries';
 import { User, Mail, GraduationCap, Users, BookOpen, Calendar } from 'lucide-react';
+import { Skeleton } from '@/components/ui/skeleton';
+
+type Stat = {
+  icon: ComponentType<{ size?: number }>; 
+  label: string;
+  value: number | string;
+  color: string;
+}
+
+const StatCard = memo(({ icon: Icon, label, value, color }: Stat) => {
+  return (
+    <div className="bg-white p-5 rounded-lg shadow-sm border hover:shadow-md transition-shadow duration-150">
+      <div className="flex items-center">
+        <div className={`p-3 rounded-lg ${color} text-white`}>
+          <Icon size={20} />
+        </div>
+        <div className="ml-4">
+          <p className="text-sm font-medium text-gray-600">{label}</p>
+          <p className="text-xl sm:text-2xl font-bold text-gray-800">{value}</p>
+        </div>
+      </div>
+    </div>
+  );
+});
+
+function LoadingSkeleton() {
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div className="w-48 h-8">
+          <Skeleton className="w-full h-full" />
+        </div>
+        <div className="w-40 h-6">
+          <Skeleton className="w-full h-full" />
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        {Array.from({ length: 4 }).map((_, i) => (
+          <div key={i} className="bg-white p-5 rounded-lg shadow-sm border">
+            <div className="flex items-center">
+              <Skeleton className="w-12 h-12 rounded-lg" />
+              <div className="ml-4 w-full">
+                <Skeleton className="w-3/4 h-4 mb-2" />
+                <Skeleton className="w-1/2 h-6" />
+              </div>
+            </div>
+          </div>
+        ))}
+      </div>
+
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        <div className="bg-white p-6 rounded-lg shadow-sm border">
+          <div className="flex items-center mb-6">
+            <Skeleton className="w-16 h-16 rounded-full" />
+            <div className="ml-4 w-full">
+              <Skeleton className="w-3/4 h-4 mb-2" />
+              <Skeleton className="w-1/2 h-4" />
+            </div>
+          </div>
+          <div className="space-y-3">
+            <Skeleton className="w-full h-4" />
+            <Skeleton className="w-5/6 h-4" />
+            <Skeleton className="w-2/3 h-4" />
+          </div>
+        </div>
+
+        <div className="bg-white p-6 rounded-lg shadow-sm border">
+          <div className="mb-4">
+            <Skeleton className="w-40 h-5" />
+          </div>
+          <div className="space-y-3">
+            <Skeleton className="w-full h-4" />
+            <Skeleton className="w-5/6 h-4" />
+            <Skeleton className="w-2/3 h-4" />
+          </div>
+        </div>
+      </div>
+
+      <div className="bg-white p-6 rounded-lg shadow-sm border">
+        <Skeleton className="w-48 h-5 mb-4" />
+        <div className="space-y-4">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="flex items-start space-x-3">
+              <Skeleton className="w-3 h-3 rounded-full mt-2" />
+              <div className="flex-1">
+                <Skeleton className="w-1/2 h-4 mb-2" />
+                <Skeleton className="w-full h-3" />
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+    </div>
+  );
+}
 
 function StudentDashboard() {
-    const { user } = useUser();
-    const stats = [
+  const { user } = useUser();
+  const { data: studentSummary, isLoading, isError } = useGetStudentSummary();
+
+  const stats = useMemo(() => [
     {
       icon: BookOpen,
       label: 'Registered Courses',
-      value: '...',
+      value: studentSummary?.coursesCount ?? 0,
       color: 'bg-blue-500'
     },
     {
       icon: GraduationCap,
       label: 'Current CGPA',
-      value: '...',
+      value: Math.round((studentSummary?.currentCgpa ?? 0) * 100) / 100 || 0,
       color: 'bg-green-500'
     },
     {
@@ -25,54 +126,31 @@ function StudentDashboard() {
     {
       icon: Users,
       label: 'Total Credits',
-      value: '...',
+      value: studentSummary?.totalCreditUnits ?? 0,
       color: 'bg-orange-500'
     }
-  ]
+  ], [studentSummary, user]);
 
-//   const recentActivities = [
-   
-//   ];
+  if (isLoading) return <LoadingSkeleton />;
+  if (isError) return (
+    <div className="p-6 bg-white rounded-lg shadow-sm border text-center">
+      <p className="text-red-600 font-medium">Unable to load dashboard. Please refresh or contact support.</p>
+    </div>
+  );
 
-    const student = {
-      name: user?.name || "",
-      email: user?.email || "",
-      matricNumber: user?.id || "",
-    //   phone: user?.phone || "",
-    //   department: user?.department || "",
-    //   faculty: user?.faculty || "",
-    //   level: user?.level || "",
-    //   currentSession: user?.currentSession || "",
-      profilePicture: 'https://via.placeholder.com/150',
-        guardian: {
-            name: '...',
-            email: '...',
-            phone: '...'
-        },
-        hodName: ''
-    };
+  const student = studentSummary?.student;
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold text-gray-800">Dashboard</h1>
-        <span className="text-sm text-gray-500">Welcome back, {student.name}!</span>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+        <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-800">Dashboard</h1>
+        <span className="text-sm text-gray-500">Welcome back, <span className="font-medium text-gray-700">{student?.name}</span>!</span>
       </div>
 
       {/* Stats Cards */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {stats.map((stat, index) => (
-          <div key={index} className="bg-white p-6 rounded-lg shadow-sm border">
-            <div className="flex items-center">
-              <div className={`p-3 rounded-lg ${stat.color} text-white`}>
-                <stat.icon size={24} />
-              </div>
-              <div className="ml-4">
-                <p className="text-sm font-medium text-gray-600">{stat.label}</p>
-                <p className="text-2xl font-bold text-gray-800">{stat.value}</p>
-              </div>
-            </div>
-          </div>
+          <StatCard key={index} {...stat} />
         ))}
       </div>
 
@@ -81,63 +159,62 @@ function StudentDashboard() {
         <div className="bg-white p-6 rounded-lg shadow-sm border">
           <h2 className="text-lg font-semibold text-gray-800 mb-4">Student Information</h2>
           <div className="flex items-center mb-6">
-            <img
-              src={student.profilePicture}
-              alt={student.name}
-              className="w-16 h-16 rounded-full object-cover mr-4"
-            />
+            {student?.picture ? (
+              <img
+                src={student.picture}
+                alt={student?.name}
+                className="w-16 h-16 rounded-full object-cover mr-4"
+              />
+            ) : (
+              <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mr-4">
+                <span className="text-lg font-semibold text-gray-700">{(student?.name || '').split(' ').map((s: string) => s[0]).slice(0,2).join('').toUpperCase()}</span>
+              </div>
+            )}
+
             <div>
-              <h3 className="font-medium text-gray-800">{student.name}</h3>
-              <p className="text-sm text-gray-600">{student.email}</p>
-              <p className="text-sm text-gray-600">Matric Number: {student.matricNumber}</p>
+              <h3 className="font-medium text-gray-800">{student?.name}</h3>
+              <p className="text-sm text-gray-600">{student?.email}</p>
+              <p className="text-sm text-gray-600">Matric Number: {student?.matricNo}</p>
             </div>
           </div>
-          
-          <div className="space-y-3">
-            {/* <div className="flex items-center">
-              <Phone size={16} className="text-gray-400 mr-3" />
-              <span className="text-sm text-gray-600">Phone: {student.phone}</span>
-            </div>
+
+          <div className="space-y-3 text-sm text-gray-600">
             <div className="flex items-center">
               <GraduationCap size={16} className="text-gray-400 mr-3" />
-              <span className="text-sm text-gray-600">Department: {student.department}</span>
+              <span>Department: <span className="text-gray-800 font-medium">{typeof student?.department === 'string' ? student?.department : student?.department?.name || ''}</span></span>
             </div>
             <div className="flex items-center">
               <Users size={16} className="text-gray-400 mr-3" />
-              <span className="text-sm text-gray-600">Faculty: {student.faculty}</span>
-            </div>
-            <div className="flex items-center">
-              <BookOpen size={16} className="text-gray-400 mr-3" />
-              <span className="text-sm text-gray-600">Level: {student.level}</span>
+              <span>Level: <span className="text-gray-800 font-medium">{student?.level}</span></span>
             </div>
             <div className="flex items-center">
               <Calendar size={16} className="text-gray-400 mr-3" />
-              <span className="text-sm text-gray-600">Session: {student.currentSession}</span>
-            </div> */}
+              <span>Session: <span className="text-gray-800 font-medium">{studentSummary?.session}</span></span>
+            </div>
           </div>
         </div>
 
         {/* Guardian Information */}
         <div className="bg-white p-6 rounded-lg shadow-sm border">
           <h2 className="text-lg font-semibold text-gray-800 mb-4">Guardian Information</h2>
-          <div className="space-y-3">
+          <div className="space-y-3 text-sm text-gray-600">
             <div className="flex items-center">
               <User size={16} className="text-gray-400 mr-3" />
-              <span className="text-sm text-gray-600">Name: {student.guardian.name}</span>
+              <span>Name: <span className="text-gray-800 font-medium">{student?.guardian?.name || 'N/A'}</span></span>
             </div>
             <div className="flex items-center">
               <Mail size={16} className="text-gray-400 mr-3" />
-              <span className="text-sm text-gray-600">Email: {student.guardian.email}</span>
+              <span>Email: <span className="text-gray-800 font-medium">{student?.guardian?.email || 'N/A'}</span></span>
             </div>
             <div className="flex items-center">
               <BookOpen size={16} className="text-gray-400 mr-3" />
-              <span className="text-sm text-gray-600">Phone: {student.guardian.phone}</span>
+              <span>Phone: <span className="text-gray-800 font-medium">{student?.guardian?.phone || 'N/A'}</span></span>
             </div>
           </div>
-          
+
           <div className="mt-6 pt-4 border-t">
             <h3 className="font-medium text-gray-800 mb-2">Head of Department</h3>
-            <p className="text-sm text-gray-600">{student.hodName}</p>
+            <p className="text-sm text-gray-600">{student?.department?.name}</p>
           </div>
         </div>
       </div>
@@ -145,25 +222,12 @@ function StudentDashboard() {
       {/* Recent Activities */}
       <div className="bg-white p-6 rounded-lg shadow-sm border">
         <h2 className="text-lg font-semibold text-gray-800 mb-4">Recent Activities</h2>
-        <div className="space-y-4">
-          {/* {recentActivities.map((activity, index) => (
-            <div key={index} className="flex items-start space-x-3">
-              <div className={`w-2 h-2 rounded-full mt-2 ${
-                activity.status === 'success' ? 'bg-green-500' :
-                activity.status === 'info' ? 'bg-blue-500' :
-                'bg-yellow-500'
-              }`} />
-              <div className="flex-1">
-                <p className="font-medium text-gray-800">{activity.action}</p>
-                <p className="text-sm text-gray-600">{activity.description}</p>
-                <p className="text-xs text-gray-400 mt-1">{activity.time}</p>
-              </div>
-            </div>
-          ))} */}
+        <div className="space-y-4 text-sm text-gray-600">
+          <p className="text-gray-500">No recent activities yet.</p>
         </div>
       </div>
     </div>
   )
 }
 
-export default StudentDashboard
+export default StudentDashboard;

@@ -38,7 +38,7 @@ let accessToken: string | null = typeof window !== 'undefined' ? localStorage.ge
 // Create secure axios instance
 const api: AxiosInstance = axios.create({
   baseURL: API_BASE_URL,
-  timeout: 10000,
+  timeout: 20000,
   withCredentials: true, // Include cookies automatically
   headers: {
     'Content-Type': 'application/json',
@@ -209,9 +209,28 @@ export const userLogin = async (email: string, password: string) => {
   const response = await api.post("/auth/login", { email, password });
 
   // Handle successful authentication (store accessToken if returned)
+  console.log(response.data, 'datatat')
   authManager.handleAuthSuccess(response.data);
 
   return response.data;
+};
+
+export const getStudentSummary = async () => {
+    const response = await api.get<{
+    student: PopulatedStudent;
+    currentCgpa: number;
+    totalCreditUnits: number;
+    coursesCount: number;
+    courses: Array<{
+      id: string;
+      code: string;
+      title: string;
+      creditUnits: number;
+    }>;
+    semester: string;
+    session: string;
+  }>("/students/summary");
+    return response.data;
 };
 
 export const userLogout = async () => {
@@ -817,5 +836,7 @@ export default {
   gradeToPoint,
   calculateGPA,
   handleApiError,
-  queryKeys
+  queryKeys,
+
+  // Student summary
 };

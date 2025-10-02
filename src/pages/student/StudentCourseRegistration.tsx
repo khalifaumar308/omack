@@ -11,6 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
+import { Skeleton } from '@/components/ui/skeleton';
 
 
 const StudentCourseRegistration: React.FC = () => {
@@ -80,10 +81,37 @@ const StudentCourseRegistration: React.FC = () => {
   // Loading and error fallback (after hooks)
   if (isLoading || courseLoading) {
     return (
-      <div className="flex flex-col items-center justify-center min-h-[60vh]">
-        <div className="animate-spin rounded-full h-16 w-16 border-t-4 border-b-4 border-gray-200 mb-6"></div>
-        <h2 className="text-xl font-semibold text-gray-700 mb-2">Loading...</h2>
-        <p className="text-gray-500">Please wait while we fetch your course registration data.</p>
+      <div className="max-w-6xl mx-auto p-6 space-y-6">
+        <div className="flex items-center justify-between">
+          <div className="w-64 h-8"><Skeleton className="w-full h-full" /></div>
+          <div className="w-40 h-6"><Skeleton className="w-full h-full" /></div>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="bg-white p-4 rounded-lg shadow-sm border">
+              <div className="flex items-center">
+                <Skeleton className="w-12 h-12 rounded-md" />
+                <div className="ml-4 w-full">
+                  <Skeleton className="w-3/4 h-4 mb-2" />
+                  <Skeleton className="w-1/2 h-6" />
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div className="bg-white rounded-lg shadow-sm border p-4">
+          <div className="mb-4"><Skeleton className="w-48 h-5" /></div>
+          <div className="space-y-3">
+            {Array.from({ length: 6 }).map((_, i) => (
+              <div key={i} className="flex items-center justify-between">
+                <Skeleton className="w-1/3 h-4" />
+                <Skeleton className="w-1/6 h-4" />
+              </div>
+            ))}
+          </div>
+        </div>
       </div>
     );
   }

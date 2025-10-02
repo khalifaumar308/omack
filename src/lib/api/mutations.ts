@@ -206,6 +206,7 @@ export const useLogin = () => {
     },
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     onError: (error: any) => {
+      console.log(error, 'login error');
       toast.error(error?.response?.data?.message || "Login failed. Please try again.");
     },
   });
