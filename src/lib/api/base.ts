@@ -18,6 +18,7 @@ import type {
   CreateGradingTemplateRequest,
   UpdateGradingTemplateRequest,
   StudentRegistrationsInfo,
+  PopulatedInstructor,
 } from '@/components/types';
 
 // Configure your API base URL
@@ -425,7 +426,7 @@ export const bulkCreateInstructors = async (instructors: CreateInstructorForm[])
 };
 
 export const getInstructors = async () => {
-  const response = await api.get<Instructor[]>("/instructors");
+  const response = await api.get<PopulatedInstructor[]>("/instructors/");
   return response.data;
 };
 

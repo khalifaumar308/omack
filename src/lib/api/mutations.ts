@@ -1,7 +1,7 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import * as api from "./base";
 import { toast } from "sonner";
-import type { AdminUploadResultsRequest, CreateCourseForm, CreateDepartmentForm, CreateFacultyForm, CreateGradingTemplateRequest, CreateStudentForm, RegisterCourseRequest, RegisterManyCoursesRequest, UpdateGradingTemplateRequest } from "@/components/types";
+import type { AdminUploadResultsRequest, CreateCourseForm, CreateDepartmentForm, CreateFacultyForm, CreateGradingTemplateRequest, CreateInstructorForm, CreateStudentForm, Instructor, RegisterCourseRequest, RegisterManyCoursesRequest, UpdateGradingTemplateRequest } from "@/components/types";
 
 
 // School Mutations
@@ -223,6 +223,39 @@ export const useAddCourse = () => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     onError: (error: any) => {
       toast.error(error?.response?.data?.message || "Failed to add course. Please try again.");
+    },
+  });
+};
+
+// updateInstructor
+export const useUpdateInstructor = (id: string, data: Partial<Instructor>) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: () => api.updateInstructor(id, data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['instructors'] });
+      queryClient.invalidateQueries({ queryKey: ['instructor', id] });
+    },
+  });
+};
+
+//deleteInstructor
+export const useDeleteInstructor = (id: string) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: () => api.deleteInstructor(id),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['instructors'] });
+    },
+  });
+};
+//bulk create instructors
+export const useBulkCreateInstructors = (data: CreateInstructorForm[]) => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: () => api.bulkCreateInstructors(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['instructors'] });
     },
   });
 };

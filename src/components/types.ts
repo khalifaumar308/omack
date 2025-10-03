@@ -108,6 +108,12 @@ export interface Instructor extends User {
   courses?: string[]; // Array of ObjectIds as strings
 }
 
+export interface PopulatedInstructor extends Omit<Instructor, 'department' | 'school' | 'courses'> {
+  department: Department;
+  school: School;
+  courses?: Course[];
+}
+
 // =============================================================================
 // SCHOOL MANAGEMENT TYPES
 // =============================================================================

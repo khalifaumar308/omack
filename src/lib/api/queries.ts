@@ -173,14 +173,26 @@ export const useGetSemesterResult = (semester:string  = 'First', session:string 
     refetchOnWindowFocus: false,
   });
 };
-// export const useGetCourse = (id: string) => {
+
+// export const useGetInstructor = (id: string) => {
 //   return useQuery({
-//     queryKey: ["course", id],
-//     queryFn: () => api.getCourse(id),
+//     queryKey: ["instructor", id],
+//     queryFn: () => api.getInstructor(id),
 //     enabled: !!id,
 //     refetchOnWindowFocus: false,
 //   });
 // };
+
+//getInstructors
+export const useGetInstructors = () => {
+  return useQuery({
+    queryKey: ["instructors"],
+    queryFn: api.getInstructors,
+    placeholderData: undefined,
+    refetchOnWindowFocus: false,
+  })
+}
+
 
 //grading templates
 export const useGetGradingTemplates = () => {
