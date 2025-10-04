@@ -1,5 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import * as api from "./base";
+import type { PaginatedResponse, CourseRegistrationInstructorItem } from '@/components/types';
 
 // export const useGetSchools = (page: number, limit: number = 10) => {
 //   return useQuery({
@@ -119,6 +120,22 @@ export const useGetCourseRegistrations = (
     placeholderData: undefined,
     refetchOnWindowFocus: false,
     enabled: true,
+  });
+};
+
+export const useGetCourseRegistrationsForInstructor = (
+  courseId: string | undefined,
+  semester: string,
+  session: string,
+  page: number = 1,
+  limit: number = 20,
+  search: string = ''
+) => {
+  return useQuery({
+    queryKey: ["courseRegistrationsForInstructor"],
+    queryFn: () => api.getCourseRegistrationsForInstructor(courseId as string, semester === 'all' ? undefined : semester, session === 'all' ? undefined : session, page, limit, search) as Promise<PaginatedResponse<CourseRegistrationInstructorItem>>,
+    enabled: !!courseId && !!semester && !!session,
+    refetchOnWindowFocus: false,
   });
 };
 

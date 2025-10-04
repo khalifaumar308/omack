@@ -5,6 +5,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Button } from '@/components/ui/button';
 import { Table, TableHeader, TableRow, TableHead, TableBody, TableCell } from '@/components/ui/table';
+import { Link } from 'react-router';
 
 const InstructorCourses: React.FC = () => {
   const { user } = useUser();
@@ -127,7 +128,9 @@ const InstructorCourses: React.FC = () => {
                 <TableBody>
                   {courses.map((c) => (
                     <TableRow key={c.id}>
-                      <TableCell>{c.code || c.id}</TableCell>
+                      <TableCell className='hover:text-green-400'>
+												<Link to={`/instructor/courses/${c.id}`} >{c.code || c.id}</Link>
+											</TableCell>
                       <TableCell>{c.title}</TableCell>
                       <TableCell>{c.creditUnits ?? '-'}</TableCell>
                       <TableCell>{c.registrations}</TableCell>

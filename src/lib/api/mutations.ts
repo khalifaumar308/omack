@@ -260,6 +260,22 @@ export const useBulkCreateInstructors = (data: CreateInstructorForm[]) => {
   });
 };
 
+export const useEnterResult = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data:{registrationId: string, score: number}) => api.enterResult(data.registrationId, data.score),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['courseRegistrations'] });
+      queryClient.invalidateQueries({ queryKey: ['studentsSemesterResults'] });
+      toast.success("Result entered successfully");
+    },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.message || "Failed to enter result. Please try again.");
+    },
+  });
+}
+
 export const useDeleteCourse = () => {
   const queryClient = useQueryClient();
   return useMutation({

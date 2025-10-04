@@ -402,6 +402,27 @@ export interface SearchParams {
   filters?: Record<string, any>;
 }
 
+// Lightweight student projection used in instructor-facing registration responses
+export interface StudentBrief {
+  id: string; // projected _id from server as 'id'
+  name: string;
+  matricNo?: string;
+  level?: number;
+}
+
+// Course registration item as returned by instructor/course registrations endpoint
+export interface CourseRegistrationInstructorItem {
+  _id: string;
+  student: StudentBrief;
+  score?: number;
+  grade?: string;
+  status: "pending" | "approved" | "rejected";
+  semester: string;
+  session: string;
+  createdAt: string;
+  updatedAt?: string;
+}
+
 // Grade calculation helpers
 export interface GradeInfo {
   score: number;

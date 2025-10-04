@@ -19,6 +19,8 @@ import type {
   UpdateGradingTemplateRequest,
   StudentRegistrationsInfo,
   PopulatedInstructor,
+  PaginatedResponse,
+  CourseRegistrationInstructorItem,
 } from '@/components/types';
 
 // Configure your API base URL
@@ -398,6 +400,33 @@ export const deleteStudent = async (id: string) => {
   return response.data;
 };
 
+// Instructor: get paginated registrations for a specific course (for instructors)
+export const getCourseRegistrationsForInstructor = async (
+  courseId: string,
+  semester?: string,
+  session?: string,
+  page: number = 1,
+  limit: number = 20,
+  search: string = ''
+): Promise<PaginatedResponse<CourseRegistrationInstructorItem>> => {
+  const params: Record<string, any> = { page, limit };
+  if (semester) params.semester = semester;
+  if (session) params.session = session;
+  if (search) params.search = search;
+
+  const response = await api.get(`/course-registrations/courses/${courseId}/registrations`, { params });
+  return response.data;
+};
+
+export const exportCourseRegistrationsCsv = async (courseId: string, semester?: string, session?: string, search: string = '') => {
+  const params: any = {};
+  if (semester) params.semester = semester;
+  if (session) params.session = session;
+  if (search) params.search = search;
+  // Return raw blob response so caller can trigger download
+  const response = await api.get(`/course-registrations/courses/${courseId}/registrations/export`, { params, responseType: 'blob' });
+  return response.data;
+}
 // Upload file using multipart/form-data to server upload route
 export const uploadFile = async (formData: FormData) => {
   const response = await api.post('/uploads/file', formData, {
@@ -474,6 +503,11 @@ export const updateCourseRegsStatus = async (body: { studentId: string[]; semest
   const response = await api.patch("/course-registrations/registrations/bulk-status", { ...body, studentIds: body.studentId });
   return response.data;
 };
+
+export const enterResult = async (registrationId: string, score: number) => {
+  const response = await api.put<{ message: string; registration: CourseRegistration }>(`/course-registrations/${registrationId}/result`, { score });
+  return response.data;
+}
 
 export const getCourseRegistrations = async (
   semester?: string,
