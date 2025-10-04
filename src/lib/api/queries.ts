@@ -193,6 +193,15 @@ export const useGetInstructors = () => {
   })
 }
 
+export const useGetInstructorCoursesStats = (instructorId: string | undefined) => {
+  return useQuery({
+    queryKey: ["instructor", instructorId, "coursesStats"],
+    queryFn: () => api.getInstructorCoursesStats(instructorId as string),
+    enabled: !!instructorId,
+    refetchOnWindowFocus: false,
+  })
+}
+
 
 //grading templates
 export const useGetGradingTemplates = () => {

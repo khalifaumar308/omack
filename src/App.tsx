@@ -23,6 +23,9 @@ import GradingTemplates from "./pages/admin/GradingTemplates";
 import SchoolSettings from "./pages/admin/SchoolSettings";
 import StudentDashboard from "./pages/student/StudentDashboard";
 import StudentProfile from "./pages/student/StudentProfile";
+import InstructorDashbaord from "./pages/instructors/InstructorDashbaord";
+import InstructorCourses from "./pages/instructors/InstructorCourses";
+import InstructorCourse from "./pages/instructors/InstructorCourse";
 
 const queryClient = new QueryClient();
 function App() {
@@ -41,34 +44,44 @@ function App() {
               </Route>
               {/* Admin Routes */}
               {/* <UserProvider> */}
-                <Route path="/admin" element={
-                  <UserProvider>
-                    <DashboardLayout />
-                  </UserProvider>
-                  }>
-                  <Route index element={<Dashboard />} />
-                  <Route path="/admin/departments" element={<Dapartments />} />
-                  <Route path="/admin/faculties" element={<AdminFaculties />} />
-                  <Route path="/admin/students" element={<Students />} />
-                  <Route path="/admin/students/:id" element={<StudentDetail />} />
-                  <Route path="/admin/instructors" element={<Instructors />} />
-                  <Route path="/admin/courses" element={<Courses />} />
-                  <Route path="/admin/results" element={<Results />} />
-                  <Route path="/admin/course-registrations" element={<CourseRegistrations />} />
-                  <Route path="/admin/grading-templates" element={<GradingTemplates />} />
-                  <Route path="/admin/settings" element={<SchoolSettings />} />
-                </Route>
-                {/* Student Routes */}
-                <Route path="/student" element={
-                  <UserProvider>
-                    <DashboardLayout />
-                  </UserProvider>
-                }>
-                  <Route index element={<StudentDashboard />} />
-                  <Route path="/student/results" element={<StudentResults />} />
-                  <Route path="/student/settings" element={<StudentProfile />} />
-                  <Route path="/student/course-registration" element={<StudentCourseRegistration />} />
-                </Route>
+              <Route path="/admin" element={
+                <UserProvider>
+                  <DashboardLayout />
+                </UserProvider>
+              }>
+                <Route index element={<Dashboard />} />
+                <Route path="/admin/departments" element={<Dapartments />} />
+                <Route path="/admin/faculties" element={<AdminFaculties />} />
+                <Route path="/admin/students" element={<Students />} />
+                <Route path="/admin/students/:id" element={<StudentDetail />} />
+                <Route path="/admin/instructors" element={<Instructors />} />
+                <Route path="/admin/courses" element={<Courses />} />
+                <Route path="/admin/results" element={<Results />} />
+                <Route path="/admin/course-registrations" element={<CourseRegistrations />} />
+                <Route path="/admin/grading-templates" element={<GradingTemplates />} />
+                <Route path="/admin/settings" element={<SchoolSettings />} />
+              </Route>
+              {/* Student Routes */}
+              <Route path="/student" element={
+                <UserProvider>
+                  <DashboardLayout />
+                </UserProvider>
+              }>
+                <Route index element={<StudentDashboard />} />
+                <Route path="/student/results" element={<StudentResults />} />
+                <Route path="/student/settings" element={<StudentProfile />} />
+                <Route path="/student/course-registration" element={<StudentCourseRegistration />} />
+              </Route>
+              {/* Student Routes */}
+              <Route path="/instructor" element={
+                <UserProvider>
+                  <DashboardLayout />
+                </UserProvider>
+              }>
+                <Route index element={<InstructorDashbaord />} />
+                <Route path="/instructor/courses" element={<InstructorCourses />} />
+                <Route path="/instructor/courses/:id" element={<InstructorCourse />} />
+              </Route>
               {/* </UserProvider> */}
               <Route path="/login" element={<Login />} />
               <Route path="*" element={<div>404 Not Found</div>} />

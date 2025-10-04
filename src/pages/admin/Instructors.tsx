@@ -32,7 +32,6 @@ const Instructors: React.FC = () => {
     return e?.response?.data?.message || e?.message || 'An error occurred';
   };
   const { data: instructors = [], isLoading, isError } = useGetInstructors();
-  console.log(instructors, 'Instructors data');
   const queryClient = useQueryClient();
   const deleteMutation = useMutation({
     mutationFn: (id: string) => api.deleteInstructor(id),
@@ -44,6 +43,10 @@ const Instructors: React.FC = () => {
       toast.error(getErrorMessage(err) || 'Failed to delete instructor');
     }
   });
+
+  // delete confirmation state
+  const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false);
+  const [deleteTarget, setDeleteTarget] = useState<Instructor | PopulatedInstructor | null>(null);
 
   const [openCreate, setOpenCreate] = useState(false);
 
@@ -252,7 +255,7 @@ const Instructors: React.FC = () => {
                         setSelectedCourses(existing.filter(Boolean));
                         setOpenEdit(true);
                       }}><Edit /></Button>
-                      <Button variant="ghost" onClick={() => deleteMutation.mutate(i.id)}><Trash className="text-red-600" /></Button>
+                      <Button variant="ghost" onClick={() => { setDeleteTarget(i); setConfirmDeleteOpen(true); }}><Trash className="text-red-600" /></Button>
                     </div>
                   </TableCell>
                 </TableRow>
@@ -273,7 +276,7 @@ const Instructors: React.FC = () => {
                   </div>
                   <div className="flex flex-col items-end gap-2">
                     <Button variant="ghost" onClick={() => {/* edit handler */}}><Edit /></Button>
-                      <Button variant="ghost" onClick={() => deleteMutation.mutate(i.id)}><Trash className="text-red-600" /></Button>
+                      <Button variant="ghost" onClick={() => { setDeleteTarget(i); setConfirmDeleteOpen(true); }}><Trash className="text-red-600" /></Button>
                   </div>
                 </div>
               </CardContent>
@@ -367,6 +370,32 @@ const Instructors: React.FC = () => {
                   toast.error(getErrorMessage(err));
                 }
               }}>{'Save assignments'}</Button>
+            </div>
+          </div>
+        </DialogContent>
+      </Dialog>
+      {/* Delete confirmation dialog */}
+      <Dialog open={confirmDeleteOpen} onOpenChange={setConfirmDeleteOpen}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Confirm delete</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <div>Are you sure you want to delete <strong>{deleteTarget?.name}</strong>? This action cannot be undone.</div>
+            <div className="flex justify-end gap-2">
+              <Button variant="outline" onClick={() => setConfirmDeleteOpen(false)}>Cancel</Button>
+              <Button disabled={deleteMutation.isPending} className="bg-red-600 text-white" onClick={async () => {
+                if (!deleteTarget) return;
+                try {
+                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                  await deleteMutation.mutateAsync((deleteTarget as any)._id);
+                } catch (error) {
+                  toast.error(getErrorMessage(error));
+                } finally {
+                  setConfirmDeleteOpen(false);
+                  setDeleteTarget(null);
+                }
+              }}>{deleteMutation.isPending?"Deleting...":"Delete"}</Button>
             </div>
           </div>
         </DialogContent>

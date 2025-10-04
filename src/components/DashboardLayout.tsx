@@ -173,7 +173,14 @@ type SidebarItem = {
     { title: "Settings", icon: Settings, url: "/student/settings" },
   ]
 
-  const filteredSidebarItems = user?.role === 'school-admin' ? adminRoutes : (user?.role==='student'?studentRoutes:getFilteredSidebarItems());
+  //instructor routes
+  const instructorRoutes: SidebarItem[] = [
+    { title: "Dashboard", icon: Home, url: "/instructor/" },
+    { title: "Courses", icon: BookOpen, url: "/instructor/courses" },
+    { title: "Settings", icon: Settings, url: "/instructor/settings" },
+  ]
+
+  const filteredSidebarItems = user?.role === 'school-admin' ? adminRoutes : (user?.role==='student'?studentRoutes:(user?.role==='instructor'?instructorRoutes:getFilteredSidebarItems()));
 
   return (
     <SidebarProvider>

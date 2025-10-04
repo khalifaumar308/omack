@@ -440,6 +440,22 @@ export const deleteInstructor = async (id: string) => {
   return response.data;
 };
 
+export const getInstructorCoursesStats = async (id: string) => {
+  const response = await api.get<{
+    instructor: { id: string; name?: string };
+    semester?: string;
+    session?: string;
+    courses: Array<{
+      id: string;
+      code?: string;
+      title?: string;
+      creditUnits?: number;
+      registrations: number;
+    }>;
+  }>(`/instructors/${id}/courses-stats`);
+  return response.data;
+};
+
 export const createSuperAdmin = async (adminData: { name: string; email: string; password: string }) => {
   const response = await api.post<{ message: string; token: string; user: User }>("/instructors/super-admin", adminData);
   return response.data;

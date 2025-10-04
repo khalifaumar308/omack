@@ -24,6 +24,10 @@ export default function Login() {
           window.location.href = "/admin/";
         } else if(role === 'student'){
           window.location.href = "/student/";
+        } else if(role === 'instructor'){
+          window.location.href = "/instructor/";
+        } else {
+          window.location.href = "/";
         }
         // Redirect to dashboard or home page
         // window.location.href = "/";
