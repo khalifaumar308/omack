@@ -11,7 +11,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { Trash, Edit, Plus } from 'lucide-react';
+import { Trash, Edit, Plus, X } from 'lucide-react';
 import type { PopulatedDepartment, PopulatedInstructor, Course, Instructor } from '@/components/types';
 
 const Instructors: React.FC = () => {
@@ -339,7 +339,15 @@ const Instructors: React.FC = () => {
                   <div className="text-sm text-muted-foreground">No courses selected</div>
                 ) : (
                   selectedCourses.map((course) => (
-                    <span key={course.id} className="px-2 py-1 rounded-md bg-gray-100 text-sm text-gray-800 border">{course.code}</span>
+                    // add ability to remove course from selection
+                    <div key={course.id} className="flex items-center gap-1">
+                      <span className="px-2 py-1 rounded-md bg-gray-100 text-sm text-gray-800 border">{course.code}</span>
+                      <Button className='text-red-600' variant="outline" size="icon" onClick={() => {
+                        setSelectedCourses(prev => prev.filter(c => c.id !== course.id));
+                      }}>
+                        <X className="h-4 w-4" />
+                      </Button>
+                    </div>
                   ))
                 )}
               </div>
@@ -362,7 +370,7 @@ const Instructors: React.FC = () => {
                   // Both Instructor and PopulatedInstructor extend BaseEntity so `id` should exist
                   console.log(selectedCourses, editingInstructor)
                   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                  await api.updateInstructor((editingInstructor as any)._id, { courses: selectedCourses.map(c => c.id) });
+                  await api.updateInstructor((editingInstructor as any)._id, { courses: [...(editingInstructor.courses as any),...selectedCourses.map(c => c.id)] });
                   queryClient.invalidateQueries({ queryKey: ['instructors'] });
                   toast.success('Courses assigned successfully');
                   setOpenEdit(false);

@@ -23,7 +23,7 @@ import { Plus, Search, BookOpen, Upload, Edit, Trash2 } from "lucide-react";
 import type { CreateCourseForm, PopulatedCourse } from "@/components/types";
 import { normalizeCourse, getDepartmentName } from "@/lib/courseUtils";
 import { useGetDepartments, useGetCourses } from "@/lib/api/queries";
-import { useAddCourse, useUpdateCourse, useDeleteCourse } from "@/lib/api/mutations";
+import { useAddCourse, useUpdateCourse, useDeleteCourse, useBulkAddCourses } from "@/lib/api/mutations";
 import { useUser } from "@/contexts/useUser";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -40,6 +40,7 @@ export default function Courses() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [editingCourse, setEditingCourse] = useState<PopulatedCourse | null>(null);
   const { data: departments } = useGetDepartments();
+  const { user } = useUser();
 
   const [formData, setFormData] = useState<CreateCourseForm>({
     code: "",
@@ -49,10 +50,9 @@ export default function Courses() {
     instructors: [""],
     creditUnits: 0,
     semester: "First",
-    level: "100"
+    level: user?.school?.levels?.[0] || "100"
   });
 
-  const { user } = useUser();
   const { data, isLoading, isError, error, refetch } = useGetCourses(currentPage, limit, searchTerm, selectedDepartment, selectedSemester, selectedLevel);
   const addCourseMutation = useAddCourse();
   const updateCourseMutation = useUpdateCourse();
@@ -63,6 +63,8 @@ export default function Courses() {
   const courses = coursesData || [];
   const totalCourses = pagination.total || courses.length;
   const totalPages = pagination.totalPages || Math.ceil(totalCourses / limit);
+
+  const bulkAddMutation = useBulkAddCourses();
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -96,7 +98,7 @@ export default function Courses() {
       instructors: [""],
       creditUnits: 0,
       semester: "First",
-      level: "100"
+      level: user?.school?.levels?.[0] || "100"
     } as CreateCourseForm);
   };
 
@@ -212,7 +214,7 @@ export default function Courses() {
                         <SelectValue placeholder="Select Level" />
                       </SelectTrigger>
                       <SelectContent>
-                        {["100", "200", "300", "400"]?.map((level) => (
+                        {user?.school?.levels?.map((level) => (
                           <SelectItem key={level} value={level}>
                             {level}
                           </SelectItem>
@@ -313,19 +315,19 @@ export default function Courses() {
                             department: departments?.find(depart=>depart.name.trim()===department.trim())?.id || "",
                             school: user?.school?.id || "",
                             creditUnits: parseInt(creditUnits?.trim() || "0") || 0,
-                            level: level?.trim() || "100",
+                            level: level?.trim() || (user?.school?.levels?.[0] || "100"),
                             semester: (semester?.trim() === "Second" ? "Second" : "First") as "First" | "Second",
                           };
                         }).filter(c => c.code && c.title && c.department && c.creditUnits);
-                        newCourses.forEach(course => addCourseMutation.mutate(course));
+                        bulkAddMutation.mutate(newCourses);
                       };
                       reader.readAsText(selectedFile);
                       // setUploadDialogOpen(false);
                       setSelectedFile(null);
                     }}
-                    disabled={!selectedFile || addCourseMutation.isPending}
+                    disabled={!selectedFile || bulkAddMutation.isPending}
                   >
-                    {addCourseMutation.isPending ? "Uploading..." : "Upload"}
+                    {bulkAddMutation.isPending ? "Uploading..." : "Upload"}
                   </Button>
                 </div>
               </div>
@@ -378,7 +380,9 @@ export default function Courses() {
                 </SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">All Levels</SelectItem>
-                  {['100','200','300','400'].map(l => <SelectItem key={l} value={l}>{l}</SelectItem>)}
+                  {user?.school?.levels?.map((level) => (
+                    <SelectItem key={level} value={level}>{level}</SelectItem>
+                  ))}
                 </SelectContent>
               </Select>
             </div>

@@ -130,6 +130,7 @@ export interface School extends BaseEntity {
   sessions?: string[];
   registrationStatus: boolean; // Indicates if registration is open
   registrationScope: 'firstSemester' | 'secondSemester' | 'both';
+  levels: string[];
 }
 
 export interface Faculty extends BaseEntity {
@@ -194,6 +195,7 @@ export interface ResultSummary extends BaseEntity {
     CGPA: number;
   };
   comment: string;
+  level: string;
 }
 
 // =============================================================================
@@ -320,6 +322,7 @@ export interface CreateSchoolForm {
   logo?: string;
   currentSession: string;
   currentSemester: string;
+  levels: string[];
 }
 
 export interface CreateFacultyForm {
@@ -359,7 +362,7 @@ export interface CreateUserForm {
 }
 
 export interface CreateStudentForm extends CreateUserForm {
-  level: number;
+  level: string;
   matricNo: string;
   department: string;
   school: string;

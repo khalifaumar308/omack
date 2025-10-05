@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Edit, Trash2, Check, X } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { useEffect } from "react";
@@ -17,7 +18,11 @@ export default function SchoolSettings() {
   const [registrationStatus, setRegistrationStatus] = useState(school?.registrationStatus ? "open" : "closed");
   const [registrationScope, setRegistrationScope] = useState<string>(school?.registrationScope || "both");
   const [sessions, setSessions] = useState<string[]>(school?.sessions || []);
+  const [levels, setLevels] = useState<string[]>((school?.levels as unknown as string[]) || []);
   const [newSession, setNewSession] = useState("");
+  const [newLevel, setNewLevel] = useState("");
+  const [editingLevelIndex, setEditingLevelIndex] = useState<number | null>(null);
+  const [editingLevelValue, setEditingLevelValue] = useState<string>("");
   const [logo, setLogo] = useState<string>(school?.logo || "");
   const [address, setAddress] = useState<string>(school?.address || "");
   const [contactEmail, setContactEmail] = useState<string>(school?.email || "");
@@ -35,6 +40,43 @@ export default function SchoolSettings() {
       setSessions([...sessions, newSession]);
       setNewSession("");
     }
+  };
+
+  const handleAddLevel = () => {
+    const val = newLevel.trim();
+    if (!val) return;
+    if (levels.includes(val)) {
+      toast.error('Level already exists');
+      return;
+    }
+    setLevels([...levels, val]);
+    setNewLevel("");
+  };
+
+  const startEditLevel = (index: number) => {
+    setEditingLevelIndex(index);
+    setEditingLevelValue(levels[index]);
+  };
+
+  const saveEditLevel = () => {
+    if (editingLevelIndex === null) return;
+    const v = editingLevelValue.trim();
+    if (!v) return;
+    const updated = [...levels];
+    updated[editingLevelIndex] = v;
+    setLevels(updated);
+    setEditingLevelIndex(null);
+    setEditingLevelValue("");
+  };
+
+  const cancelEditLevel = () => {
+    setEditingLevelIndex(null);
+    setEditingLevelValue("");
+  };
+
+  const removeLevel = (index: number) => {
+    const updated = levels.filter((_, i) => i !== index);
+    setLevels(updated);
   };
 
   const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -60,6 +102,7 @@ export default function SchoolSettings() {
         registrationScope: registrationScope as "firstSemester" | "secondSemester" | "both",
         sessions,
         logo,
+        levels,
       },
     });
   };
@@ -150,6 +193,36 @@ export default function SchoolSettings() {
               <div className="flex flex-wrap gap-2">
                 {sessions.map(sess => (
                   <span key={sess} className="px-2 py-1 bg-gray-100 rounded text-xs">{sess}</span>
+                ))}
+              </div>
+            </div>
+
+            <div>
+              <Label className="mb-2">Levels</Label>
+              <div className="flex gap-2 mb-2">
+                <Input value={newLevel} onChange={e => setNewLevel(e.target.value)} placeholder="Add level (e.g. 100)" />
+                <Button type="button" onClick={handleAddLevel}>Add</Button>
+              </div>
+              <div className="space-y-2">
+                {levels.length === 0 && <div className="text-xs text-muted-foreground">No levels configured</div>}
+                {levels.map((lvl, idx) => (
+                  <div key={lvl} className="flex items-center justify-between bg-gray-50 p-2 rounded">
+                    {editingLevelIndex === idx ? (
+                      <div className="flex items-center gap-2 w-full">
+                        <Input value={editingLevelValue} onChange={e => setEditingLevelValue(e.target.value)} className="flex-1" />
+                        <Button type="button" onClick={saveEditLevel}><Check size={14} /></Button>
+                        <Button type="button" variant="outline" onClick={cancelEditLevel}><X size={14} /></Button>
+                      </div>
+                    ) : (
+                      <>
+                        <div className="text-sm font-medium">{lvl}</div>
+                        <div className="flex items-center gap-2">
+                          <Button type="button" variant="ghost" onClick={() => startEditLevel(idx)}><Edit size={14} /></Button>
+                          <Button type="button" variant="ghost" onClick={() => removeLevel(idx)}><Trash2 size={14} /></Button>
+                        </div>
+                      </>
+                    )}
+                  </div>
                 ))}
               </div>
             </div>

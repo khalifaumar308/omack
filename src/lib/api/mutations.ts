@@ -227,6 +227,21 @@ export const useAddCourse = () => {
   });
 };
 
+export const useBulkAddCourses = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (courses: CreateCourseForm[]) => api.bulkCreateCourses(courses),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["courses"] });
+      toast.success("Courses added successfully");
+    },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.message || "Failed to add courses. Please try again.");
+    },
+  });
+}
+
 // updateInstructor
 export const useUpdateInstructor = (id: string, data: Partial<Instructor>) => {
   const queryClient = useQueryClient();

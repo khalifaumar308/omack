@@ -22,6 +22,7 @@ import type {
   PaginatedResponse,
   CourseRegistrationInstructorItem,
   PopulatedCourse,
+  CreateCourseForm,
 } from '@/components/types';
 
 // Configure your API base URL
@@ -375,6 +376,11 @@ export const createStudent = async (studentData: CreateStudentForm) => {
 
 export const bulkCreateStudents = async (students: CreateStudentForm[]) => {
   const response = await api.post<Student[]>("/students/bulk", { students });
+  return response.data;
+};
+
+export const bulkCreateCourses = async (courses: CreateCourseForm[]) => {
+  const response = await api.post<Course[]>("/courses/bulk", { courses });
   return response.data;
 };
 

@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import type { Course, PopulatedCourse, StudentRegistrationsInfo } from "./types";
+import { Skeleton } from "./ui/skeleton";
 import { toast } from "sonner";
 import { Plus, Send, Trash2 } from "lucide-react";
 import { useUser } from "@/contexts/useUser";
@@ -21,14 +22,74 @@ interface IProps {
 	semester?: string;
 	status?: "pending" | "approved" | "rejected";
 	onSuccess?: () => void;
+	// optional external pagination control (when caller manages server pagination)
+	page?: number;
+	setPage?: ((n: number) => void) | ((updater: (prev: number) => number) => void);
+	pageSize?: number;
+	setPageSize?: ((n: number) => void) | ((updater: (prev: number) => number) => void);
+	// show loading fallback while parent fetches courses
+	loading?: boolean;
+	// server-side search value (when parent controls search)
+	search?: string;
+	// optional callback when the internal search input changes (to lift search to parent)
+	onSearch?: (value: string) => void;
 }
 const SemesterCourseReg = (Props: IProps) => {
 	// console.log("PProps", Props, 'props in sem reg')
 	const { user } = useUser()
 	const [semester, setSemester] = useState(Props.courseReg?.semester || Props.semester || "");
-	const [courseSearch, setCourseSearch] = useState("");
-	const [page, setPage] = useState<number>(1);
-	const [pageSize, setPageSize] = useState<number>(10);
+	const [courseSearch, setCourseSearch] = useState(Props.search || "");
+
+	useEffect(() => {
+		// sync external search prop to internal state
+		if (Props.search !== undefined) {
+			setCourseSearch(Props.search);
+		}
+	}, [Props.search]);
+
+	// debounce timer id for search
+	const [searchTimer, setSearchTimer] = useState<number | null>(null);
+	// local page/pageSize used when parent doesn't provide server pagination control
+	const [localPage, setLocalPage] = useState<number>(1);
+	const [localPageSize, setLocalPageSize] = useState<number>(10);
+	const page = Props.page ?? localPage;
+	const setPage = useCallback((u: number | ((prev:number)=>number)) => {
+		if (typeof u === 'number') {
+			const val = u as number;
+			if (Props.setPage) {
+				(Props.setPage as (n:number)=>void)(val);
+			} else {
+				setLocalPage(val);
+			}
+		} else {
+			const fn = u as (prev:number)=>number;
+			const next = fn(page);
+			if (Props.setPage) {
+				(Props.setPage as (n:number)=>void)(next);
+			} else {
+				setLocalPage(next);
+			}
+		}
+	}, [Props.setPage, page]);
+	const pageSize = Props.pageSize ?? localPageSize;
+	const setPageSize = useCallback((u: number | ((prev:number)=>number)) => {
+		if (typeof u === 'number') {
+			const val = u as number;
+			if (Props.setPageSize) {
+				(Props.setPageSize as (n:number)=>void)(val);
+			} else {
+				setLocalPageSize(val);
+			}
+		} else {
+			const fn = u as (prev:number)=>number;
+			const next = fn(pageSize);
+			if (Props.setPageSize) {
+				(Props.setPageSize as (n:number)=>void)(next);
+			} else {
+				setLocalPageSize(next);
+			}
+		}
+	}, [Props.setPageSize, pageSize]);
 		const [selectedCourses, setSelectedCourses] = useState<(Course | PopulatedCourse)[]>([]);
 	const [updateStatus, setUpdateStatus] = useState<"pending" | "approved" | "rejected">(Props.status || "pending");
 
@@ -42,6 +103,12 @@ const SemesterCourseReg = (Props: IProps) => {
 				setSelectedCourses(courses);
 			}
 		}, [Props.courseReg])
+
+			// reset pagination when semester prop changes
+			useEffect(() => {
+				setPage(1);
+				setPageSize(10);
+			}, [Props.semester, setPage, setPageSize]);
 
 	// When server-driven pagination is available and refetch provided, call it on page/search/pageSize change
 
@@ -197,13 +264,22 @@ const SemesterCourseReg = (Props: IProps) => {
 					<div className="bg-white p-6 rounded-lg shadow-sm border">
 						<h2 className="text-lg font-semibold text-gray-800 mb-4">Available Courses</h2>
 						<div className="flex gap-2 mb-4 items-center">
-							<input
-								type="text"
-								className="flex-1 px-3 py-2 border rounded focus:outline-none focus:ring focus:border-blue-300"
-								placeholder="Search by code or title..."
-								value={courseSearch}
-								onChange={e => { setCourseSearch(e.target.value); setPage(1); }}
-							/>
+												<input
+													type="text"
+													className="flex-1 px-3 py-2 border rounded focus:outline-none focus:ring focus:border-blue-300"
+													placeholder="Search by code or title..."
+													value={courseSearch}
+													onChange={e => {
+														const v = e.target.value;
+														setCourseSearch(v);
+														setPage(1);
+														// debounce calls to parent onSearch to avoid excessive server requests
+														if (searchTimer) window.clearTimeout(searchTimer);
+														const id = window.setTimeout(() => {
+															if (Props.onSearch) Props.onSearch(v);
+														}, 300);
+														setSearchTimer(id);
+													}} />
 							<select value={pageSize} onChange={e => { setPageSize(parseInt(e.target.value)); setPage(1); }} className="px-3 py-2 border rounded">
 								<option value={5}>5</option>
 								<option value={10}>10</option>
@@ -212,46 +288,62 @@ const SemesterCourseReg = (Props: IProps) => {
 						</div>
 
 						<div className="space-y-4 max-h-96 overflow-y-auto">
-							{coursesArray
-								.filter(course => {
-									if (!courseSearch) return true;
-									return course.code.toLowerCase().includes(courseSearch.toLowerCase()) || course.title.toLowerCase().includes(courseSearch.toLowerCase())
-								})
-								.slice((page - 1) * pageSize, (page - 1) * pageSize + pageSize)
-								.map(course => (
-									<div key={(course as any).id || (course as any)._id} className="border rounded-lg p-4 hover:bg-gray-50 transition-colors">
+							{Props.loading ? (
+								// show skeleton while parent is fetching
+								Array.from({ length: 6 }).map((_, i) => (
+									<div key={i} className="border rounded-lg p-4">
 										<div className="flex items-center justify-between">
 											<div className="flex-1">
-												<h3 className="font-medium text-gray-800">{(course as any).code}</h3>
-												<p className="text-sm text-gray-600">{(course as any).title}</p>
-												<p className="text-xs text-gray-500 mt-1">
-													{(course as any).creditUnits} credits
-												</p>
+												<Skeleton className="h-4 w-28 mb-2" />
+												<Skeleton className="h-3 w-48 mb-1" />
+												<Skeleton className="h-3 w-20" />
 											</div>
-											<button
-												onClick={() => addCourse(course)}
-												disabled={selectedCourses.some(c => c.code === (course as any).code)}
-												className="ml-4 p-2 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
-											>
-												<Plus size={16} />
-											</button>
+											<div className="ml-4 w-8 h-8"><Skeleton className="w-full h-full" /></div>
 										</div>
 									</div>
-								))}
+								))
+							) : (
+								coursesArray
+									.filter(course => {
+										if (!courseSearch) return true;
+										return course.code.toLowerCase().includes(courseSearch.toLowerCase()) || course.title.toLowerCase().includes(courseSearch.toLowerCase())
+									})
+									.slice((page - 1) * pageSize, (page - 1) * pageSize + pageSize)
+									.map(course => (
+										<div key={(course as any).id || (course as any)._id} className="border rounded-lg p-4 hover:bg-gray-50 transition-colors">
+											<div className="flex items-center justify-between">
+												<div className="flex-1">
+													<h3 className="font-medium text-gray-800">{(course as any).code}</h3>
+													<p className="text-sm text-gray-600">{(course as any).title}</p>
+													<p className="text-xs text-gray-500 mt-1">
+														{(course as any).creditUnits} credits
+													</p>
+												</div>
+												<button
+													onClick={() => addCourse(course)}
+													disabled={selectedCourses.some(c => c.code === (course as any).code)}
+													className="ml-4 p-2 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
+												>
+													<Plus size={16} />
+												</button>
+											</div>
+										</div>
+									))
+							)}
 						</div>
 
 						{/* Pagination controls (use server pagination if provided) */}
 						<div className="mt-3 flex items-center justify-between">
 							<div className="text-sm text-gray-600">{pagination ? `Showing page ${pagination.page} of ${pagination.totalPages}` : `Showing ${(page - 1) * pageSize + 1}-${Math.min((page) * pageSize, coursesArray.length)} of ${coursesArray.length}`}</div>
 							<div className="flex items-center space-x-2">
-								<Button type="button" variant="outline" size="sm" onClick={() => setPage(p => Math.max(1, p - 1))} disabled={pagination ? !pagination.hasPrev : page === 1}>Prev</Button>
+								<Button type="button" variant="outline" size="sm" onClick={() => setPage((p:number) => Math.max(1, p - 1))} disabled={pagination ? !pagination.hasPrev : page === 1}>Prev</Button>
 								<div className="text-sm text-gray-700">{pagination ? pagination.page : page}</div>
 								<Button type="button" variant="outline" size="sm" onClick={() => {
 									if (pagination) {
 										if (!pagination.hasNext) return;
-										setPage(p => p + 1);
+										setPage((p:number) => p + 1);
 									} else {
-										setPage(p => p + 1);
+										setPage((p:number) => p + 1);
 									}
 								}} disabled={pagination ? !pagination.hasNext : (page * pageSize >= coursesArray.length)}>Next</Button>
 							</div>

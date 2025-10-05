@@ -84,7 +84,7 @@ const formatForResultTemplate = (
     programme: department?.name,
     semester,
     department: department?.name,
-    level: student.level?.toString?.(),
+    level: rsummary.level || student.level?.toString?.(),
     faculty: faculty?.name,
     approvalStatus: 'approved',
   };

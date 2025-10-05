@@ -37,19 +37,18 @@ export default function Students() {
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [editingStudent, setEditingStudent] = useState<Student | null>(null);
   const { data: departments } = useGetDepartments();
+  const { user } = useUser();
   const [formData, setFormData] = useState<CreateStudentForm>({
     name: "",
     email: "",
     password: "",
     role: "student",
-
     school: "",
-    level: 100,
+    level: user?.school?.levels?.[0] || "100",
     matricNo: "",
     department: "",
   });
 
-  const { user } = useUser();
   // fetch a large number of students once and handle pagination/filtering on client
   const { data, isLoading, isError, error, refetch } = useGetStudents(1, 10000);
   const addStudentMutation = useAddStudent();
@@ -87,7 +86,7 @@ export default function Students() {
       password: "",
       role: "student",
       school: "",
-      level: 100,
+      level: user?.school?.levels?.[0] || "100",
       matricNo: "",
       department: "",
     });
@@ -252,16 +251,19 @@ export default function Students() {
                   </div>
                   <div>
                     <Label htmlFor="level">Level</Label>
-                    <Input
-                      id="level"
-                      type="number"
-                      value={formData.level}
-                      onChange={(e) =>
-                        setFormData({ ...formData, level: parseInt(e.target.value) })
-                      }
-                      placeholder="100"
-                      required
-                    />
+                    <Select onValueChange={(value) => setFormData({ ...formData, level: value })}>
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Select Level" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {user?.school?.levels?.map((level) => (
+                          <SelectItem key={level} value={level}>
+                            {level}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                   
                   </div>
                   {/* <div>
                     <Label htmlFor="admissionYear">Admission Year</Label>
@@ -469,11 +471,9 @@ export default function Students() {
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">All</SelectItem>
-                    <SelectItem value="100">100</SelectItem>
-                    <SelectItem value="200">200</SelectItem>
-                    <SelectItem value="300">300</SelectItem>
-                    <SelectItem value="400">400</SelectItem>
-                    <SelectItem value="500">500</SelectItem>
+                    {user?.school?.levels?.map((level) => (
+                      <SelectItem key={level} value={level}>{level}</SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>

@@ -24,10 +24,15 @@ const StudentCourseRegistration: React.FC = () => {
   const [edit, setEdit] = useState(false)
   const [courseRegEdit, setCourseRegEdit] = useState<StudentRegistrationsInfo>()
   const [openSemesterModal, setOpenSemesterModal] = useState(false)
+  // manage pagination passed to SemesterCourseReg
+  const [coursePage, setCoursePage] = useState<number>(1);
+  const [coursePageSize, setCoursePageSize] = useState<number>(10);
+  const [courseSearch, setCourseSearch] = useState<string>('');
 
   const { data: registrationInfo, isLoading, isError } = useGetCourseRegistrationInfo()
   //get courses (request more rows for client-side use where needed)
-  const { data: courses, isLoading: courseLoading } = useGetCourses(1, 10)
+  // fetch courses for the selected semester and pagination controlled by this component
+  const { data: courses, isLoading: courseLoading } = useGetCourses(coursePage, coursePageSize, courseSearch, '', semester, 'all')
 
   // Auto-populate failed courses on component mount
   useEffect(() => {
@@ -210,6 +215,13 @@ const StudentCourseRegistration: React.FC = () => {
             toRetake={toRetake}
             semester={semester}
             status='pending'
+            page={coursePage}
+            setPage={(n:number) => setCoursePage(n)}
+            pageSize={coursePageSize}
+            setPageSize={(n:number) => setCoursePageSize(n)}
+            search={courseSearch}
+            onSearch={(v) => { setCourseSearch(v); setCoursePage(1); }}
+            loading={courseLoading}
           />
         ) : (courseRegEdit && (
           <SemesterCourseReg edit={edit} courseReg={{
@@ -218,6 +230,13 @@ const StudentCourseRegistration: React.FC = () => {
             semester: courseRegEdit.semester!
           }} session={user?.school?.currentSession || ''}
             toRetake={toRetake} courses={courses!}
+            page={coursePage}
+            setPage={(n:number) => setCoursePage(n)}
+            pageSize={coursePageSize}
+            setPageSize={(n:number) => setCoursePageSize(n)}
+            search={courseSearch}
+            onSearch={(v) => { setCourseSearch(v); setCoursePage(1); }}
+            loading={courseLoading}
           />
         ))
       )}

@@ -115,6 +115,7 @@ interface SummaryDisplay {
     TGP: number;
     CGPA: number;
   };
+  level: string;
 }
 
 const Results = () => {
@@ -196,18 +197,19 @@ const Results = () => {
         tgp: s.TGP,
         gpa: s.GPA,
         remark,
-        previous: s.previous
+        previous: s.previous,
+        level: s.level || ''
       };
     }
     // Calculate if no summary
     if (courses.length === 0) {
-      return { tcu: 0, tca: 0, tgp: 0, gpa: 0, remark: 'No Results' };
+      return { tcu: 0, tca: 0, tgp: 0, gpa: 0, remark: 'No Results', level: ''};
     }
     const tcu = courses.reduce((sum, c) => sum + c.credits, 0);
     const tgp = courses.reduce((sum, c) => sum + c.gradePoint, 0);
     const gpa = tcu > 0 ? tgp / tcu : 0;
-    const remark = scoreToComment(gradingTemplate!, gpa);;
-    return { tcu, tca: tcu, tgp, gpa, remark };
+    const remark = scoreToComment(gradingTemplate!, gpa);
+    return { tcu, tca: tcu, tgp, gpa, remark, level:currentResult?.summary?.level || '' };
   }, [currentResult?.summary, courses, gradingTemplate]);
 
   // For ResultTemplate Summary interfaceltcu
@@ -220,6 +222,7 @@ const Results = () => {
       lcgpa: `${summary.previous?.CGPA || 0}` 
     },
     cumulative: { tcu: summary.tcu, tca: summary.tca, tgp: summary.tgp, cgpa: summary.gpa },
+    level: summary.level
   }), [summary]);
 
   // For transcript PDF, use ResultSummary[] but filter if needed
@@ -342,7 +345,7 @@ const Results = () => {
                 <PDFDownloadLink
                   document={
                     <NewResultTemplate
-                      studentData={studentData}
+                      studentData={{...studentData, level: pdfSummary.level || studentData.level}}
                       courses={courses}
                       summary={pdfSummary}
                       schoolInfo={user.school!}

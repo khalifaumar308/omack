@@ -96,6 +96,16 @@ const CourseRegistrations = () => {
   const [editModalOpen, setEditModalOpen] = useState(false);
   const [registrationToEdit, setRegistrationToEdit] = useState<IAdminCourseRegs | null>(null);
 
+  // reset modal course search/page when editing a new registration
+  useEffect(() => {
+    if (registrationToEdit) {
+      const semester = registrationToEdit.courseRegistrations?.[0]?.semester || user?.school?.currentSemester || '';
+      setModalCourseSemester(semester);
+      setModalCourseSearch('');
+      setModalCoursePage(1);
+    }
+  }, [registrationToEdit, user?.school?.currentSemester]);
+
   // fetch registrations with current selected semester/session (use 'all' to fetch unfiltered)
   const [pageSize, setPageSize] = useState(10);
   const { data: registrationsRaw, isLoading, isError, error, refetch } = useGetCourseRegistrations(
@@ -114,6 +124,12 @@ const CourseRegistrations = () => {
   // keep previous data behavior is handled by react-query hook options
   const { data: students } = useGetStudents(1, 100); // Get more students for filtering
   const { data: departments } = useGetDepartments();
+  // Modal (edit) specific course search/pagination
+  const [modalCoursePage, setModalCoursePage] = useState<number>(1);
+  const [modalCoursePageSize, setModalCoursePageSize] = useState<number>(10);
+  const [modalCourseSearch, setModalCourseSearch] = useState<string>('');
+  const [modalCourseSemester, setModalCourseSemester] = useState<string>(user?.school?.currentSemester || '');
+  const { data: modalCoursesResponse, isLoading: isLoadingModalCourses } = useGetCourses(modalCoursePage, modalCoursePageSize, modalCourseSearch, '', modalCourseSemester || '', 'all');
   const registerCourseMutation = useRegisterCourse();
   const registerManyCourseMutation = useAdminAddBulkRegistrations();
   const updateBulkRegStatusMutation = useAdminUpdateBulkRegStatus();
@@ -594,7 +610,14 @@ const CourseRegistrations = () => {
                       courses: registrationToEdit.courseRegistrations || [],
                       status: (registrationToEdit as any).status || 'pending',
                     }}
-                    courses={courses?.data || []}
+                    courses={modalCoursesResponse?.data || courses?.data || []}
+                    loading={isLoadingModalCourses || isLoadingCourses}
+                    search={modalCourseSearch}
+                    onSearch={(v) => { setModalCourseSearch(v); setModalCoursePage(1); }}
+                    page={modalCoursePage}
+                    setPage={(n:number) => setModalCoursePage(n)}
+                    pageSize={modalCoursePageSize}
+                    setPageSize={(n:number) => setModalCoursePageSize(n)}
                     onSuccess={() => {
                       setEditModalOpen(false);
                       setRegistrationToEdit(null);
