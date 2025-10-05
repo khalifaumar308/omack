@@ -77,10 +77,10 @@ export const useGetUser = () => {
 }
 
 //courses
-export const useGetCourses = (page: number = 1, limit: number = 50, search: string = '', department: string = '') => {
+export const useGetCourses = (page: number = 1, limit: number = 50, search: string = '', department: string = '', semester: string = 'all', level: string = 'all') => {
   return useQuery({
-    queryKey: ["courses", page, limit, search, department],
-    queryFn: () => api.getCourses(page, limit, search || undefined, department || undefined),
+    queryKey: ["courses", page, limit, search, department, semester, level],
+    queryFn: () => api.getCourses(page, limit, search || undefined, department || undefined, semester || undefined, level || undefined),
     placeholderData: undefined,
     refetchOnWindowFocus: false,
   staleTime: 1000 * 60 * 2, // 2 minutes

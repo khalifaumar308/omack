@@ -21,6 +21,7 @@ import type {
   PopulatedInstructor,
   PaginatedResponse,
   CourseRegistrationInstructorItem,
+  PopulatedCourse,
 } from '@/components/types';
 
 // Configure your API base URL
@@ -219,7 +220,7 @@ export const userLogin = async (email: string, password: string) => {
 };
 
 export const getStudentSummary = async () => {
-    const response = await api.get<{
+  const response = await api.get<{
     student: PopulatedStudent;
     currentCgpa: number;
     totalCreditUnits: number;
@@ -233,7 +234,7 @@ export const getStudentSummary = async () => {
     semester: string;
     session: string;
   }>("/students/summary");
-    return response.data;
+  return response.data;
 };
 
 export const userLogout = async () => {
@@ -626,10 +627,12 @@ export const createCourse = async (courseData: {
   title: string;
   department: string;
   school: string;
-  instructors: string[];
+  instructors?: string[];
   creditUnits: number;
+  semester: string;
+  level?: string;
 }) => {
-  const response = await api.post<Course>("/courses", courseData);
+  const response = await api.post<PopulatedCourse>("/courses", courseData);
   return response.data;
 };
 
@@ -648,14 +651,25 @@ export const getadmindashBoardData = async () => {
   return response.data;
 };
 
-export const getCourses = async (page?: number, limit?: number, search?: string, department?: string) => {
+export const getCourses = async (page?: number, limit?: number, search?: string, department?: string, semester?: string, level?: string) => {
   const params: Record<string, string> = {};
   if (page) params.page = String(page);
   if (limit) params.limit = String(limit);
   if (search) params.search = search;
   if (department) params.department = department;
+  if (semester && semester !== 'all') params.semester = semester;
+  if (level && level !== 'all') params.level = level;
 
-  const response = await api.get<any>(`/courses`, { params });
+  const response = await api.get<{
+    data: PopulatedCourse[]; pagination: {
+      page: number;
+      limit: number;
+      total: number;
+      totalPages: number;
+      hasNext: boolean;
+      hasPrev: boolean;
+    }
+  }>(`/courses`, { params });
   return response.data;
 };
 

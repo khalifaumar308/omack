@@ -1,6 +1,6 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useEffect, useState } from "react";
-import type { Course, StudentRegistrationsInfo } from "./types";
+import type { Course, PopulatedCourse, StudentRegistrationsInfo } from "./types";
 import { toast } from "sonner";
 import { Plus, Send, Trash2 } from "lucide-react";
 import { useUser } from "@/contexts/useUser";
@@ -15,8 +15,9 @@ interface IProps {
 	edit: boolean;
 	courseReg?: TCourseReg;
 	session?: string;
-	toRetake?: Course[];
-	courses: Course[] | { data: Course[]; pagination?: { page: number; limit: number; total: number; totalPages: number; hasNext: boolean; hasPrev: boolean } };
+		toRetake?: (Course | PopulatedCourse)[];
+	// Accept either Course[] or PopulatedCourse[] or a paginated object containing either
+	courses: Course[] | PopulatedCourse[] | { data: (Course | PopulatedCourse)[]; pagination?: { page: number; limit: number; total: number; totalPages: number; hasNext: boolean; hasPrev: boolean } };
 	semester?: string;
 	status?: "pending" | "approved" | "rejected";
 	onSuccess?: () => void;
@@ -28,19 +29,19 @@ const SemesterCourseReg = (Props: IProps) => {
 	const [courseSearch, setCourseSearch] = useState("");
 	const [page, setPage] = useState<number>(1);
 	const [pageSize, setPageSize] = useState<number>(10);
-	const [selectedCourses, setSelectedCourses] = useState<Course[]>([]);
+		const [selectedCourses, setSelectedCourses] = useState<(Course | PopulatedCourse)[]>([]);
 	const [updateStatus, setUpdateStatus] = useState<"pending" | "approved" | "rejected">(Props.status || "pending");
 
 	// Derived courses array and pagination
-	const coursesArray: Course[] = Array.isArray(Props.courses) ? Props.courses : (Props.courses?.data || []);
+		const coursesArray: (Course | PopulatedCourse)[] = Array.isArray(Props.courses) ? Props.courses : (Props.courses?.data || []);
 	const pagination = !Array.isArray(Props.courses) ? Props.courses?.pagination : undefined;
 
-	useEffect(() => {
-		if (Props.courseReg) {
-			const courses = Props.courseReg?.courses.map(c => c.course)
-			setSelectedCourses(courses);
-		}
-	}, [Props.courseReg])
+		useEffect(() => {
+			if (Props.courseReg) {
+				const courses = Props.courseReg?.courses.map(c => c.course) as (Course | PopulatedCourse)[];
+				setSelectedCourses(courses);
+			}
+		}, [Props.courseReg])
 
 	// When server-driven pagination is available and refetch provided, call it on page/search/pageSize change
 
@@ -86,13 +87,13 @@ const SemesterCourseReg = (Props: IProps) => {
 		});
 	};
 
-	const addCourse = (course: Course) => {
+	const addCourse = (course: Course | PopulatedCourse) => {
 		// if (selectedCourses.length >= 8) {
 		//   toast.warning('You cannot register for more than 8 courses');
 		//   return;
 		// }
 		// Prevent duplicate selection
-		if (selectedCourses.some(c => c.code === course.code)) {
+		if (selectedCourses.some(c => c.code === (course as Course).code)) {
 			toast.warning('You have already selected this course.');
 			return;
 		}

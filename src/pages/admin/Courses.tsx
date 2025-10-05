@@ -20,7 +20,8 @@ import {
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
 import { Plus, Search, BookOpen, Upload, Edit, Trash2 } from "lucide-react";
-import type { CreateCourseForm, Course } from "@/components/types";
+import type { CreateCourseForm, PopulatedCourse } from "@/components/types";
+import { normalizeCourse, getDepartmentName } from "@/lib/courseUtils";
 import { useGetDepartments, useGetCourses } from "@/lib/api/queries";
 import { useAddCourse, useUpdateCourse, useDeleteCourse } from "@/lib/api/mutations";
 import { useUser } from "@/contexts/useUser";
@@ -30,53 +31,54 @@ import { Skeleton } from "@/components/ui/skeleton";
 export default function Courses() {
   const [searchTerm, setSearchTerm] = useState("");
   const [selectedDepartment, setSelectedDepartment] = useState<string>('all');
+  const [selectedSemester, setSelectedSemester] = useState<string>('all');
+  const [selectedLevel, setSelectedLevel] = useState<string>('all');
   const [currentPage, setCurrentPage] = useState(1);
   const [limit] = useState(10);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
-  const [editingCourse, setEditingCourse] = useState<Course | null>(null);
+  const [editingCourse, setEditingCourse] = useState<PopulatedCourse | null>(null);
   const { data: departments } = useGetDepartments();
-  interface CreateCourseFormData extends Omit<CreateCourseForm, 'instructors'> {
-    instructors: string;
-  }
 
-  const [formData, setFormData] = useState<CreateCourseFormData>({
+  const [formData, setFormData] = useState<CreateCourseForm>({
     code: "",
     title: "",
     department: "",
     school: "",
-    instructors: "",
+    instructors: [""],
     creditUnits: 0,
+    semester: "First",
+    level: "100"
   });
 
   const { user } = useUser();
-  const { data, isLoading, isError, error, refetch } = useGetCourses(currentPage, limit, searchTerm, selectedDepartment);
+  const { data, isLoading, isError, error, refetch } = useGetCourses(currentPage, limit, searchTerm, selectedDepartment, selectedSemester, selectedLevel);
   const addCourseMutation = useAddCourse();
   const updateCourseMutation = useUpdateCourse();
   const deleteCourseMutation = useDeleteCourse();
   // support both array response and paginated { data, pagination }
-  const coursesData = Array.isArray(data) ? data : data?.data || [];
+  const coursesData = data?.data || [];
   const pagination = data?.pagination || { page: currentPage, limit, total: coursesData.length, totalPages: Math.ceil(coursesData.length / limit) };
   const courses = coursesData || [];
   const totalCourses = pagination.total || courses.length;
   const totalPages = pagination.totalPages || Math.ceil(totalCourses / limit);
-  console.log( coursesData);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    const instructors = formData.instructors.split(',').map(i => i.trim()).filter(Boolean);
     const courseData: CreateCourseForm = {
       ...formData,
       school: user?.school?.id || "",
-      instructors,
     };
     if (editingCourse) {
-      updateCourseMutation.mutate({ courseId: (editingCourse as any)._id, courseData });
+      updateCourseMutation.mutate({ courseId: (editingCourse as any)._id, courseData }, {
+        onSuccess: () => { setIsDialogOpen(false); setEditingCourse(null); }
+      });
     } else {
-      addCourseMutation.mutate(courseData);
+      addCourseMutation.mutate(courseData, {
+        onSuccess: () => { setIsDialogOpen(false); resetForm() }
+      });
     }
-    setIsDialogOpen(false);
   };
 
   const handleDelete = (courseId: string) => {
@@ -91,41 +93,26 @@ export default function Courses() {
       title: "",
       department: "",
       school: "",
-      instructors: "",
+      instructors: [""],
       creditUnits: 0,
-    } as CreateCourseFormData);
+      semester: "First",
+      level: "100"
+    } as CreateCourseForm);
   };
 
-  const openEditDialog = (course: Course) => {
+  const openEditDialog = (course: PopulatedCourse) => {
     setEditingCourse(course);
+    const norm = normalizeCourse(course);
     setFormData({
       code: course.code,
       title: course.title,
-      department: course.department,
-      school: course.school,
-      instructors: course.instructors.join(', '),
+      department: norm.departmentId,
+      school: course.school.id,
       creditUnits: course.creditUnits,
-    } as CreateCourseFormData);
+      semester: course.semester,
+      level: course.level,
+    });
     setIsDialogOpen(true);
-  };
-
-  // const filteredCourses = courses.filter((course: Course) => {
-  //   const matchesSearch = course.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
-  //     course.title.toLowerCase().includes(searchTerm.toLowerCase());
-
-  //   const courseDeptId = typeof course.department === 'string' ? course.department : (course.department as any)?.id || (course.department as any)?.name;
-  //   const matchesDepartment = selectedDepartment === 'all' || courseDeptId === selectedDepartment;
-
-  //   return matchesSearch && matchesDepartment;
-  // });
-
-  // const paginatedCourses = courses.slice(
-  //   (currentPage - 1) * limit,
-  //   currentPage * limit
-  // );
-
-  const getDepartmentName = (departmentId: string) => {
-    return departments?.find(d => d.id === departmentId)?.name || departmentId;
   };
 
   if (isError) {
@@ -218,7 +205,37 @@ export default function Courses() {
                       </SelectContent>
                     </Select>
                   </div>
-                  <div className="col-span-2">
+                  <div>
+                    <Label htmlFor="level">Level</Label>
+                    <Select value={formData.level} onValueChange={(value) => setFormData({ ...formData, level: value })}>
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Select Level" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {["100", "200", "300", "400"]?.map((level) => (
+                          <SelectItem key={level} value={level}>
+                            {level}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div>
+                    <Label htmlFor="semester">Semester</Label>
+                    <Select value={formData.semester} onValueChange={(value:"First"|"Second") => setFormData({ ...formData, semester: value })}>
+                      <SelectTrigger className="w-full">
+                        <SelectValue placeholder="Select Level" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {["First", "Second"]?.map((semester) => (
+                          <SelectItem key={semester} value={semester}>
+                            {semester}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  {/* <div className="col-span-2">
                     <Label htmlFor="instructors">Instructors (comma-separated IDs)</Label>
                     <Input
                       id="instructors"
@@ -228,7 +245,7 @@ export default function Courses() {
                       }
                       placeholder="instructorId1,instructorId2"
                     />
-                  </div>
+                  </div> */}
                 </div>
                 <div className="flex justify-end space-x-2">
                   <Button
@@ -288,17 +305,18 @@ export default function Courses() {
                         const csv = event.target?.result as string;
                         const lines = csv.split('\n').slice(1); // Skip header
                         const newCourses = lines.map(line => {
-                          const [code, title, department, creditUnits, instructorsStr] = line.split(',');
-                          const instructors = instructorsStr ? instructorsStr.split(',').map(i => i.trim()).filter(Boolean) : [];
+                          const [code, title, department, creditUnits, level, semester] = line.split(',');
+                          // const instructors = instructorsStr ? instructorsStr.split(',').map(i => i.trim()).filter(Boolean) : [];
                           return {
                             code: code?.trim(),
                             title: title?.trim(),
                             department: departments?.find(depart=>depart.name.trim()===department.trim())?.id || "",
                             school: user?.school?.id || "",
-                            instructors,
                             creditUnits: parseInt(creditUnits?.trim() || "0") || 0,
+                            level: level?.trim() || "100",
+                            semester: (semester?.trim() === "Second" ? "Second" : "First") as "First" | "Second",
                           };
-                        }).filter(c => c.code && c.title && c.department);
+                        }).filter(c => c.code && c.title && c.department && c.creditUnits);
                         newCourses.forEach(course => addCourseMutation.mutate(course));
                       };
                       reader.readAsText(selectedFile);
@@ -344,6 +362,25 @@ export default function Courses() {
                   ))}
                 </SelectContent>
               </Select>
+              <Select value={selectedSemester} onValueChange={(v) => { setSelectedSemester(v); setCurrentPage(1); }}>
+                <SelectTrigger className="w-40">
+                  <SelectValue placeholder="Semester" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Semesters</SelectItem>
+                  <SelectItem value="First">First</SelectItem>
+                  <SelectItem value="Second">Second</SelectItem>
+                </SelectContent>
+              </Select>
+              <Select value={selectedLevel} onValueChange={(v) => { setSelectedLevel(v); setCurrentPage(1); }}>
+                <SelectTrigger className="w-32">
+                  <SelectValue placeholder="Level" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">All Levels</SelectItem>
+                  {['100','200','300','400'].map(l => <SelectItem key={l} value={l}>{l}</SelectItem>)}
+                </SelectContent>
+              </Select>
             </div>
           </div>
         </CardHeader>
@@ -387,22 +424,26 @@ export default function Courses() {
                   <TableRow>
                     <TableHead>Code</TableHead>
                     <TableHead>Title</TableHead>
-                    <TableHead>Department</TableHead>
                     <TableHead>Credit Units</TableHead>
+                    <TableHead>Level</TableHead>
+                    <TableHead>Semester</TableHead>
                     <TableHead>Instructors</TableHead>
+                    <TableHead>Department</TableHead>
                     <TableHead>Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody className="text-left">
-                  {coursesData.map((course: Course) => (
+                  {coursesData.map((course) => (
                     <TableRow key={course.id}>
                       <TableCell className="font-medium">
                         {course.code}
                       </TableCell>
                       <TableCell>{course.title}</TableCell>
-                      <TableCell>{getDepartmentName(typeof course.department === 'string' ? course.department : (course.department as any)?.id || '')}</TableCell>
                       <TableCell>{course.creditUnits}</TableCell>
-                      <TableCell>{course.instructors.join(', ')}</TableCell>
+                      <TableCell>{course.level || 'N/A'}</TableCell>
+                      <TableCell>{course.semester || 'N/A'}</TableCell>
+                      <TableCell>{course.instructors.length > 0 ? course.instructors.join(', ') : 'N/A'}</TableCell>
+                      <TableCell>{getDepartmentName(course as any)}</TableCell>
                       <TableCell>
                         <div className="flex space-x-2">
                           <Button variant="outline" size="sm" onClick={() => openEditDialog(course)}>

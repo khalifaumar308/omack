@@ -164,6 +164,8 @@ export interface Course extends BaseEntity {
   school: string; // ObjectId as string
   instructors: string[]; // Array of ObjectIds as strings
   creditUnits: number;
+  semester: "First" | "Second";
+  level?: string;
 }
 
 export interface CourseRegistration extends BaseEntity {
@@ -342,8 +344,10 @@ export interface CreateCourseForm {
   title: string;
   department: string;
   school: string;
-  instructors: string[];
+  instructors?: string[];
   creditUnits: number;
+  semester: "First" | "Second";
+  level?: string;
 }
 
 export interface CreateUserForm {
