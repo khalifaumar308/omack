@@ -317,6 +317,25 @@ export const deleteSchool = async (id: string) => {
   return response.data;
 };
 
+/**
+ * Results Release APIs (school-admin)
+ */
+export const getSchoolResultsRelease = async (schoolId: string, session: string, semester: "First" | "Second") => {
+  const response = await api.get<{ released: boolean; record?: { session: string; semester: string; released: boolean; releasedAt?: string; releasedBy?: string } | null }>(
+    `/schools/${schoolId}/results-release`,
+    { params: { session, semester } }
+  );
+  return response.data;
+};
+
+export const setSchoolResultsRelease = async (schoolId: string, payload: { session: string; semester: "First" | "Second"; released: boolean }) => {
+  const response = await api.put<{ message: string; record: any; resultsRelease: any[] }>(
+    `/schools/${schoolId}/results-release`,
+    payload
+  );
+  return response.data;
+};
+
 // =============================================================================
 // FACULTY MANAGEMENT APIs
 // =============================================================================
@@ -856,6 +875,8 @@ export default {
   getSchools,
   updateSchool,
   deleteSchool,
+  getSchoolResultsRelease,
+  setSchoolResultsRelease,
 
   // Faculties
   createFaculty,

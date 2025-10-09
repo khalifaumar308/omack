@@ -157,6 +157,22 @@ export const useGetAdminDashboard = () => {
   });
 }
 
+/**
+ * School-wide results release status (school-admin)
+ */
+export const useGetSchoolResultsRelease = (
+  schoolId: string | undefined,
+  session: string,
+  semester: "First" | "Second"
+) => {
+  return useQuery({
+    queryKey: ["schoolResultsRelease", schoolId, session, semester],
+    queryFn: () => api.getSchoolResultsRelease(schoolId as string, session, semester),
+    enabled: !!schoolId && !!session && !!semester,
+    refetchOnWindowFocus: false,
+  });
+}
+
 export const useGetStudentsSemesterResults = (
   semester: string = 'First',
   session: string = '2024/2025',

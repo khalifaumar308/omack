@@ -19,6 +19,23 @@ export const useUpdateSchool = () => {
     },
   });
 };
+// Toggle school term results release (school-admin)
+export const useSetSchoolResultsRelease = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: { schoolId: string; session: string; semester: "First" | "Second"; released: boolean }) =>
+      api.setSchoolResultsRelease(data.schoolId, { session: data.session, semester: data.semester, released: data.released }),
+    onSuccess: (_res, vars) => {
+      queryClient.invalidateQueries({ queryKey: ["schoolResultsRelease", vars.schoolId, vars.session, vars.semester] });
+      queryClient.invalidateQueries({ queryKey: ["user"] });
+      toast.success(vars.released ? "Results released for selected term" : "Results access revoked for selected term");
+    },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.message || "Failed to update results release");
+    },
+  });
+};
 
 export const useUpdateStudentSemesterReg = () => {
   const queryClient = useQueryClient();

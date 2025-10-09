@@ -43,6 +43,7 @@ import type {
 } from "@/components/types";
 import { scoreToComment } from "@/lib/utils";
 import NewResultTemplate from "@/components/NewResultTemplate";
+import type { AxiosError } from "axios";
 
 function LoadingSkeletonResults() {
   return (
@@ -124,7 +125,8 @@ const Results = () => {
   const [session, setSession] = useState(user?.school?.currentSession || '2025/2026');
   const { data: gradingTemplatesRaw, isLoading:templatesLoading } = useGetGradingTemplates();
   // const { data: semesterResults = [], isLoading: semesterLoading } = useGetStudentsSemesterResults(semester, session);
-  const { data: semesterResult, isLoading: semesterLoading } = useGetSemesterResult(semester, session); // To refetch on semester/session change
+  const { data: semesterResult, isLoading: semesterLoading, error: semesterError } = useGetSemesterResult(semester, session); // To refetch on semester/session change
+  const notReleased = !!((semesterError as AxiosError)?.response?.status === 403);
   const { data: transcript = [], isLoading: transcriptLoading } = useGetTranscript();
   const { data:studentDataa, isLoading:fetchingStudent } = useGetStudent(user?.id || '');
   const currentResult = semesterResult as StudentsSemesterResultsResponse | undefined; // Assume only current student's data
@@ -282,7 +284,11 @@ const Results = () => {
           </CardTitle>
         </CardHeader>
         <CardContent>
-          {courses.length === 0 ? (
+          {notReleased ? (
+            <p className="text-center py-8 text-muted-foreground">
+              Results not released yet for {semester} semester, {session}.
+            </p>
+          ) : courses.length === 0 ? (
             <p className="text-center py-8 text-muted-foreground">
               No results available for {semester} semester, {session}.
             </p>
