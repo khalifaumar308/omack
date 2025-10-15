@@ -11,9 +11,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Separator } from "@/components/ui/separator";
 import { Badge } from "@/components/ui/badge";
 
-import { useUpdateSchool, useSetSchoolResultsRelease } from "@/lib/api/mutations";
+import { useUpdateSchool, useSetSchoolResultsRelease, useUploadLogoMutation } from "@/lib/api/mutations";
 import { useGetSchoolResultsRelease } from "@/lib/api/queries";
-
 export default function SchoolSettings() {
   const { user } = useUser();
   const school = user?.school;
@@ -45,6 +44,7 @@ export default function SchoolSettings() {
   const updateSchoolMutation = useUpdateSchool();
 
   useEffect(() => {
+    // side-effect: show success toast when updateSchoolMutation succeeds
     if (updateSchoolMutation.isSuccess) {
       toast.success("School settings updated");
     }
@@ -56,7 +56,7 @@ export default function SchoolSettings() {
   const [releaseSession, setReleaseSession] = useState(currentSession);
   const { data: releaseStatus } = useGetSchoolResultsRelease(schoolId, releaseSession, releaseSemester);
   const { mutate: setResultsRelease, isPending: settingRelease } = useSetSchoolResultsRelease();
-
+  const uploadLogoMutation = useUploadLogoMutation();
   // Helpers
   const handleAddSession = () => {
     const s = newSession.trim();
@@ -105,15 +105,19 @@ export default function SchoolSettings() {
     const updated = levels.filter((_, i) => i !== index);
     setLevels(updated);
   };
+  // Upload file mutation
+ 
 
-  const handleLogoChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleLogoChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    const reader = new FileReader();
-    reader.onload = (ev) => {
-      setLogo(ev.target?.result as string);
-    };
-    reader.readAsDataURL(file);
+    uploadLogoMutation.mutate(file, {
+      onSuccess: (data) => {
+        console.log("Logo uploaded successfully:", data);
+        setLogo(data.url);
+      },
+    });
+    
   };
 
   const handleSubmit = (e: React.FormEvent) => {
@@ -138,15 +142,6 @@ export default function SchoolSettings() {
     <div className="max-w-7xl mx-auto p-6">
       <div className="mb-4 flex items-center justify-between gap-3">
         <h1 className="text-2xl font-bold">School Settings</h1>
-        <div className="flex items-center gap-2">
-          <Button
-            variant="default"
-            disabled={updateSchoolMutation.isPending}
-            onClick={handleSubmit as unknown as () => void}
-          >
-            {updateSchoolMutation.isPending ? "Saving..." : "Save Settings"}
-          </Button>
-        </div>
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
@@ -238,7 +233,24 @@ export default function SchoolSettings() {
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <div>
                   <Label className="mb-2 block">Upload Logo</Label>
-                  <Input type="file" accept="image/*" onChange={handleLogoChange} />
+                  <div className="flex items-center gap-2">
+                    <Input
+                      type="file"
+                      accept="image/*"
+                      onChange={handleLogoChange}
+                      disabled={uploadLogoMutation.status === 'pending'}
+                    />
+                    {uploadLogoMutation.status === 'pending' && <Badge>Uploading...</Badge>}
+                    {uploadLogoMutation.status === 'success' && (
+                      <Badge variant="secondary">Uploaded</Badge>
+                    )}
+                    {uploadLogoMutation.status === 'error' && (
+                      <Badge variant="destructive">Upload failed</Badge>
+                    )}
+                  </div>
+                  {uploadLogoMutation.status === 'pending' && (
+                    <div className="text-xs text-muted-foreground mt-1">Uploading logo, please wait...</div>
+                  )}
                 </div>
                 <div className="flex items-center gap-3">
                   {logo ? (

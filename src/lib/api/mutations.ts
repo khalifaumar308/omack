@@ -3,6 +3,8 @@ import * as api from "./base";
 import { toast } from "sonner";
 import type { AdminUploadResultsRequest, CreateCourseForm, CreateDepartmentForm, CreateFacultyForm, CreateGradingTemplateRequest, CreateInstructorForm, CreateStudentForm, Instructor, RegisterCourseRequest, RegisterManyCoursesRequest, UpdateGradingTemplateRequest } from "@/components/types";
 
+import axios from "axios";
+export { useUpdateSchoolLogo } from './mutations/useUpdateSchoolLogo';
 
 // School Mutations
 export const useUpdateSchool = () => {
@@ -37,19 +39,33 @@ export const useSetSchoolResultsRelease = () => {
   });
 };
 
+// Upload file mutation
+export const useUploadFile = () => {
+  return useMutation({
+    mutationFn: (file: File) => {
+      const formData = new FormData();
+      formData.append('file', file);
+      return api.uploadFile(formData as unknown as FormData);
+    },
+    onError: (error: unknown) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      toast.error((error as any)?.response?.data?.message || "Failed to upload file. Please try again.");
+    },
+  });
+};
 export const useUpdateStudentSemesterReg = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (body:{
-    studentId: string; semester: string; 
-    session: string, newCourseIds?:string[]; 
-    status?:"pending" | "approved" | "rejected"
-  } ) => api.updateSemesterCourseReg(body),
-  onSuccess: () => {
-    queryClient.invalidateQueries({ queryKey: ["studentCourseRegistration"] });
-    toast.success("Course Reg updated successfully");
-  },
-   onError: (error: unknown) => {
+    mutationFn: (body: {
+      studentId: string; semester: string;
+      session: string, newCourseIds?: string[];
+      status?: "pending" | "approved" | "rejected"
+    }) => api.updateSemesterCourseReg(body),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["studentCourseRegistration"] });
+      toast.success("Course Reg updated successfully");
+    },
+    onError: (error: unknown) => {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
       toast.error((error as any)?.response?.data?.message || "Failed to update Course Regs. Please try again.");
     },
@@ -141,7 +157,7 @@ export const useDeleteDepartment = () => {
 export const useUpdateStudent = () => {
   const queryClient = useQueryClient();
   return useMutation({
-  mutationFn: (data: { studentId: string; studentData: Partial<CreateStudentForm> }) => api.updateStudent(data.studentId, data.studentData as unknown as Partial<CreateStudentForm>),
+    mutationFn: (data: { studentId: string; studentData: Partial<CreateStudentForm> }) => api.updateStudent(data.studentId, data.studentData as unknown as Partial<CreateStudentForm>),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["students"] });
       toast.success("Student updated successfully");
@@ -216,7 +232,7 @@ export const useUpdateDepartment = () => {
 export const useLogin = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (loginDetails:{email: string, password: string}) => api.userLogin(loginDetails.email, loginDetails.password),
+    mutationFn: (loginDetails: { email: string, password: string }) => api.userLogin(loginDetails.email, loginDetails.password),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["user"] });
       toast.success("Login successful");
@@ -295,7 +311,7 @@ export const useBulkCreateInstructors = (data: CreateInstructorForm[]) => {
 export const useEnterResult = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (data:{registrationId: string, score: number}) => api.enterResult(data.registrationId, data.score),
+    mutationFn: (data: { registrationId: string, score: number }) => api.enterResult(data.registrationId, data.score),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['courseRegistrations'] });
       queryClient.invalidateQueries({ queryKey: ['studentsSemesterResults'] });
@@ -308,6 +324,22 @@ export const useEnterResult = () => {
   });
 }
 
+export const useUploadLogoMutation = () => {
+  return useMutation({
+    mutationFn: async (file: File) => {
+      const formData = new FormData();
+      formData.append('file', file);
+      return api.uploadFile(formData);
+    },
+    onError: (error: unknown) => {
+      console.error('Error uploading logo:', error);
+      toast.error("Failed to upload logo. Please try again.");
+    },
+    onSuccess: () => {
+      toast.success("Logo uploaded successfully");
+    }
+  });
+}
 export const useDeleteCourse = () => {
   const queryClient = useQueryClient();
   return useMutation({
@@ -433,7 +465,7 @@ export const useStudentRegisterManyCourses = () => {
 export const useCreateGradingTemplate = () => {
   const queryClient = useQueryClient();
   return useMutation({
-    mutationFn: (data:CreateGradingTemplateRequest) => api.createGradingTemplate(data),
+    mutationFn: (data: CreateGradingTemplateRequest) => api.createGradingTemplate(data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ["gradingTemplates"] });
       toast.success("Grading Template registered successfully");
@@ -472,5 +504,27 @@ export const useUpdateGradingTemplate = () => {
     onError: (error: any) => {
       toast.error(error?.response?.data?.message || "Failed to update gradingTemplate. Please try again.");
     },
+  });
+};
+
+// Upload logo mutation
+export const useUploadLogo = () => {
+  return useMutation({
+    mutationFn: async (file: File) => {
+      const formData = new FormData();
+      formData.append('file', file);
+      const response = await axios.post('http://localhost:5000/api/upload', formData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+        withCredentials: true
+      });
+      return response.data;
+    },
+    onSuccess: () => {
+      toast.success("Logo uploaded successfully");
+    },
+    onError: (error: unknown) => {
+      console.error('Error uploading logo:', error);
+      toast.error("Failed to upload logo. Please try again.");
+    }
   });
 };

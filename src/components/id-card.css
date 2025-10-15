@@ -1,0 +1,130 @@
+/* src/styles/id-card.css */
+.id-card-container {
+  max-width: 896px;
+  margin: 0 auto;
+  padding: 1.5rem;
+  background-color: #ffffff;
+  border-radius: 0.5rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.id-card-title {
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+  text-align: center;
+  color: #1f2937; /* gray-800 */
+}
+
+.batch-button-png {
+  padding: 0.5rem 1rem;
+  background-color: #2563eb; /* blue-600 */
+  color: #ffffff;
+  border-radius: 0.375rem;
+  transition: background-color 0.2s;
+}
+
+.batch-button-png:hover:not(:disabled) {
+  background-color: #1d4ed8; /* blue-700 */
+}
+
+.batch-button-pdf {
+  padding: 0.5rem 1rem;
+  background-color: #16a34a; /* green-600 */
+  color: #ffffff;
+  border-radius: 0.375rem;
+  transition: background-color 0.2s;
+}
+
+.batch-button-pdf:hover:not(:disabled) {
+  background-color: #15803d; /* green-700 */
+}
+
+.batch-button:disabled {
+  opacity: 0.5;
+}
+
+.student-card {
+  padding: 1rem;
+  border: 1px solid #d1d5db; /* gray-300 */
+  border-radius: 0.375rem;
+}
+
+.student-name {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #1f2937; /* gray-800 */
+}
+
+.student-info {
+  font-size: 0.875rem;
+  color: #4b5563; /* gray-600 */
+}
+
+.download-button-png {
+  padding: 0.25rem 0.75rem;
+  background-color: #2563eb; /* blue-600 */
+  color: #ffffff;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  transition: background-color 0.2s;
+}
+
+.download-button-png:hover:not(:disabled) {
+  background-color: #1d4ed8; /* blue-700 */
+}
+
+.download-button-pdf {
+  padding: 0.25rem 0.75rem;
+  background-color: #16a34a; /* green-600 */
+  color: #ffffff;
+  border-radius: 0.375rem;
+  font-size: 0.875rem;
+  transition: background-color 0.2s;
+}
+
+.download-button-pdf:hover:not(:disabled) {
+  background-color: #15803d; /* green-700 */
+}
+
+.download-button:disabled {
+  opacity: 0.5;
+}
+
+.id-card {
+  width: 350px;
+  height: 220px;
+  background-color: #ffffff;
+  border: 2px solid #1f2937; /* gray-800 */
+  border-radius: 0.5rem;
+  padding: 1rem;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.id-card-photo {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  margin-right: 1rem;
+  border: 2px solid #d1d5db; /* gray-300 */
+}
+
+.id-card-text {
+  font-size: 1.125rem;
+  font-weight: 600;
+  color: #1f2937; /* gray-800 */
+}
+
+.id-card-info {
+  font-size: 0.875rem;
+  color: #4b5563; /* gray-600 */
+}
+
+.qr-code {
+  border: 2px solid #d1d5db; /* gray-300 */
+  padding: 0.25rem;
+  border-radius: 0.25rem;
+}

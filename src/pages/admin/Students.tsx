@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -25,6 +26,7 @@ import { useGetDepartments, useGetStudents } from "@/lib/api/queries";
 import { useAddStudent, useBulkAddStudents, useUpdateStudent } from "@/lib/api/mutations";
 import { useUser } from "@/contexts/useUser";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import StudentIDCardGenerator from "@/components/StudentIDCardGenerator";
 
 export default function Students() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -106,8 +108,8 @@ export default function Students() {
       const lines = csv.split('\n').slice(1); // Skip header
       const students = lines.map(line => {
         const [name, email, matricNo, department, level, password] = line.split(',');
-        if(!name || !email || !matricNo || !department || !level || !password) {
-          return ;
+        if (!name || !email || !matricNo || !department || !level || !password) {
+          return;
         }
         return {
           name: name.trim(),
@@ -226,17 +228,7 @@ export default function Students() {
                       required
                     />
                   </div>
-                  {/* <div>
-                    <Label htmlFor="phoneNumber">Phone Number</Label>
-                    <Input
-                      id="phoneNumber"
-                      value={formData.phoneNumber}
-                      onChange={(e) =>
-                        setFormData({ ...formData, phoneNumber: e.target.value })
-                      }
-                      placeholder="Phone number"
-                    />
-                  </div> */}
+
                   <div>
                     <Label htmlFor="matricNo">Matric Number</Label>
                     <Input
@@ -263,33 +255,8 @@ export default function Students() {
                         ))}
                       </SelectContent>
                     </Select>
-                   
+
                   </div>
-                  {/* <div>
-                    <Label htmlFor="admissionYear">Admission Year</Label>
-                    <Input
-                      id="admissionYear"
-                      type="number"
-                      value={formData.admissionYear}
-                      onChange={(e) =>
-                        setFormData({ ...formData, admissionYear: parseInt(e.target.value) })
-                      }
-                      placeholder="2023"
-                      required
-                    />
-                  </div> */}
-                  {/* <div>
-                    <Label htmlFor="status">Status</Label>
-                    <Input
-                      id="status"
-                      value={formData.status}
-                      onChange={(e) =>
-                        setFormData({ ...formData, status: e.target.value as "active" | "inactive" | "graduated" | "suspended" })
-                      }
-                      placeholder="active"
-                      required
-                    />
-                  </div> */}
                   <div>
                     <Label htmlFor="department">Department</Label>
                     <Select onValueChange={(value) => setFormData({ ...formData, department: value })}>
@@ -319,39 +286,7 @@ export default function Students() {
                     required={!editingStudent}
                   />
                 </div>
-                {/* <div>
-                  <Label htmlFor="dateOfBirth">Date of Birth</Label>
-                  <Input
-                    id="dateOfBirth"
-                    type="date"
-                    value={formData.dateOfBirth}
-                    onChange={(e) =>
-                      setFormData({ ...formData, dateOfBirth: e.target.value })
-                    }
-                  />
-                </div> */}
-                {/* <div>
-                  <Label htmlFor="address">Address</Label>
-                  <Input
-                    id="address"
-                    value={formData.address}
-                    onChange={(e) =>
-                      setFormData({ ...formData, address: e.target.value })
-                    }
-                    placeholder="Address"
-                  />
-                </div> */}
-                {/* <div>
-                  <Label htmlFor="profilePicture">Profile Picture URL</Label>
-                  <Input
-                    id="profilePicture"
-                    value={formData.profilePicture}
-                    onChange={(e) =>
-                      setFormData({ ...formData, profilePicture: e.target.value })
-                    }
-                    placeholder="Profile picture URL"
-                  />
-                </div> */}
+
                 <div className="flex justify-end space-x-2">
                   <Button
                     type="button"
@@ -429,6 +364,13 @@ export default function Students() {
               </div>
             </DialogContent>
           </Dialog>
+          {/* <StudentIDCardGenerator students={students.map(s => ({
+            name: s.name,
+            id: s.matricNo,
+            grade: String(s.level),
+            qrUrl: "qrcode",
+            photoUrl: s.picture
+          }))} school={{ name: user?.school?.name || "School", logoUrl: user?.school?.logo || "default-logo.png" }} /> */}
         </div>
       </div>
 
@@ -492,12 +434,13 @@ export default function Students() {
                     <TableHead>Matric Number</TableHead>
                     <TableHead>Level</TableHead>
                     <TableHead>Department</TableHead>
+                    <TableHead>ID Card</TableHead>
                     <TableHead>Actions</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody className="text-left">
-                  {filteredStudents.map((student) => (
-                    <TableRow key={student.id}>
+                  {filteredStudents.map((student, idx) => (
+                    <TableRow key={idx}>
                       <TableCell className="font-medium">
                         {student.name}
                       </TableCell>
@@ -507,9 +450,20 @@ export default function Students() {
                         {student.department.name}
                       </TableCell>
                       <TableCell>
+                        <StudentIDCardGenerator
+                            students={[{
+                              name: student.name,
+                              id: student.matricNo,
+                              grade: String(student.level),
+                              qrUrl: "qrcode", photoUrl: student.picture
+                            }]}
+                            school={{ name: user?.school?.name || "School", logoUrl: user?.school?.logo || "default-logo.png" }}
+                          />
+                      </TableCell>
+                      <TableCell>
                         <div className="flex space-x-2">
                           <Button variant="outline" size="sm" asChild>
-                            <Link to={`/admin/students/${student.id}`}>
+                            <Link to={`/admin/students/${(student as any)._id}`}>
                               <Eye className="h-4 w-4" />
                             </Link>
                           </Button>
