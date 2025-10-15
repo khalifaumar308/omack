@@ -1,9 +1,11 @@
-import { useMemo, memo } from 'react';
+import { useMemo, memo, useRef } from 'react';
 import type { ComponentType } from 'react';
 import { useUser } from '@/contexts/useUser';
 import { useGetStudentSummary } from '@/lib/api/queries';
 import { User, Mail, GraduationCap, Users, BookOpen, Calendar } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
+import StudentIDCardGenerator from '@/components/StudentIDCardGenerator';
+import type { StudentIDCardGeneratorHandle } from '@/components/StudentIDCardGenerator';
 
 type Stat = {
   icon: ComponentType<{ size?: number }>; 
@@ -103,6 +105,7 @@ function LoadingSkeleton() {
 function StudentDashboard() {
   const { user } = useUser();
   const { data: studentSummary, isLoading, isError } = useGetStudentSummary();
+  const idCardRef = useRef<StudentIDCardGeneratorHandle | null>(null);
 
   const stats = useMemo(() => [
     {
@@ -142,9 +145,26 @@ function StudentDashboard() {
 
   return (
     <div className="space-y-6">
+      {/* Hidden ID card generator for single-student download */}
+      <div style={{ position: 'absolute', left: -9999, top: -9999 }} aria-hidden>
+        <StudentIDCardGenerator
+          ref={idCardRef}
+          students={student ? [{ name: student.name || '', id: student.matricNo || '', grade: typeof student.department === 'string' ? student.department : student.department?.name || '', qrUrl: window.location.href, photoUrl: student.picture }] : []}
+          school={{ name: user?.school?.name || '', logoUrl: user?.school?.logo || '' }}
+        />
+      </div>
+
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
         <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-800">Dashboard</h1>
         <span className="text-sm text-gray-500">Welcome back, <span className="font-medium text-gray-700">{student?.name}</span>!</span>
+          <div className="mt-3 sm:mt-0">
+            <button
+              className="inline-flex items-center px-3 py-2 bg-blue-600 text-white rounded-md text-sm"
+              onClick={() => idCardRef.current?.download({ name: student?.name || '', id: student?.matricNo || '', grade: student?.department?.name || '', qrUrl: window.location.href, photoUrl: student?.picture }, 'png')}
+            >
+              Download ID Card
+            </button>
+          </div>
       </div>
 
       {/* Stats Cards */}

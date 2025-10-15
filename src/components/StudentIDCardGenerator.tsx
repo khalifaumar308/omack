@@ -1,4 +1,4 @@
-import React, { useRef, useState, useEffect } from 'react';
+import React, { useRef, useState, useEffect, useImperativeHandle } from 'react';
 import html2canvas from 'html2canvas-pro';
 import jsPDF from 'jspdf';
 import { QRCodeSVG } from 'qrcode.react';
@@ -22,12 +22,23 @@ interface StudentIDCardGeneratorProps {
 	students: Student[];
 	school: School;
 }
+export type StudentIDCardGeneratorHandle = {
+	download: (student: Student, format: 'png' | 'pdf') => void;
+};
 
-const StudentIDCardGenerator: React.FC<StudentIDCardGeneratorProps> = ({ students, school }) => {
+const StudentIDCardGenerator = React.forwardRef<StudentIDCardGeneratorHandle, StudentIDCardGeneratorProps>(
+	({ students, school }, ref) => {
 	const cardRef = useRef<HTMLDivElement>(null);
 	const [currentStudent, setCurrentStudent] = useState<Student | null>(null);
 	const [format, setFormat] = useState<'png' | 'pdf' | 'batch-png' | 'batch-pdf' | null>(null);
 	const [batchIndex, setBatchIndex] = useState<number>(0);
+
+	useImperativeHandle(ref, () => ({
+		download: (student: Student, fmt: 'png' | 'pdf') => {
+			setCurrentStudent(student);
+			setFormat(fmt);
+		}
+	}));
 
 	// Handle single card download
 	const handleDownload = (student: Student, downloadFormat: 'png' | 'pdf') => {
@@ -293,6 +304,7 @@ const StudentIDCardGenerator: React.FC<StudentIDCardGeneratorProps> = ({ student
 			</div>
 		</div>
 	);
-};
+	}
+);
 
 export default StudentIDCardGenerator;
