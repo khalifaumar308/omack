@@ -8,9 +8,10 @@ import { Download } from 'lucide-react';
 interface Student {
 	name: string;
 	id: string;
-	grade: string;
+	level: string;
 	qrUrl: string;
 	photoUrl?: string;
+	department: string;
 }
 
 interface School {
@@ -271,9 +272,9 @@ const StudentIDCardGenerator = React.forwardRef<StudentIDCardGeneratorHandle, St
 									textTransform: 'uppercase'
 								}}>
 									<p style={{ margin: '0.5rem 0' }}>MATRIC NO: {currentStudent.id}</p>
-									<p style={{ margin: '0.5rem 0' }}>DEPARTMENT: {currentStudent.grade}</p>
-									<p style={{ margin: '0.5rem 0' }}>FACULTY: NURSING</p>
-									<p style={{ margin: '0.5rem 0' }}>YEAR OF ENTRY: 2024/2025</p>
+									<p style={{ margin: '0.5rem 0' }}>LEVEL: {currentStudent.level}</p>
+									<p style={{ margin: '0.5rem 0' }}>DEPARTMENT: {currentStudent.department}</p>
+									{/* <p style={{ margin: '0.5rem 0' }}>YEAR OF ENTRY: 2024/2025</p> */}
 								</div>
 
 								{/* Expiry Date */}

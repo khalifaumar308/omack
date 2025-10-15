@@ -367,9 +367,10 @@ export default function Students() {
           <StudentIDCardGenerator students={students.map(s => ({
             name: s.name,
             id: s.matricNo,
-            grade: String(s.level),
-            qrUrl: "qrcode",
-            photoUrl: s.picture
+            level: String(s.level),
+            qrUrl: `${s.matricNo}-ID CARD`,
+            photoUrl: s.picture,
+            department: s.department?.name || "N/A"
           }))} school={{ name: user?.school?.name || "School", logoUrl: user?.school?.logo || "default-logo.png" }} />
         </div>
       </div>
@@ -454,8 +455,10 @@ export default function Students() {
                             students={[{
                               name: student.name,
                               id: student.matricNo,
-                              grade: String(student.level),
-                              qrUrl: "qrcode", photoUrl: student.picture
+                              level: String(student.level),
+                              qrUrl: `${student.matricNo}-ID CARD`, 
+                              photoUrl: student.picture,
+                              department: student.department?.name || "N/A"
                             }]}
                             school={{ name: user?.school?.name || "School", logoUrl: user?.school?.logo || "default-logo.png" }}
                           />
