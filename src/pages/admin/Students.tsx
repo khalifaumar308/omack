@@ -364,13 +364,13 @@ export default function Students() {
               </div>
             </DialogContent>
           </Dialog>
-          {/* <StudentIDCardGenerator students={students.map(s => ({
+          <StudentIDCardGenerator students={students.map(s => ({
             name: s.name,
             id: s.matricNo,
             grade: String(s.level),
             qrUrl: "qrcode",
             photoUrl: s.picture
-          }))} school={{ name: user?.school?.name || "School", logoUrl: user?.school?.logo || "default-logo.png" }} /> */}
+          }))} school={{ name: user?.school?.name || "School", logoUrl: user?.school?.logo || "default-logo.png" }} />
         </div>
       </div>
 
