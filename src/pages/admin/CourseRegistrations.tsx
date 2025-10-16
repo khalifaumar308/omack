@@ -610,19 +610,20 @@ const CourseRegistrations = () => {
                       courses: registrationToEdit.courseRegistrations || [],
                       status: (registrationToEdit as any).status || 'pending',
                     }}
-                    courses={modalCoursesResponse?.data || courses?.data || []}
+                    courses={modalCoursesResponse || courses || { data: [], pagination: { page: 1, limit: 10, total: 0, totalPages: 0, hasNext: false, hasPrev: false } }}
                     loading={isLoadingModalCourses || isLoadingCourses}
                     search={modalCourseSearch}
                     onSearch={(v) => { setModalCourseSearch(v); setModalCoursePage(1); }}
                     page={modalCoursePage}
-                    setPage={(n:number) => setModalCoursePage(n)}
+                    setPage={setModalCoursePage}
                     pageSize={modalCoursePageSize}
-                    setPageSize={(n:number) => setModalCoursePageSize(n)}
+                    setPageSize={setModalCoursePageSize}
                     onSuccess={() => {
                       setEditModalOpen(false);
                       setRegistrationToEdit(null);
                       refetch();
                     }}
+                    semester={ registrationToEdit.courseRegistrations?.[0]?.semester || user?.school?.currentSemester || ''}
                   />
                 </div>
                 <div className="mt-4 flex justify-end">

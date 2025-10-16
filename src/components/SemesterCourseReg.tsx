@@ -1,5 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState } from "react";
 import type { Course, PopulatedCourse, StudentRegistrationsInfo } from "./types";
 import { Skeleton } from "./ui/skeleton";
 import { toast } from "sonner";
@@ -12,33 +12,59 @@ interface TCourseReg extends StudentRegistrationsInfo {
 	studentId: string;
 }
 
+interface ICourses {
+	data: (Course | PopulatedCourse)[] | [];
+	pagination: {
+		page: number;
+		limit: number; total: number;
+		totalPages: number; hasNext: boolean; hasPrev: boolean
+	}
+}
+
 interface IProps {
 	edit: boolean;
 	courseReg?: TCourseReg;
 	session?: string;
-		toRetake?: (Course | PopulatedCourse)[];
+	toRetake?: (Course | PopulatedCourse)[];
 	// Accept either Course[] or PopulatedCourse[] or a paginated object containing either
-	courses: Course[] | PopulatedCourse[] | { data: (Course | PopulatedCourse)[]; pagination?: { page: number; limit: number; total: number; totalPages: number; hasNext: boolean; hasPrev: boolean } };
-	semester?: string;
+	courses: ICourses;
+	semester: string;
 	status?: "pending" | "approved" | "rejected";
 	onSuccess?: () => void;
 	// optional external pagination control (when caller manages server pagination)
-	page?: number;
-	setPage?: ((n: number) => void) | ((updater: (prev: number) => number) => void);
-	pageSize?: number;
-	setPageSize?: ((n: number) => void) | ((updater: (prev: number) => number) => void);
+	page: number;
+	setPage: (value: React.SetStateAction<number>) => void;
+	pageSize: number;
+	setPageSize?: (value: React.SetStateAction<number>) => void;
 	// show loading fallback while parent fetches courses
-	loading?: boolean;
+	loading: boolean;
 	// server-side search value (when parent controls search)
 	search?: string;
 	// optional callback when the internal search input changes (to lift search to parent)
-	onSearch?: (value: string) => void;
+	onSearch: (value: string) => void;
+}
+
+
+interface ISelectedCourse {
+	carryOver: boolean;
+	course: Course | PopulatedCourse;
+	canRemove: boolean;
 }
 const SemesterCourseReg = (Props: IProps) => {
 	// console.log("PProps", Props, 'props in sem reg')
 	const { user } = useUser()
-	const [semester, setSemester] = useState(Props.courseReg?.semester || Props.semester || "");
+	// const [semester, setSemester] = useState(Props.courseReg?.semester || Props.semester || "");
 	const [courseSearch, setCourseSearch] = useState(Props.search || "");
+	const [coursesPagination, setCoursesPagination] = useState<ICourses>({
+		data: [],
+		pagination: { page: 1, limit: 10, total: 0, totalPages: 0, hasNext: false, hasPrev: false }
+	});
+
+	useEffect(() => {
+		if (Props.courses) {
+			setCoursesPagination(Props.courses);
+		}
+	}, [Props.courses])
 
 	useEffect(() => {
 		// sync external search prop to internal state
@@ -49,74 +75,41 @@ const SemesterCourseReg = (Props: IProps) => {
 
 	// debounce timer id for search
 	const [searchTimer, setSearchTimer] = useState<number | null>(null);
-	// local page/pageSize used when parent doesn't provide server pagination control
-	const [localPage, setLocalPage] = useState<number>(1);
-	const [localPageSize, setLocalPageSize] = useState<number>(10);
-	const page = Props.page ?? localPage;
-	const setPage = useCallback((u: number | ((prev:number)=>number)) => {
-		if (typeof u === 'number') {
-			const val = u as number;
-			if (Props.setPage) {
-				(Props.setPage as (n:number)=>void)(val);
-			} else {
-				setLocalPage(val);
-			}
-		} else {
-			const fn = u as (prev:number)=>number;
-			const next = fn(page);
-			if (Props.setPage) {
-				(Props.setPage as (n:number)=>void)(next);
-			} else {
-				setLocalPage(next);
-			}
-		}
-	}, [Props.setPage, page]);
-	const pageSize = Props.pageSize ?? localPageSize;
-	const setPageSize = useCallback((u: number | ((prev:number)=>number)) => {
-		if (typeof u === 'number') {
-			const val = u as number;
-			if (Props.setPageSize) {
-				(Props.setPageSize as (n:number)=>void)(val);
-			} else {
-				setLocalPageSize(val);
-			}
-		} else {
-			const fn = u as (prev:number)=>number;
-			const next = fn(pageSize);
-			if (Props.setPageSize) {
-				(Props.setPageSize as (n:number)=>void)(next);
-			} else {
-				setLocalPageSize(next);
-			}
-		}
-	}, [Props.setPageSize, pageSize]);
-		const [selectedCourses, setSelectedCourses] = useState<(Course | PopulatedCourse)[]>([]);
+
+	const [selectedCourses, setSelectedCourses] = useState<ISelectedCourse[]>([]);
 	const [updateStatus, setUpdateStatus] = useState<"pending" | "approved" | "rejected">(Props.status || "pending");
 
 	// Derived courses array and pagination
-		const coursesArray: (Course | PopulatedCourse)[] = Array.isArray(Props.courses) ? Props.courses : (Props.courses?.data || []);
-	const pagination = !Array.isArray(Props.courses) ? Props.courses?.pagination : undefined;
+	const coursesArray: (Course | PopulatedCourse)[] = coursesPagination.data;
+	const pagination = coursesPagination.pagination;
 
-		useEffect(() => {
-			if (Props.courseReg) {
-				const courses = Props.courseReg?.courses.map(c => c.course) as (Course | PopulatedCourse)[];
-				setSelectedCourses(courses);
-			}
-		}, [Props.courseReg])
+	//register carry over
 
-			// reset pagination when semester prop changes
-			useEffect(() => {
-				setPage(1);
-				setPageSize(10);
-			}, [Props.semester, setPage, setPageSize]);
+
+	useEffect(() => {
+		if (Props.courseReg) {
+			const courses = Props.courseReg?.courses.map(c => c.course) as (Course | PopulatedCourse)[];
+			// new Set to avoid duplicates
+			// const uniqueCourseCodes = new Set(selectedCourses.map(c => c.course.code));
+			console.log("in cccc")
+			setSelectedCourses(prev => [...(new Set([...prev, ...courses.map(course => ({ course, carryOver: false, canRemove: true }))]))]);
+		}
+		// if (Props.toRetake && Props.toRetake.length > 0) {
+		// 	console.log("in toRetake")
+		// 	setSelectedCourses(prev =>[ ...(new Set([...prev, ...Props.toRetake!.map(course => ({ course, carryOver: true, canRemove: false }))]))]);
+		// }
+	}, [Props.courseReg])
+
+
+
 
 	// When server-driven pagination is available and refetch provided, call it on page/search/pageSize change
 
 	const updateRegMutation = useUpdateStudentSemesterReg()
 	const submitRegistrationMutation = useStudentRegisterManyCourses()
-
+	console.log(Props.toRetake?.length, "to lenght")
 	const updateRegistration = () => {
-		const courses = [...selectedCourses].map(c => (c as any)._id as string)
+		const courses = selectedCourses.map(c => (c.course as any)._id as string)
 		const update = {
 			semester: Props.courseReg?.semester || "",
 			session: Props.courseReg?.session || "",
@@ -141,11 +134,11 @@ const SemesterCourseReg = (Props: IProps) => {
 			toast.error('Please select at least one course to register');
 			return;
 		}
-		const toRetake = Props.toRetake || []
-		const courses = [...selectedCourses, ...toRetake].map(c => (c as any)._id as string)
+		const toRetake = Props.toRetake?.map((c: any) => c._id) || []
+		const courses = Array.from(new Set([...toRetake, ...selectedCourses.map(c => (c.course as any)._id as string)]))
 		//submit registration
 		const reg = {
-			semester: Props.semester || semester, courses, session: user?.school?.currentSession || ''
+			semester: Props.semester, courses, session: user?.school?.currentSession || ''
 		}
 		submitRegistrationMutation.mutate(reg, {
 			onError: (error: any) => {
@@ -155,23 +148,19 @@ const SemesterCourseReg = (Props: IProps) => {
 	};
 
 	const addCourse = (course: Course | PopulatedCourse) => {
-		// if (selectedCourses.length >= 8) {
-		//   toast.warning('You cannot register for more than 8 courses');
-		//   return;
-		// }
-		// Prevent duplicate selection
-		if (selectedCourses.some(c => c.code === (course as Course).code)) {
+
+		if (selectedCourses.some(c => c.course.code === (course as Course).code) || Props.toRetake?.some(c => c.code === (course as Course).code)) {
 			toast.warning('You have already selected this course.');
 			return;
 		}
-		setSelectedCourses([...selectedCourses, course]);
+		setSelectedCourses([...selectedCourses, { course, carryOver: false, canRemove: true }]);
 	};
 
 	const removeCourse = (courseCode: string) => {
-		setSelectedCourses(selectedCourses.filter(course => course.code !== courseCode));
+		setSelectedCourses(selectedCourses.filter(course => course.course.code !== courseCode));
 	};
 
-	const totalCredits = selectedCourses.reduce((sum, course) => sum + course.creditUnits, 0) + (Props.toRetake ? Props.toRetake.reduce((sum, course) => sum + course.creditUnits, 0) : 0);
+	const totalCredits = selectedCourses.reduce((sum, course) => sum + course.course.creditUnits, 0) + (Props.toRetake ? Props.toRetake.reduce((sum, course) => sum + course.creditUnits, 0) : 0);
 	return (
 		<div className="relative">
 			{(updateRegMutation.isPending || submitRegistrationMutation.isPending) && (
@@ -188,19 +177,15 @@ const SemesterCourseReg = (Props: IProps) => {
 				<div className="lg:col-span-2 flex flex-wrap gap-4 mb-4 items-center">
 					<div>
 						<label className="block text-sm font-medium text-gray-700 mb-1">Semester</label>
-						<select
-							value={semester}
-							onChange={e => setSemester(e.target.value)}
+						<p
 							className="px-3 py-2 border rounded w-40 focus:outline-none focus:ring focus:border-blue-300"
 						>
-							{Props.edit ? (
-								<option value={Props.courseReg?.semester}>{Props.courseReg?.semester || ''}</option>
-							) : (
-								<>
-									<option value={Props.semester}>{Props.semester}</option>
-								</>
-							)}
-						</select>
+							{Props.edit ?
+								Props.courseReg?.semester
+								:
+								Props.semester
+							}
+						</p>
 					</div>
 					<div>
 						<label className="block text-sm font-medium text-gray-700 mb-1">Session</label>
@@ -264,27 +249,23 @@ const SemesterCourseReg = (Props: IProps) => {
 					<div className="bg-white p-6 rounded-lg shadow-sm border">
 						<h2 className="text-lg font-semibold text-gray-800 mb-4">Available Courses</h2>
 						<div className="flex gap-2 mb-4 items-center">
-												<input
-													type="text"
-													className="flex-1 px-3 py-2 border rounded focus:outline-none focus:ring focus:border-blue-300"
-													placeholder="Search by code or title..."
-													value={courseSearch}
-													onChange={e => {
-														const v = e.target.value;
-														setCourseSearch(v);
-														setPage(1);
-														// debounce calls to parent onSearch to avoid excessive server requests
-														if (searchTimer) window.clearTimeout(searchTimer);
-														const id = window.setTimeout(() => {
-															if (Props.onSearch) Props.onSearch(v);
-														}, 300);
-														setSearchTimer(id);
-													}} />
-							<select value={pageSize} onChange={e => { setPageSize(parseInt(e.target.value)); setPage(1); }} className="px-3 py-2 border rounded">
-								<option value={5}>5</option>
-								<option value={10}>10</option>
-								<option value={20}>20</option>
-							</select>
+							<input
+								type="text"
+								className="flex-1 px-3 py-2 border rounded focus:outline-none focus:ring focus:border-blue-300"
+								placeholder="Search by code or title..."
+								value={courseSearch}
+								onChange={e => {
+									const v = e.target.value;
+									setCourseSearch(v);
+									Props.setPage(1);
+									// debounce calls to parent onSearch to avoid excessive server requests
+									if (searchTimer) window.clearTimeout(searchTimer);
+									const id = window.setTimeout(() => {
+										if (Props.onSearch) Props.onSearch(v);
+									}, 300);
+									setSearchTimer(id);
+								}} />
+
 						</div>
 
 						<div className="space-y-4 max-h-96 overflow-y-auto">
@@ -304,11 +285,6 @@ const SemesterCourseReg = (Props: IProps) => {
 								))
 							) : (
 								coursesArray
-									.filter(course => {
-										if (!courseSearch) return true;
-										return course.code.toLowerCase().includes(courseSearch.toLowerCase()) || course.title.toLowerCase().includes(courseSearch.toLowerCase())
-									})
-									.slice((page - 1) * pageSize, (page - 1) * pageSize + pageSize)
 									.map(course => (
 										<div key={(course as any).id || (course as any)._id} className="border rounded-lg p-4 hover:bg-gray-50 transition-colors">
 											<div className="flex items-center justify-between">
@@ -321,7 +297,7 @@ const SemesterCourseReg = (Props: IProps) => {
 												</div>
 												<button
 													onClick={() => addCourse(course)}
-													disabled={selectedCourses.some(c => c.code === (course as any).code)}
+													disabled={selectedCourses.some(c => c.course.code === (course as any).code)}
 													className="ml-4 p-2 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
 												>
 													<Plus size={16} />
@@ -334,18 +310,18 @@ const SemesterCourseReg = (Props: IProps) => {
 
 						{/* Pagination controls (use server pagination if provided) */}
 						<div className="mt-3 flex items-center justify-between">
-							<div className="text-sm text-gray-600">{pagination ? `Showing page ${pagination.page} of ${pagination.totalPages}` : `Showing ${(page - 1) * pageSize + 1}-${Math.min((page) * pageSize, coursesArray.length)} of ${coursesArray.length}`}</div>
+							<div className="text-sm text-gray-600">{`Showing page ${pagination.page} of ${pagination.totalPages}`}</div>
 							<div className="flex items-center space-x-2">
-								<Button type="button" variant="outline" size="sm" onClick={() => setPage((p:number) => Math.max(1, p - 1))} disabled={pagination ? !pagination.hasPrev : page === 1}>Prev</Button>
-								<div className="text-sm text-gray-700">{pagination ? pagination.page : page}</div>
+								<Button type="button" variant="outline" size="sm" onClick={() => Props.setPage((p: number) => Math.max(1, p - 1))} disabled={!pagination.hasPrev}>Prev</Button>
+								<div className="text-sm text-gray-700">{pagination ? pagination.page : Props.page}</div>
 								<Button type="button" variant="outline" size="sm" onClick={() => {
 									if (pagination) {
 										if (!pagination.hasNext) return;
-										setPage((p:number) => p + 1);
+										Props.setPage((p: number) => p + 1);
 									} else {
-										setPage((p:number) => p + 1);
+										Props.setPage((p: number) => p + 1);
 									}
-								}} disabled={pagination ? !pagination.hasNext : (page * pageSize >= coursesArray.length)}>Next</Button>
+								}} disabled={!pagination.hasNext}>Next</Button>
 							</div>
 						</div>
 					</div>
@@ -360,28 +336,49 @@ const SemesterCourseReg = (Props: IProps) => {
 						</div>
 
 						<div className="space-y-4 max-h-96 overflow-y-auto">
-							{selectedCourses.length === 0 ? (
+							{(selectedCourses.length === 0 && Props.toRetake?.length === 0) ? (
 								<p className="text-gray-500 text-center py-8">No courses selected</p>
 							) : (
-								selectedCourses.map(course => (
-									<div key={course.id} className="border rounded-lg p-4">
-										<div className="flex items-center justify-between">
-											<div className="flex-1">
-												<h3 className="font-medium text-gray-800">{course.code}</h3>
-												<p className="text-sm text-gray-600">{course.title}</p>
-												<p className="text-xs text-gray-500 mt-1">
-													{course.creditUnits} credits
-												</p>
+								<>
+									{
+										Props.toRetake?.map(course => (
+											<div key={course.code} className="border rounded-lg p-4">
+												<div className="flex items-center justify-between">
+													<div className="flex-1">
+														<h3 className="font-medium text-gray-800">{course.code}</h3>
+														<p className="text-sm text-gray-600">{course.title}</p>
+														<p className="text-xs text-gray-500 mt-1">
+															{course.creditUnits} credits
+														</p>
+													</div>
+												</div>
 											</div>
-											<button
-												onClick={() => removeCourse(course.code)}
-												className="ml-4 p-2 bg-red-500 text-white rounded hover:bg-red-600 transition-colors"
-											>
-												<Trash2 size={16} />
-											</button>
+										))
+									}
+									{selectedCourses.map(course => (
+										<div key={course.course.code} className="border rounded-lg p-4">
+											<div className="flex items-center justify-between">
+												<div className="flex-1">
+													<h3 className="font-medium text-gray-800">{course.course.code}</h3>
+													<p className="text-sm text-gray-600">{course.course.title}</p>
+													<p className="text-xs text-gray-500 mt-1">
+														{course.course.creditUnits} credits
+													</p>
+												</div>
+												{course.canRemove && (
+													<button
+														onClick={() => removeCourse(course.course.code)}
+														className="ml-4 p-2 bg-red-500 text-white rounded hover:bg-red-600 transition-colors"
+														disabled={!course.canRemove}
+													>
+														<Trash2 size={16} />
+													</button>
+												)}
+											</div>
 										</div>
-									</div>
-								))
+									))}
+								</>
+
 							)}
 						</div>
 

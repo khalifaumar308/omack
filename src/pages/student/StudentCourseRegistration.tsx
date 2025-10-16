@@ -33,7 +33,7 @@ const StudentCourseRegistration: React.FC = () => {
   //get courses (request more rows for client-side use where needed)
   // fetch courses for the selected semester and pagination controlled by this component
   const { data: courses, isLoading: courseLoading } = useGetCourses(coursePage, coursePageSize, courseSearch, '', semester, 'all')
-
+  console.log(courses, courseLoading, "meee", coursePage);
   // Auto-populate failed courses on component mount
   useEffect(() => {
     if (registrationInfo) {
@@ -84,7 +84,7 @@ const StudentCourseRegistration: React.FC = () => {
   const scope = user?.school?.registrationScope || 'both';
   const semesters = scope === 'both' ? ['First', 'Second'] : [scope];
   // Loading and error fallback (after hooks)
-  if (isLoading || courseLoading) {
+  if (isLoading) {
     return (
       <div className="max-w-6xl mx-auto p-6 space-y-6">
         <div className="flex items-center justify-between">
@@ -216,9 +216,9 @@ const StudentCourseRegistration: React.FC = () => {
             semester={semester}
             status='pending'
             page={coursePage}
-            setPage={(n:number) => setCoursePage(n)}
+            setPage={setCoursePage}
             pageSize={coursePageSize}
-            setPageSize={(n:number) => setCoursePageSize(n)}
+            setPageSize={setCoursePageSize}
             search={courseSearch}
             onSearch={(v) => { setCourseSearch(v); setCoursePage(1); }}
             loading={courseLoading}
@@ -228,15 +228,17 @@ const StudentCourseRegistration: React.FC = () => {
             ...courseRegEdit, studentId: user?.id || "",
             session: courseRegEdit.session!,
             semester: courseRegEdit.semester!
-          }} session={user?.school?.currentSession || ''}
+          }}
+            session={user?.school?.currentSession || ''}
             toRetake={toRetake} courses={courses!}
             page={coursePage}
-            setPage={(n:number) => setCoursePage(n)}
+            setPage={setCoursePage}
             pageSize={coursePageSize}
-            setPageSize={(n:number) => setCoursePageSize(n)}
+            setPageSize={setCoursePageSize}
             search={courseSearch}
             onSearch={(v) => { setCourseSearch(v); setCoursePage(1); }}
             loading={courseLoading}
+            semester={courseRegEdit.semester!}
           />
         ))
       )}
