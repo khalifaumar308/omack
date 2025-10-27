@@ -81,9 +81,9 @@ export const useGetCourses = (page: number = 1, limit: number = 50, search: stri
   return useQuery({
     queryKey: ["courses", page, limit, search, department, semester, level],
     queryFn: () => api.getCourses(page, limit, search || undefined, department || undefined, semester || undefined, level || undefined),
-    placeholderData: undefined,
-    refetchOnWindowFocus: false,
-  staleTime: 1000 * 60 * 2, // 2 minutes
+  //   placeholderData: undefined,
+  //   refetchOnWindowFocus: false,
+  // staleTime: 1000 * 60 * 0, // 2 minutes
     retry: 2,
   });
 };
@@ -253,4 +253,24 @@ export const useGetGradingTemplateById = (id:string) => {
     placeholderData: undefined,
     refetchOnWindowFocus: false,
   })
+}
+
+// Wallet queries
+export const useGetWalletBalance = () => {
+  return useQuery({
+    queryKey: ["walletBalance"],
+    queryFn: () => api.getWalletBalance(),
+    refetchOnWindowFocus: false,
+    staleTime: 1000 * 30 // 30 seconds
+  });
+}
+
+export const useGetWalletTransactions = (page: number = 1, limit: number = 10) => {
+  return useQuery({
+    queryKey: ["walletTransactions", page, limit],
+    queryFn: () => api.getWalletTransactions(page, limit),
+    refetchOnWindowFocus: false,
+    // keepPreviousData intentionally omitted for compatibility
+    enabled: true
+  });
 }

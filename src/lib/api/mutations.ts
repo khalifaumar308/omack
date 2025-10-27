@@ -1,5 +1,6 @@
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import * as api from "./base";
+import type { WalletInitResponse } from './base';
 import { toast } from "sonner";
 import type { AdminUploadResultsRequest, CreateCourseForm, CreateDepartmentForm, CreateFacultyForm, CreateGradingTemplateRequest, CreateInstructorForm, CreateStudentForm, Instructor, RegisterCourseRequest, RegisterManyCoursesRequest, UpdateGradingTemplateRequest } from "@/components/types";
 
@@ -71,6 +72,44 @@ export const useUpdateStudentSemesterReg = () => {
     },
   })
 }
+
+// Wallet mutations
+export const useInitiateWalletFunding = () => {
+  // no queryClient needed here; redirecting to Paystack
+  return useMutation({
+    mutationFn: (amount: number) => api.initiateWalletFunding(amount),
+    onSuccess: (res: unknown) => {
+      // Redirect user to Paystack authorization URL
+  const data = res as WalletInitResponse;
+  const url = data?.authorization_url;
+      if (url) {
+        window.location.href = url;
+      } else {
+        toast.success('Payment initialized. Please complete payment in the popup.');
+      }
+    },
+    onError: (error: unknown) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      toast.error((error as any)?.response?.data?.message || 'Failed to initiate payment. Please try again.');
+    }
+  });
+};
+
+export const useVerifyWalletFunding = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (reference: string) => api.verifyWalletFunding(reference),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['walletBalance'] });
+      queryClient.invalidateQueries({ queryKey: ['walletTransactions'] });
+      toast.success('Payment verified');
+    },
+    onError: (error: unknown) => {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      toast.error((error as any)?.response?.data?.message || 'Failed to verify payment.');
+    }
+  });
+};
 
 // export const useAddSchool = () => {
 //   const queryClient = useQueryClient();
