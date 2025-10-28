@@ -139,11 +139,17 @@ type SidebarItem = {
         title: "User Management",
         icon: Users,
         items: [
-
           { title: "Students", url: "/admin/students" },
           { title: "Instructors", url: "/admin/instructors" },
           { title: "Course Registrations", url: "/admin/course-registrations" },
           { title: "Results", url: "/admin/results" },
+        ]
+      },
+      {
+        title: "Finance",
+        icon: Wallet,
+        items: [
+          { title: "Payables", url: "/admin/payables" },
         ]
       },
       {

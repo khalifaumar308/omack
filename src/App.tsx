@@ -28,6 +28,7 @@ import WalletVerify from "./pages/student/WalletVerify";
 import InstructorDashbaord from "./pages/instructors/InstructorDashbaord";
 import InstructorCourses from "./pages/instructors/InstructorCourses";
 import InstructorCourse from "./pages/instructors/InstructorCourse";
+import Payables from "./pages/admin/Payables";
 
 const queryClient = new QueryClient();
 function App() {
@@ -62,6 +63,7 @@ function App() {
                 <Route path="/admin/course-registrations" element={<CourseRegistrations />} />
                 <Route path="/admin/grading-templates" element={<GradingTemplates />} />
                 <Route path="/admin/settings" element={<SchoolSettings />} />
+                <Route path="/admin/payables" element={<Payables />} />
               </Route>
               {/* Student Routes */}
               <Route path="/student" element={

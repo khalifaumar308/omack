@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import type { IPopulatedPayable, Payable, PayableFormData } from '@/types/payable';
 import axios, { AxiosError } from 'axios';
 import type { AxiosInstance, AxiosResponse, InternalAxiosRequestConfig } from 'axios';
 import type {
@@ -32,6 +33,7 @@ import type {
   VerifyWalletFundingResponse, 
   WalletBalance
 } from './wallet.types';
+import type { PayableFilters } from '@/types/pagination';
 
 // Configure your API base URL
 // const API_BASE_URL = 'https://hmsms-api.onrender.com/api';
@@ -301,6 +303,41 @@ export const deleteGradingTemplate = async (id: string) => {
   const responce = await api.delete(`/grading-templates/${id}`)
   return responce.data
 }
+// =============================================================================
+// PAYABLE MANAGEMENT APIs
+// =============================================================================
+export const getPayables = async (filters: PayableFilters): Promise<PaginatedResponse<IPopulatedPayable>> => {
+  const params = new URLSearchParams();
+  params.append('page', String(filters.page));
+  params.append('limit', String(filters.limit));
+  if (filters.session) params.append('session', filters.session);
+  if (filters.semester) params.append('semester', filters.semester);
+  if (filters.level) params.append('level', filters.level);
+  if (filters.search) params.append('search', filters.search);
+
+  const response = await api.get(`/payables?${params.toString()}`);
+  return response.data;
+};
+
+export const createPayable = async (data: PayableFormData): Promise<Payable> => {
+  const response = await api.post('/payables', data);
+  return response.data;
+};
+
+export const updatePayable = async ({
+  id,
+  data,
+}: {
+  id: string;
+  data: PayableFormData;
+}): Promise<Payable> => {
+  const response = await api.put(`/payables/${id}`, data);
+  return response.data;
+};
+
+export const deletePayable = async (id: string): Promise<void> => {
+  await api.delete(`/payables/${id}`);
+};
 // =============================================================================
 // SCHOOL MANAGEMENT APIs
 // =============================================================================
