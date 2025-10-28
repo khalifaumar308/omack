@@ -10,8 +10,8 @@ import {
 } from '@/components/ui/card';
 import { Skeleton } from '@/components/ui/skeleton';
 import { AlertCircle } from 'lucide-react';
-import { useGetDepartments } from '@/lib/api/queries';
-import type { PayableFilters, PaginatedResponse } from '@/types/pagination';
+import { useGetDepartments, useGetPayables } from '@/lib/api/queries';
+import type { PayableFilters } from '@/types/pagination';
 import { Button } from '@/components/ui/button';
 import {
   Dialog,
@@ -39,14 +39,14 @@ import {
   TableRow,
 } from '@/components/ui/table';
 // import { useToast } from '@/components/ui/use-toast';
-import type { IPopulatedPayable, Payable, PayableFormData } from '@/types/payable';
-import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { createPayable, deletePayable, getPayables, updatePayable } from '@/lib/api/base';
+import type { Payable, PayableFormData } from '@/types/payable';
+import { useQueryClient } from '@tanstack/react-query';
 import { Pencil, Trash2 } from 'lucide-react';
 import { format } from 'date-fns';
 import { Textarea } from '@/components/ui/textarea';
-import { toast } from 'sonner';
 import { useUser } from '@/contexts/useUser';
+import { useAddPayable, useDeletePayable, useUpdatePayable } from '@/lib/api/mutations';
+import { Link } from 'react-router';
 
 export default function PayablesPage() {
   const [isCreateOpen, setIsCreateOpen] = useState(false);
@@ -61,47 +61,12 @@ export default function PayablesPage() {
     limit: 10,
   });
 
-  const { data: payablesData, isLoading, error } = useQuery<PaginatedResponse<IPopulatedPayable>, Error>({
-    queryKey: ['payables', filters],
-    queryFn: () => getPayables(filters),
-    // keepPreviousData: true,
-  });
+  const { data: payablesData, isLoading, error } = useGetPayables(filters);
 
-  const createMutation = useMutation({
-    mutationFn: createPayable,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['payables'] });
-      setIsCreateOpen(false);
-      toast.success('Payable created successfully');
-    },
-    onError: (error) => {
-      toast.error(error.message);
-    },
-  });
+  const createMutation = useAddPayable();
 
-  const updateMutation = useMutation({
-    mutationFn: updatePayable,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['payables'] });
-      setIsEditOpen(false);
-      setSelectedPayable(null);
-      toast.success('Payable updated successfully');
-    },
-    onError: (error) => {
-      toast.error(error.message);
-    },
-  });
-
-  const deleteMutation = useMutation({
-    mutationFn: deletePayable,
-    onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['payables'] });
-      toast.success('Payable deleted successfully');
-    },
-    onError: (error) => {
-      toast.error(error.message);
-    },
-  });
+  const updateMutation = useUpdatePayable();
+  const deleteMutation = useDeletePayable();
 
   const handleSubmit = useCallback(
     async (e: React.FormEvent<HTMLFormElement>) => {
@@ -120,7 +85,7 @@ export default function PayablesPage() {
       };
       console.log(data, "data");
       if (selectedPayable) {
-        updateMutation.mutate({ id: selectedPayable._id!, data });
+        updateMutation.mutate({ payableId: selectedPayable._id!, payableData: data });
       } else {
         createMutation.mutate(data);
       }
@@ -327,7 +292,7 @@ export default function PayablesPage() {
                 </DialogDescription>
               </DialogHeader>
               <form onSubmit={handleSubmit} className="space-y-4">
-                <PayableForm />
+                <PayableForm levels={user?.school?.levels || [""]} sessions={user?.school?.sessions || [""]} />
                 <div className="flex justify-end space-x-2">
                   <Button
                     type="button"
@@ -336,7 +301,15 @@ export default function PayablesPage() {
                   >
                     Cancel
                   </Button>
-                  <Button type="submit">Create</Button>
+                  <Button type="submit" disabled={createMutation.status === 'pending'}>
+                    {createMutation.status === 'pending' ? (
+                      <svg className="animate-spin h-4 w-4 mr-2" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+                        <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                        <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                      </svg>
+                    ) : null}
+                    {createMutation.status === 'pending' ? 'Creating...' : 'Create'}
+                  </Button>
                 </div>
               </form>
             </DialogContent>
@@ -347,6 +320,8 @@ export default function PayablesPage() {
             <Table>
               <TableHeader>
                 <TableRow>
+                  <TableHead>ID</TableHead>
+                  <TableHead>Description</TableHead>
                   <TableHead>Level</TableHead>
                   <TableHead>Amount</TableHead>
                   <TableHead>Due Date</TableHead>
@@ -359,6 +334,12 @@ export default function PayablesPage() {
               <TableBody>
                 {payablesData?.data.map((payable) => (
                   <TableRow key={payable._id}>
+                    <TableCell>
+                      <Link to={`/admin/payables/${payable._id}`} className="hover:cursor-pointer hover:underline font-bold">
+                      {payable._id?.slice(0, 6).toLocaleUpperCase()}
+                      </Link>
+                    </TableCell>
+                    <TableCell>{payable.description}</TableCell>
                     <TableCell>{payable.level}</TableCell>
                     <TableCell>₦{payable.amount.toLocaleString()}</TableCell>
                     <TableCell>
@@ -438,7 +419,7 @@ export default function PayablesPage() {
             </DialogDescription>
           </DialogHeader>
           <form onSubmit={handleSubmit} className="space-y-4">
-            <PayableForm payable={selectedPayable} />
+            <PayableForm payable={selectedPayable} levels={user?.school?.levels || [""]} sessions={user?.school?.sessions || [""]} />
             <div className="flex justify-end space-x-2">
               <Button
                 type="button"
@@ -450,7 +431,15 @@ export default function PayablesPage() {
               >
                 Cancel
               </Button>
-              <Button type="submit">Update</Button>
+              <Button type="submit" disabled={updateMutation.status === 'pending'}>
+                {updateMutation.status === 'pending' ? (
+                  <svg className="animate-spin h-4 w-4 mr-2" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" aria-hidden>
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8v4a4 4 0 00-4 4H4z"></path>
+                  </svg>
+                ) : null}
+                {updateMutation.status === 'pending' ? 'Updating...' : 'Update'}
+              </Button>
             </div>
           </form>
         </DialogContent>
@@ -459,20 +448,24 @@ export default function PayablesPage() {
   );
 }
 
-function PayableForm({ payable }: { payable?: Payable | null }) {
+function PayableForm({ payable, levels, sessions }: { payable?: Payable | null; levels: string[]; sessions: string[] }) {
   const { data: departments, isLoading: isLoadingDepartments } = useGetDepartments();
   const [isForAllDepts, setIsForAllDepts] = useState(payable?.isForAllDepartments ?? false);
   return (
     <div className="grid grid-cols-2 gap-4">
       <div className="space-y-2">
         <Label htmlFor="level">Level</Label>
-        <Input
-          id="level"
-          name="level"
-          defaultValue={payable?.level}
-          required
-          placeholder="e.g., 100"
-        />
+        <Select name="level" defaultValue={payable?.level || ''}>
+          <SelectTrigger>
+            <SelectValue placeholder="Select Level" />
+          </SelectTrigger>
+          <SelectContent>
+            {levels.map((level) => (
+              <SelectItem key={level} value={level}>{level}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        
       </div>
       <div className="space-y-2">
         <Label htmlFor="amount">Amount</Label>
@@ -497,13 +490,17 @@ function PayableForm({ payable }: { payable?: Payable | null }) {
       </div>
       <div className="space-y-2">
         <Label htmlFor="session">Session</Label>
-        <Input
-          id="session"
-          name="session"
-          defaultValue={payable?.session}
-          required
-          placeholder="e.g., 2023/2024"
-        />
+        <Select name="session" defaultValue={payable?.session || ''}>
+          <SelectTrigger>
+            <SelectValue placeholder="Select session" />
+          </SelectTrigger>
+          <SelectContent>
+            {sessions.map((sess) => (
+              <SelectItem key={sess} value={sess}>{sess}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+        
       </div>
       <div className="space-y-2">
         <Label htmlFor="semester">Semester</Label>

@@ -5,6 +5,7 @@ import { toast } from "sonner";
 import type { AdminUploadResultsRequest, CreateCourseForm, CreateDepartmentForm, CreateFacultyForm, CreateGradingTemplateRequest, CreateInstructorForm, CreateStudentForm, Instructor, RegisterCourseRequest, RegisterManyCoursesRequest, UpdateGradingTemplateRequest } from "@/components/types";
 
 import axios from "axios";
+import type { PayableFormData } from "@/types/payable";
 export { useUpdateSchoolLogo } from './mutations/useUpdateSchoolLogo';
 
 // School Mutations
@@ -565,5 +566,49 @@ export const useUploadLogo = () => {
       console.error('Error uploading logo:', error);
       toast.error("Failed to upload logo. Please try again.");
     }
+  });
+};
+
+// Payable mutations
+export const useAddPayable = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (payableData: PayableFormData) => api.createPayable(payableData),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['payables'] });
+      toast.success('Payable added successfully');
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || 'Failed to add payable. Please try again.');
+    },
+  });
+};
+
+export const useDeletePayable = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (payableId: string) => api.deletePayable(payableId),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['payables'] });
+      toast.success('Payable deleted successfully');
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || 'Failed to delete payable. Please try again.');
+    },
+  });
+};
+
+export const useUpdatePayable = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: { payableId: string; payableData: Partial<PayableFormData> }) => 
+      api.updatePayable({id:data.payableId, data:data.payableData}),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['payables'] });
+      toast.success('Payable updated successfully');
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || 'Failed to update payable. Please try again.');
+    },
   });
 };

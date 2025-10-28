@@ -1,6 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import * as api from "./base";
 import type { PaginatedResponse, CourseRegistrationInstructorItem } from '@/components/types';
+import type { PayableFilters } from "@/types/pagination";
 
 // export const useGetSchools = (page: number, limit: number = 10) => {
 //   return useQuery({
@@ -193,9 +194,17 @@ export const useGetTranscript = () => {
 return useQuery({
   queryKey: ["transcript"],
   queryFn: () => api.getTranscript(),
-  placeholderData: undefined,
   refetchOnWindowFocus: false,
 });
+};
+
+// Payables queries
+export const useGetPayables = (filters: PayableFilters) => {
+  return useQuery({
+    queryKey: ["payables", filters],
+    queryFn: () => api.getPayables(filters),
+    refetchOnWindowFocus: false,
+  });
 };
 
 export const useGetSemesterResult = (semester:string  = 'First', session:string = '2025/2026',) => {

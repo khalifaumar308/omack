@@ -29,6 +29,7 @@ import InstructorDashbaord from "./pages/instructors/InstructorDashbaord";
 import InstructorCourses from "./pages/instructors/InstructorCourses";
 import InstructorCourse from "./pages/instructors/InstructorCourse";
 import Payables from "./pages/admin/Payables";
+import Payable from "./pages/admin/Payable";
 
 const queryClient = new QueryClient();
 function App() {
@@ -64,6 +65,7 @@ function App() {
                 <Route path="/admin/grading-templates" element={<GradingTemplates />} />
                 <Route path="/admin/settings" element={<SchoolSettings />} />
                 <Route path="/admin/payables" element={<Payables />} />
+                <Route path="/admin/payables/:id" element={<Payable />} />
               </Route>
               {/* Student Routes */}
               <Route path="/student" element={
