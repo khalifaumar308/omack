@@ -23,6 +23,8 @@ import GradingTemplates from "./pages/admin/GradingTemplates";
 import SchoolSettings from "./pages/admin/SchoolSettings";
 import StudentDashboard from "./pages/student/StudentDashboard";
 import StudentProfile from "./pages/student/StudentProfile";
+import WalletManagement from "./pages/student/WalletManagement";
+import WalletVerify from "./pages/student/WalletVerify";
 import InstructorDashbaord from "./pages/instructors/InstructorDashbaord";
 import InstructorCourses from "./pages/instructors/InstructorCourses";
 import InstructorCourse from "./pages/instructors/InstructorCourse";
@@ -71,6 +73,7 @@ function App() {
                 <Route path="/student/results" element={<StudentResults />} />
                 <Route path="/student/settings" element={<StudentProfile />} />
                 <Route path="/student/course-registration" element={<StudentCourseRegistration />} />
+                <Route path="/student/wallet" element={<WalletManagement />} />
               </Route>
               {/* Student Routes */}
               <Route path="/instructor" element={
@@ -84,6 +87,7 @@ function App() {
               </Route>
               {/* </UserProvider> */}
               <Route path="/login" element={<Login />} />
+              <Route path="/wallet/verify" element={<WalletVerify />} />
               <Route path="*" element={<div>404 Not Found</div>} />
             </Routes>
           </BrowserRouter>

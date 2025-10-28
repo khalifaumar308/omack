@@ -256,21 +256,21 @@ export const useGetGradingTemplateById = (id:string) => {
 }
 
 // Wallet queries
-export const useGetWalletBalance = () => {
-  return useQuery({
-    queryKey: ["walletBalance"],
-    queryFn: () => api.getWalletBalance(),
-    refetchOnWindowFocus: false,
-    staleTime: 1000 * 30 // 30 seconds
-  });
-}
+// export const useGetWalletBalance = () => {
+//   return useQuery({
+//     queryKey: ["walletBalance"],
+//     queryFn: () => api.getWalletBalance(),
+//     refetchOnWindowFocus: false,
+//     staleTime: 1000 * 30 // 30 seconds
+//   });
+// }
 
-export const useGetWalletTransactions = (page: number = 1, limit: number = 10) => {
-  return useQuery({
-    queryKey: ["walletTransactions", page, limit],
-    queryFn: () => api.getWalletTransactions(page, limit),
-    refetchOnWindowFocus: false,
-    // keepPreviousData intentionally omitted for compatibility
-    enabled: true
-  });
-}
+// export const useGetWalletTransactions = (page: number = 1, limit: number = 10) => {
+//   return useQuery({
+//     queryKey: ["walletTransactions", page, limit],
+//     queryFn: () => api.getWalletTransactions(page, limit),
+//     refetchOnWindowFocus: false,
+//     // keepPreviousData intentionally omitted for compatibility
+//     enabled: true
+//   });
+// }

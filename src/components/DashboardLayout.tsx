@@ -24,6 +24,7 @@ import {
   Building,
   Radio,
   Search,
+  Wallet,
 } from "lucide-react";
 import { Link, useLocation, Outlet } from "react-router";
 import { useUser } from "@/contexts/useUser";
@@ -170,6 +171,7 @@ type SidebarItem = {
     { title: "Dashboard", icon: Home, url: "/student/" },
     { title: "Course Registration", icon: BookOpen, url: "/student/course-registration" },
     { title: "Results", icon: FileText, url: "/student/results" },
+    { title: "Wallet", icon: Wallet, url: "/student/wallet" },
     { title: "Settings", icon: Settings, url: "/student/settings" },
   ]
 

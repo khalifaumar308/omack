@@ -24,6 +24,14 @@ import type {
   PopulatedCourse,
   CreateCourseForm,
 } from '@/components/types';
+import type { 
+  // WalletBalance,
+  WalletTransactionsResponse,
+  InitiateWalletFundingRequest,
+  InitiateWalletFundingResponse,
+  VerifyWalletFundingResponse, 
+  WalletBalance
+} from './wallet.types';
 
 // Configure your API base URL
 // const API_BASE_URL = 'https://hmsms-api.onrender.com/api';
@@ -647,53 +655,83 @@ export const getTranscript = async () => {
 // WALLET / TRANSACTION APIs
 // =============================================================================
 
-export interface WalletBalanceResponse {
-  balance: number;
-  id: string;
-}
+// export interface WalletBalanceResponse {
+//   balance: number;
+//   id: string;
+// }
 
-export interface WalletInitResponse {
-  authorization_url: string;
-  reference: string;
-  access_code: string;
-}
+// export interface WalletInitResponse {
+//   authorization_url: string;
+//   reference: string;
+//   access_code: string;
+// }
 
-export interface WalletTransactionItem {
-  _id: string;
-  studentId?: string;
-  schoolId?: string;
-  payable?: string | { _id: string; description?: string; amount?: number };
-  amount: number;
-  type: 'credit' | 'debit';
-  method: 'paystack' | 'manual' | 'wallet';
-  status: 'pending' | 'success' | 'failed';
-  reference: string;
-  description: string;
-  metadata?: Record<string, any>;
-  receiptNo?: string;
-  createdAt: string;
-  updatedAt?: string;
-}
+// export interface WalletTransactionItem {
+//   _id: string;
+//   studentId?: string;
+//   schoolId?: string;
+//   payable?: string | { _id: string; description?: string; amount?: number };
+//   amount: number;
+//   type: 'credit' | 'debit';
+//   method: 'paystack' | 'manual' | 'wallet';
+//   status: 'pending' | 'success' | 'failed';
+//   reference: string;
+//   description: string;
+//   metadata?: Record<string, any>;
+//   receiptNo?: string;
+//   createdAt: string;
+//   updatedAt?: string;
+// }
 
-export const getWalletBalance = async () => {
-  const response = await api.get<WalletBalanceResponse>(`/wallet/balance`);
+// export const getWalletBalance = async () => {
+//   const response = await api.get<WalletBalanceResponse>(`/wallet/balance`);
+//   return response.data;
+// };
+
+// export const initiateWalletFunding = async (amount: number) => {
+//   const response = await api.post<WalletInitResponse>(`/wallet/fund`, { amount });
+//   return response.data;
+// };
+
+// export const verifyWalletFunding = async (reference: string) => {
+//   const response = await api.get(`/wallet/verify`, { params: { reference } });
+//   return response.data;
+// };
+
+// export const getWalletTransactions = async (page: number = 1, limit: number = 10) => {
+//   const response = await api.get<{ transactions: WalletTransactionItem[]; pagination: any }>(`/wallet/transactions`, { params: { page, limit } });
+//   return response.data;
+// };
+
+export const getWalletTransactions = async (
+  params: { page: number; limit: number }
+): Promise<WalletTransactionsResponse> => {
+  const response = await api.get<WalletTransactionsResponse>('/wallet/transactions', {
+    params,
+  });
   return response.data;
 };
 
-export const initiateWalletFunding = async (amount: number) => {
-  const response = await api.post<WalletInitResponse>(`/wallet/fund`, { amount });
+export const initiateWalletFunding = async (
+  data: InitiateWalletFundingRequest
+): Promise<InitiateWalletFundingResponse> => {
+  const response = await api.post<InitiateWalletFundingResponse>('/wallet/fund', data);
   return response.data;
 };
 
-export const verifyWalletFunding = async (reference: string) => {
-  const response = await api.get(`/wallet/verify`, { params: { reference } });
+export const getWalletBalance = async (): Promise<WalletBalance> => {
+  const response = await api.get<WalletBalance>('/wallet/balance');
   return response.data;
 };
 
-export const getWalletTransactions = async (page: number = 1, limit: number = 10) => {
-  const response = await api.get<{ transactions: WalletTransactionItem[]; pagination: any }>(`/wallet/transactions`, { params: { page, limit } });
+export const verifyWalletFunding = async (
+  reference: string
+): Promise<VerifyWalletFundingResponse> => {
+  const response = await api.get<VerifyWalletFundingResponse>(`/wallet/verify?reference=${reference}`);
   return response.data;
 };
+
+
 
 // =============================================================================
 // COURSE MANAGEMENT APIs (You may need to implement these endpoints)
