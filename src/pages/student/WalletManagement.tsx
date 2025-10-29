@@ -1,13 +1,8 @@
-import { useState } from 'react';
-// import { useUser } from '@/contexts/useUser';
-import { 
-  useGetWalletBalance, 
-  useGetWalletTransactions 
-} from '@/lib/api/wallet.queries';
-import { 
-  useInitiateWalletFunding,
-  useVerifyWalletFunding 
-} from '@/lib/api/wallet.mutations';
+import { useState, useRef, useEffect } from 'react';
+import { useGetWalletBalance, useGetWalletTransactions } from '@/lib/api/wallet.queries';
+import { useInitiateWalletFunding, useVerifyWalletFunding } from '@/lib/api/wallet.mutations';
+import { useGetStudentPayables } from '@/lib/api/queries';
+import type { Payable } from '@/lib/api/types';
 import { Wallet, ArrowUpRight, ArrowDownLeft, Clock, RefreshCcw } from 'lucide-react';
 import { Skeleton } from '@/components/ui/skeleton';
 import { Card } from '@/components/ui/card';
@@ -16,8 +11,6 @@ import { Input } from '@/components/ui/input';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { toast } from 'sonner';
 import { useSearchParams } from 'react-router';
-import { useEffect } from 'react';
-
 import type { WalletTransaction } from '@/lib/api/wallet.types';
 
 // Loading skeleton component for transactions
@@ -50,6 +43,7 @@ function WalletManagement() {
   const [showFundDialog, setShowFundDialog] = useState(false);
 //   const { user } = useUser();
   const [currentPage, setCurrentPage] = useState(1);
+  const [tab, setTab] = useState<'transactions' | 'payables'>('transactions');
 
   // Queries and Mutations
   const { 
@@ -66,6 +60,37 @@ function WalletManagement() {
     limit: 10,
     page: currentPage
   });
+
+  // Student payables (infinite scroll)
+  const {
+    data: payablesPagesData,
+    isLoading: isLoadingPayables,
+    fetchNextPage: fetchNextPayables,
+    hasNextPage: payablesHasNext,
+    isFetchingNextPage: isFetchingPayablesNext,
+    refetch: refetchPayables
+  } = useGetStudentPayables();
+
+  const payables = payablesPagesData?.pages?.flatMap(page => page.data) || [];
+  // Setup intersection observer for infinite loading
+  const loadMoreRef = useRef<HTMLDivElement>(null);
+  
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && payablesHasNext && !isFetchingPayablesNext) {
+          fetchNextPayables();
+        }
+      },
+      { threshold: 0.1 }
+    );
+
+    if (loadMoreRef.current) {
+      observer.observe(loadMoreRef.current);
+    }
+
+    return () => observer.disconnect();
+  }, [payablesHasNext, isFetchingPayablesNext, fetchNextPayables]);
 
   // Handle transaction verification from URL
   const [searchParams] = useSearchParams();
@@ -192,62 +217,154 @@ function WalletManagement() {
         </Card>
       </div>
 
-      {/* Transactions List */}
-      <Card>
-        <div className="p-6">
-          <h2 className="text-lg font-semibold text-gray-800 mb-4">Recent Transactions</h2>
-          {isLoadingTransactions ? (
-            <TransactionsSkeleton />
-          ) : (
-            <div className="space-y-4">
-              {transactionData?.transactions.map((transaction: WalletTransaction) => (
-                  <div 
-                    key={transaction._id}
-                    className="flex items-center justify-between p-4 bg-white rounded-lg shadow-sm border hover:shadow-md transition-shadow duration-200"
-                  >
-                    <div className="flex items-center">
-                      <div className="p-2 rounded-full bg-gray-50">
-                        {getTransactionIcon(transaction.type)}
-                      </div>
-                      <div className="ml-4">
-                        <p className="font-medium text-gray-900">{transaction.description}</p>
-                        <p className="text-sm text-gray-500">
-                          {new Date(transaction.createdAt).toLocaleString()}
-                        </p>
-                      </div>
-                    </div>
-                    <div className="text-right">
-                      <p className={`font-semibold ${
-                        transaction.type === 'credit' ? 'text-green-600' : 'text-red-600'
-                      }`}>
-                        {transaction.type === 'credit' ? '+' : '-'} {formatAmount(transaction.amount)}
-                      </p>
-                      <span className={getStatusBadge(transaction.status)}>
-                        {transaction.status === 'success' ? 'completed' : transaction.status}
-                      </span>
-                    </div>
-                  </div>
-                ))}
+      {/* Tabs: Transactions / Payables */}
+      <div className="mt-6">
+        <div className="flex items-center gap-2 mb-4">
+          <button
+            className={`px-3 py-1 rounded-md ${tab === 'transactions' ? 'bg-slate-900 text-white' : 'border bg-white'}`}
+            onClick={() => setTab('transactions')}
+          >
+            Transactions
+          </button>
+          <button
+            className={`px-3 py-1 rounded-md ${tab === 'payables' ? 'bg-slate-900 text-white' : 'border bg-white'}`}
+            onClick={() => setTab('payables')}
+          >
+            Payables
+          </button>
+          <div className="ml-auto">
+            <Button variant="outline" size="sm" onClick={() => {
+              refetchBalance();
+              refetchTransactions();
+              refetchPayables();
+            }}>
+              <RefreshCcw className="w-4 h-4 mr-2" />
+              Refresh
+            </Button>
+          </div>
+        </div>
 
-              {transactionData?.pagination.hasNextPage && (
-                <Button
-                  variant="outline"
-                  className="w-full mt-4"
-                  onClick={() => setCurrentPage(prev => prev + 1)}
-                >
-                  Load More
-                </Button>
-              )}
+        {tab === 'transactions' && (
+          <Card>
+            <div className="p-6">
+              <h2 className="text-lg font-semibold text-gray-800 mb-4">Recent Transactions</h2>
+              {isLoadingTransactions ? (
+                <TransactionsSkeleton />
+              ) : (
+                <div className="space-y-4">
+                  {transactionData?.transactions.map((transaction: WalletTransaction) => (
+                      <div 
+                        key={transaction._id}
+                        className="flex items-center justify-between p-4 bg-white rounded-lg shadow-sm border hover:shadow-md transition-shadow duration-200"
+                      >
+                        <div className="flex items-center">
+                          <div className="p-2 rounded-full bg-gray-50">
+                            {getTransactionIcon(transaction.type)}
+                          </div>
+                          <div className="ml-4">
+                            <p className="font-medium text-gray-900">{transaction.description}</p>
+                            <p className="text-sm text-gray-500">
+                              {new Date(transaction.createdAt).toLocaleString()}
+                            </p>
+                          </div>
+                        </div>
+                        <div className="text-right">
+                          <p className={`font-semibold ${
+                            transaction.type === 'credit' ? 'text-green-600' : 'text-red-600'
+                          }`}>
+                            {transaction.type === 'credit' ? '+' : '-'} {formatAmount(transaction.amount)}
+                          </p>
+                          <span className={getStatusBadge(transaction.status)}>
+                            {transaction.status === 'success' ? 'completed' : transaction.status}
+                          </span>
+                        </div>
+                      </div>
+                    ))}
 
-              {!transactionData?.pagination.hasNextPage && transactionData?.transactions.length === 0 && (
-                <div className="text-center py-6 text-gray-500">
-                  No transactions found
+                  {transactionData?.pagination.hasNextPage && (
+                    <Button
+                      variant="outline"
+                      className="w-full mt-4"
+                      onClick={() => setCurrentPage(prev => prev + 1)}
+                    >
+                      Load More
+                    </Button>
+                  )}
+
+                  {!transactionData?.pagination.hasNextPage && transactionData?.transactions.length === 0 && (
+                    <div className="text-center py-6 text-gray-500">
+                      No transactions found
+                    </div>
+                  )}
                 </div>
               )}
             </div>
-          )}
-        </div>
-      </Card>
+          </Card>
+        )}
+
+        {tab === 'payables' && (
+          <Card>
+            <div className="p-6">
+              <h2 className="text-lg font-semibold text-gray-800 mb-4">Payables</h2>
+
+              {isLoadingPayables ? (
+                <TransactionsSkeleton />
+              ) : (
+                <div className="space-y-4">
+                  {payables.map((payable: Payable) => (
+                    <div key={payable._id} className="p-4 bg-white rounded-lg shadow-sm border">
+                      <div className="flex justify-between items-start">
+                        <div>
+                          <p className="font-medium text-gray-900">{payable.description}</p>
+                          <p className="text-sm text-gray-500">Due: {new Date(payable.dueDate).toLocaleDateString()}</p>
+                          <p className="text-sm text-gray-500">
+                            {payable.session} • {payable.semester} • Level {payable.level}
+                          </p>
+                          {payable.department && (
+                            <p className="text-sm text-gray-500">
+                              Department: {payable.department.name}
+                            </p>
+                          )}
+                        </div>
+                        <div className="text-right">
+                          <p className="font-semibold text-gray-900">{formatAmount(payable.amount)}</p>
+                          <p className="text-sm text-muted-foreground">Paid: {formatAmount(payable.amountPaid)}</p>
+                        </div>
+                      </div>
+                      <div className="mt-3">
+                        <div className="flex justify-between items-center mb-1">
+                          <span className="text-sm text-gray-600">{payable.percentagePaid?.toFixed(1)}% paid</span>
+                          {payable.partPayment && (
+                            <span className="text-xs text-blue-600 bg-blue-50 px-2 py-1 rounded">
+                              Part payment allowed
+                            </span>
+                          )}
+                        </div>
+                        <div className="h-2 w-full bg-gray-200 rounded-full overflow-hidden">
+                          <div 
+                            className="h-full bg-green-500 transition-all duration-300" 
+                            style={{ width: `${payable.percentagePaid}%` }} 
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+
+                  <div ref={loadMoreRef} className="py-4 flex justify-center">
+                    {isFetchingPayablesNext && (
+                      <div className="text-center text-sm text-gray-500">Loading more payables...</div>
+                    )}
+                  </div>
+
+                  {!payablesHasNext && payables.length === 0 && (
+                    <div className="text-center py-6 text-gray-500">No payables found</div>
+                  )}
+                </div>
+              )}
+            </div>
+          </Card>
+        )}
+      </div>
 
       {/* Fund Wallet Dialog */}
       <Dialog open={showFundDialog} onOpenChange={setShowFundDialog}>

@@ -338,6 +338,13 @@ export const updatePayable = async ({
 export const deletePayable = async (id: string): Promise<void> => {
   await api.delete(`/payables/${id}`);
 };
+
+// Student-specific payables (supports cursor-based pagination)
+export const getStudentPayables = async (params: { session?: string; semester?: string; limit?: number; cursor?: string }) => {
+  const response = await api.get(`/payables/student/my-payables`, { params });
+  console.log('Student payables response:', response.data);
+  return response.data;
+};
 // =============================================================================
 // SCHOOL MANAGEMENT APIs
 // =============================================================================

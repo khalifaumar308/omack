@@ -1,7 +1,7 @@
-import { useQuery } from "@tanstack/react-query";
+import { useQuery, useInfiniteQuery } from "@tanstack/react-query";
 import * as api from "./base";
 import type { PaginatedResponse, CourseRegistrationInstructorItem } from '@/components/types';
-import type { PayableFilters } from "@/types/pagination";
+import type { PayableFilters, PayablesResponse } from "./types";
 
 // export const useGetSchools = (page: number, limit: number = 10) => {
 //   return useQuery({
@@ -199,11 +199,25 @@ return useQuery({
 };
 
 // Payables queries
-export const useGetPayables = (filters: PayableFilters) => {
+export const useGetPayables = (filters= { page: 1, limit: 20 }) => {
   return useQuery({
     queryKey: ["payables", filters],
     queryFn: () => api.getPayables(filters),
     refetchOnWindowFocus: false,
+  });
+};
+
+// Student payables (infinite scroll)
+export const useGetStudentPayables = (filters: PayableFilters = { limit: 20 }) => {
+  return useInfiniteQuery<PayablesResponse>({
+    queryKey: ["studentPayables", filters],
+    queryFn: ({ pageParam }) => api.getStudentPayables({
+      ...filters,
+      cursor: pageParam as string | undefined
+    }),
+    getNextPageParam: (lastPage) => lastPage.pagination.nextCursor,
+    initialPageParam: undefined,
+    refetchOnWindowFocus: false
   });
 };
 
@@ -264,22 +278,4 @@ export const useGetGradingTemplateById = (id:string) => {
   })
 }
 
-// Wallet queries
-// export const useGetWalletBalance = () => {
-//   return useQuery({
-//     queryKey: ["walletBalance"],
-//     queryFn: () => api.getWalletBalance(),
-//     refetchOnWindowFocus: false,
-//     staleTime: 1000 * 30 // 30 seconds
-//   });
-// }
-
-// export const useGetWalletTransactions = (page: number = 1, limit: number = 10) => {
-//   return useQuery({
-//     queryKey: ["walletTransactions", page, limit],
-//     queryFn: () => api.getWalletTransactions(page, limit),
-//     refetchOnWindowFocus: false,
-//     // keepPreviousData intentionally omitted for compatibility
-//     enabled: true
-//   });
-// }
+// End of queries
