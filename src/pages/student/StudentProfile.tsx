@@ -19,6 +19,7 @@ const StudentProfile: React.FC = () => {
   const { data: student, isLoading, isError } = useGetStudent(user?.id || "");
 
   const [formState, setFormState] = useState({
+    name: "",
     email: "",
     phone: "",
     homeAddress: "",
@@ -46,6 +47,7 @@ const StudentProfile: React.FC = () => {
   useEffect(() => {
     if (student) {
       setFormState({
+        name: student.name || "",
         email: student.email || "",
         phone: (student.phone as string) || "",
         homeAddress: (student.homeAddress as string) || "",
@@ -98,6 +100,7 @@ const StudentProfile: React.FC = () => {
 
       // Prepare update payload with allowed fields only
       const payload: Record<string, unknown> = {
+        name: formState.name,
         email: formState.email,
         phone: formState.phone,
         homeAddress: formState.homeAddress,
@@ -182,7 +185,7 @@ const StudentProfile: React.FC = () => {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <Label className="mb-1">Name</Label>
-                  <div className="p-2 border rounded bg-muted text-sm">{student?.name}</div>
+                  <Input value={formState.name} onChange={(e) => handleChange('name', e.target.value)} />
                 </div>
 
                 <div>
@@ -202,7 +205,7 @@ const StudentProfile: React.FC = () => {
 
                 <div>
                   <Label className="mb-1">Email</Label>
-                  <Input disabled value={formState.email} onChange={(e) => handleChange('email', e.target.value)} />
+                  <Input value={formState.email} onChange={(e) => handleChange('email', e.target.value)} />
                 </div>
 
                 <div>
@@ -244,7 +247,16 @@ const StudentProfile: React.FC = () => {
                 <Button variant="outline" onClick={() => {
                   // reset to fetched student values
                   if (student) {
-                    setFormState({ email: student.email || '', phone: (student.phone as string) || '', homeAddress: (student.homeAddress as string) || '', dateOfBirth: student.dateOfBirth ? new Date(student.dateOfBirth).toISOString().slice(0,10) : '', guardianName: (student.guardian?.name as string) || '', guardianEmail: (student.guardian?.email as string) || '', guardianPhone: (student.guardian?.phone as string) || '' });
+                    setFormState({
+                      name: student.name || '',
+                      email: student.email || '',
+                      phone: (student.phone as string) || '',
+                      homeAddress: (student.homeAddress as string) || '',
+                      dateOfBirth: student.dateOfBirth ? new Date(student.dateOfBirth).toISOString().slice(0,10) : '',
+                      guardianName: (student.guardian?.name as string) || '',
+                      guardianEmail: (student.guardian?.email as string) || '',
+                      guardianPhone: (student.guardian?.phone as string) || ''
+                    });
                     setImagePreview((student.picture as string) || null);
                     setImageFile(null);
                   }
