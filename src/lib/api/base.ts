@@ -36,8 +36,8 @@ import type {
 import type { PayableFilters } from '@/types/pagination';
 
 // Configure your API base URL
-const API_BASE_URL = 'https://hmsms-api.onrender.com/api';
-// const API_BASE_URL = 'http://localhost:5000/api';
+// const API_BASE_URL = 'https://hmsms-api.onrender.com/api';
+const API_BASE_URL = 'http://localhost:5000/api';
 
 
 // =============================================================================
@@ -475,6 +475,11 @@ export const updateStudent = async (id: string, studentData: Partial<CreateStude
 
 export const deleteStudent = async (id: string) => {
   const response = await api.delete<{ message: string }>(`/students/${id}`);
+  return response.data;
+};
+
+export const transitionStudents = async (data: { fromLevel: string; toLevel: string; department: string }) => {
+  const response = await api.put("/students/transition", data);
   return response.data;
 };
 

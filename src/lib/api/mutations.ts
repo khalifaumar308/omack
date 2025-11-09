@@ -612,3 +612,18 @@ export const useUpdatePayable = () => {
     },
   });
 };
+
+export const useTransitionStudents = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: { fromLevel: string; toLevel: string; department: string }) => api.transitionStudents(data),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["students"] });
+      toast.success("Students transitioned successfully");
+    },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.message || "Failed to transition students. Please try again.");
+    },
+  });
+};

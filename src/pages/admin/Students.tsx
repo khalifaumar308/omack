@@ -19,14 +19,15 @@ import {
   DialogTrigger,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { Plus, Search, Eye, Users, Upload } from "lucide-react";
+import { Plus, Search, Eye, Users, Upload, Terminal } from "lucide-react";
 import { Link } from "react-router";
 import type { CreateStudentForm, Student } from "@/components/types";
 import { useGetDepartments, useGetStudents } from "@/lib/api/queries";
-import { useAddStudent, useBulkAddStudents, useUpdateStudent } from "@/lib/api/mutations";
+import { useAddStudent, useBulkAddStudents, useUpdateStudent, useTransitionStudents } from "@/lib/api/mutations";
 import { useUser } from "@/contexts/useUser";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import StudentIDCardGenerator from "@/components/StudentIDCardGenerator";
+import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 
 export default function Students() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -36,6 +37,7 @@ export default function Students() {
   const [limit] = useState(10);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [uploadDialogOpen, setUploadDialogOpen] = useState(false);
+  const [isTransitionDialogOpen, setIsTransitionDialogOpen] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [editingStudent, setEditingStudent] = useState<Student | null>(null);
   const { data: departments } = useGetDepartments();
@@ -50,6 +52,11 @@ export default function Students() {
     matricNo: "",
     department: "",
   });
+  const [transitionFormData, setTransitionFormData] = useState({
+    fromLevel: "",
+    toLevel: "",
+    department: "",
+  });
 
   // fetch a large number of students once and handle pagination/filtering on client
   const { data, isLoading, isError, error, refetch } = useGetStudents(1, 10000);
@@ -57,6 +64,7 @@ export default function Students() {
   const updateStudentMutation = useUpdateStudent();
   // const deleteStudentMutation = useDeleteStudent();
   const bulkAddStudentMutation = useBulkAddStudents();
+  const transitionStudentsMutation = useTransitionStudents();
 
   const students = data || [];
   const totalStudents = students.length;
@@ -72,6 +80,13 @@ export default function Students() {
       updateStudentMutation.mutate({ studentId: editingStudent.id, studentData });
     } else {
       addStudentMutation.mutate(studentData);
+    }
+  };
+
+  const handleTransitionSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (confirm("Are you sure you want to transition students? This action cannot be undone and may have side effects on billing and course registration.")) {
+      transitionStudentsMutation.mutate(transitionFormData);
     }
   };
 
@@ -297,6 +312,85 @@ export default function Students() {
                   </Button>
                   <Button type="submit" disabled={addStudentMutation.isPending || updateStudentMutation.isPending}>
                     {addStudentMutation.isPending || updateStudentMutation.isPending ? "Saving..." : (editingStudent ? "Update" : "Create")} Student
+                  </Button>
+                </div>
+              </form>
+            </DialogContent>
+          </Dialog>
+          <Dialog open={isTransitionDialogOpen} onOpenChange={setIsTransitionDialogOpen}>
+            <DialogTrigger asChild>
+              <Button variant="secondary">
+                <Users className="mr-2 h-4 w-4" />
+                Transition Students
+              </Button>
+            </DialogTrigger>
+            <DialogContent className="max-w-md">
+              <DialogHeader>
+                <DialogTitle>Transition Students</DialogTitle>
+              </DialogHeader>
+              <form onSubmit={handleTransitionSubmit} className="space-y-4">
+                <Alert>
+                  <Terminal className="h-4 w-4" />
+                  <AlertTitle>Heads up!</AlertTitle>
+                  <AlertDescription>
+                    Transitioning students to a new level can have side effects on their billing and course registrations. Please ensure you have handled these manually after the transition.
+                  </AlertDescription>
+                </Alert>
+                <div>
+                  <Label htmlFor="fromLevel">From Level</Label>
+                  <Select onValueChange={(value) => setTransitionFormData({ ...transitionFormData, fromLevel: value })}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select Level" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {user?.school?.levels?.map((level) => (
+                        <SelectItem key={level} value={level}>
+                          {level}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label htmlFor="toLevel">To Level</Label>
+                  <Select onValueChange={(value) => setTransitionFormData({ ...transitionFormData, toLevel: value })}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select Level" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {user?.school?.levels?.map((level) => (
+                        <SelectItem key={level} value={level}>
+                          {level}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div>
+                  <Label htmlFor="department">Department</Label>
+                  <Select onValueChange={(value) => setTransitionFormData({ ...transitionFormData, department: value })}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select Department" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {departments?.map((department) => (
+                        <SelectItem key={department.id} value={department.id}>
+                          {department.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+                <div className="flex justify-end space-x-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setIsTransitionDialogOpen(false)}
+                  >
+                    Cancel
+                  </Button>
+                  <Button type="submit" disabled={transitionStudentsMutation.isPending}>
+                    {transitionStudentsMutation.isPending ? "Transitioning..." : "Transition"}
                   </Button>
                 </div>
               </form>
