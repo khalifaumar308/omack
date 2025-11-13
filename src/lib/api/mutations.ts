@@ -617,9 +617,9 @@ export const useTransitionStudents = () => {
   const queryClient = useQueryClient();
   return useMutation({
     mutationFn: (data: { fromLevel: string; toLevel: string; department: string }) => api.transitionStudents(data),
-    onSuccess: () => {
+    onSuccess: (data) => {
       queryClient.invalidateQueries({ queryKey: ["students"] });
-      toast.success("Students transitioned successfully");
+      toast.success(`${data.message}`);
     },
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
     onError: (error: any) => {

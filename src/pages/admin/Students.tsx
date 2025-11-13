@@ -92,7 +92,7 @@ export default function Students() {
     const confirmTransition = () => {
       transitionStudentsMutation.mutate(transitionFormData);
       setIsTransitionDialogOpen(false);
-      setShowTransitionConfirmation(false);
+      // setShowTransitionConfirmation(false);
     };
   
     // const handleDelete = (studentId: string) => {
