@@ -114,7 +114,7 @@ const StudentProfile: React.FC = () => {
       if (photoUrl) payload.picture = photoUrl;
 
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
-      await updateStudentMutation.mutateAsync({ studentId: (student as any)._id, studentData: payload });
+      await updateStudentMutation.mutateAsync({ studentId: (student as any).id, studentData: payload });
       // toast.success('Profile updated');
       queryClient.invalidateQueries({ queryKey: ['user'] });
       queryClient.invalidateQueries({ queryKey: ['student', student.id] });
@@ -126,6 +126,7 @@ const StudentProfile: React.FC = () => {
       setSaving(false);
     }
   };
+
 
   if (isLoading) {
     return (
