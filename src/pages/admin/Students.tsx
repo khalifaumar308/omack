@@ -113,12 +113,10 @@ export default function Students() {
         department: "",
       });
     };
-  
     const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
       const file = e.target.files?.[0] || null;
       setSelectedFile(file);
     };
-    console.log(students, "studnts")
     const handleUpload = () => {
       if (!selectedFile) return;
   
@@ -130,7 +128,9 @@ export default function Students() {
         
         const students = lines.map(line => {
           const [name, email, matricNo, department, level, password] = line.split(',');
-          if (!name || !email || !matricNo || !department || !level || !password || !schoolLevels.includes(level.trim())) {
+          const dp = departments?.find(dep => dep.name.trim() === department.trim())?.id
+          if (!name || !email || !matricNo || !dp || !level || !password || !schoolLevels.includes(level.trim())) {
+            console.log("No Department Student: ", name, email, department)
             return;
           }
           return {
@@ -141,7 +141,7 @@ export default function Students() {
             school: user?.school?.id || "",
             level: level.trim(),
             matricNo: matricNo.trim(),
-            department: departments?.find(dep => dep.name.trim() === department.trim())?.id || "",
+            department: dp,
           };
         }).filter(s => s?.name && s?.email && s?.matricNo);
         if (students.length > 0) {
@@ -195,7 +195,6 @@ export default function Students() {
         </div>
       );
     }
-    console.log(filteredStudents, "filr")
     return (
       <div className="space-y-6">
         <div className="flex items-center justify-between">
