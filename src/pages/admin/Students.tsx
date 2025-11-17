@@ -118,17 +118,19 @@ export default function Students() {
       const file = e.target.files?.[0] || null;
       setSelectedFile(file);
     };
-  
+    console.log(students, "studnts")
     const handleUpload = () => {
       if (!selectedFile) return;
   
       const reader = new FileReader();
+      const schoolLevels = user?.school?.levels || []
       reader.onload = (event) => {
         const csv = event.target?.result as string;
         const lines = csv.split('\n').slice(1); // Skip header
+        
         const students = lines.map(line => {
           const [name, email, matricNo, department, level, password] = line.split(',');
-          if (!name || !email || !matricNo || !department || !level || !password) {
+          if (!name || !email || !matricNo || !department || !level || !password || !schoolLevels.includes(level.trim())) {
             return;
           }
           return {
@@ -137,7 +139,7 @@ export default function Students() {
             password: password.trim(),
             role: "student" as const,
             school: user?.school?.id || "",
-            level: parseInt(level.trim()) || 100,
+            level: level.trim(),
             matricNo: matricNo.trim(),
             department: departments?.find(dep => dep.name.trim() === department.trim())?.id || "",
           };
