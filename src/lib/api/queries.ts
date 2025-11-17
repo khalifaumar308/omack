@@ -207,6 +207,14 @@ export const useGetPayables = (filters= { page: 1, limit: 20 }) => {
   });
 };
 
+export const useGetRegistrationSettings = (department?: string, level?: string, semester?: string, session?: string) => {
+  return useQuery({
+    queryKey: ["registrationSettings", department, level, semester, session],
+    queryFn: () => api.getRegistrationSettings({department, level, semester, session}),
+    refetchOnWindowFocus: false,
+  });
+};
+
 // Student payables (infinite scroll)
 export const useGetStudentPayables = (filters: PayableFilters = { limit: 20 }) => {
   return useInfiniteQuery<PayablesResponse>({

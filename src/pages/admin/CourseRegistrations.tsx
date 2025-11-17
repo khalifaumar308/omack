@@ -284,6 +284,13 @@ const CourseRegistrations = () => {
         </div>
 
         <div className="flex flex-wrap gap-2">
+          {/* Registration Settings Link */}
+          <Button variant="outline" onClick={() => window.location.href = '/admin/registration-settings'}>
+            <Calendar className="mr-2 h-4 w-4" />
+            <span className="hidden sm:inline">Registration Settings</span>
+            <span className="sm:hidden">Settings</span>
+          </Button>
+
           {/* Individual Registration Dialog */}
           <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
             <DialogTrigger asChild>

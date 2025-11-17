@@ -36,8 +36,8 @@ import type {
 import type { PayableFilters } from '@/types/pagination';
 
 // Configure your API base URL
-const API_BASE_URL = 'https://hmsms-api.onrender.com/api';
-// const API_BASE_URL = 'http://localhost:5000/api';
+// const API_BASE_URL = 'https://hmsms-api.onrender.com/api';
+const API_BASE_URL = 'http://localhost:5000/api';
 
 
 // =============================================================================
@@ -303,6 +303,34 @@ export const deleteGradingTemplate = async (id: string) => {
   const responce = await api.delete(`/grading-templates/${id}`)
   return responce.data
 }
+
+// =============================================================================
+// REGISTRATION SETTINGS APIs (admin)
+// =============================================================================
+export const getRegistrationSettings = async (params?: { department?: string; level?: string; semester?: string; session?: string }) => {
+  const response = await api.get(`/registration-settings`, { params });
+  return response.data;
+}
+
+export const createRegistrationSetting = async (payload: {
+  department: string;
+  level: string;
+  semester: "First" | "Second";
+  session: string;
+  maxCredits: number;
+  coreCourses?: string[];
+  startDate: string | Date;
+  endDate: string | Date;
+}) => {
+  const response = await api.post(`/registration-settings`, payload);
+  return response.data;
+}
+
+export const deleteRegistrationSetting = async (id: string) => {
+  const response = await api.delete(`/registration-settings/${id}`);
+  return response.data;
+}
+
 // =============================================================================
 // PAYABLE MANAGEMENT APIs
 // =============================================================================
