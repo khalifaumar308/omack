@@ -291,7 +291,7 @@ const StudentIDCardGenerator = React.forwardRef<StudentIDCardGeneratorHandle, St
 									justifyContent: 'center'
 								}}>
 									<QRCodeSVG
-										value={currentStudent.qrUrl}
+										value={"https://www.skoolms.ng/student/"}
 										size={120}
 										level="H"
 										bgColor="#ffffff"
