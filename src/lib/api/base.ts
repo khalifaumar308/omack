@@ -1,4 +1,4 @@
-/* eslint-disable @typescript-eslint/no-explicit-any */
+﻿/* eslint-disable @typescript-eslint/no-explicit-any */
 import type { IPopulatedPayable, Payable, PayableFormData } from '@/types/payable';
 import axios, { AxiosError } from 'axios';
 import type { AxiosInstance, AxiosResponse, InternalAxiosRequestConfig } from 'axios';
@@ -34,6 +34,8 @@ import type {
   WalletBalance
 } from './wallet.types';
 import type { PayableFilters } from '@/types/pagination';
+import type { PopulatedRegistrationSetting } from '@/types/index';
+import type { RegistrationSettingsResponse } from './types';
 
 // Configure your API base URL
 // const API_BASE_URL = 'https://hmsms-api.onrender.com/api';
@@ -307,8 +309,9 @@ export const deleteGradingTemplate = async (id: string) => {
 // =============================================================================
 // REGISTRATION SETTINGS APIs (admin)
 // =============================================================================
-export const getRegistrationSettings = async (params?: { department?: string; level?: string; semester?: string; session?: string }) => {
-  const response = await api.get(`/registration-settings`, { params });
+export const getRegistrationSettings = async (params?: { page?: number; limit?: number; department?: string; level?: string; semester?: string; session?: string }) => {
+  console.log(params, 'params in api')
+  const response = await api.get<PaginatedResponse<PopulatedRegistrationSetting>>(`/registration-settings`, { params });
   return response.data;
 }
 
@@ -326,6 +329,15 @@ export const createRegistrationSetting = async (payload: {
   return response.data;
 }
 
+export const updateRegistrationSetting = async (id: string, payload: {
+  maxCredits?: number;
+  coreCourses?: string[];
+  startDate?: string | Date;
+  endDate?: string | Date;
+}) => {
+  const response = await api.put(`/registration-settings/${id}`, payload);
+  return response.data;
+}
 export const deleteRegistrationSetting = async (id: string) => {
   const response = await api.delete(`/registration-settings/${id}`);
   return response.data;
@@ -934,6 +946,11 @@ export const getStudentRegstrationsInfo = async () => {
   return response.data;
 }
 
+export const getStudentRegSettingsInfo = async (semester:string, session:string) => {
+  const response = await api.get<RegistrationSettingsResponse>(`/course-registrations/student-reg-settings/?semester=${semester}&session=${session}`);
+  return response.data;
+}
+
 // Calculate GPA from course registrations
 export const calculateGPA = (registrations: CourseRegistration[]): number => {
   let totalCredits = 0;
@@ -1105,3 +1122,7 @@ export default {
 
   // Student summary
 };
+
+
+
+

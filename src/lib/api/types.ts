@@ -57,3 +57,22 @@ export interface WalletBalance {
   balance: number;
   currency: string;
 }
+
+export interface RegistrationSetting {
+  department: string;
+  level: string;
+  semester: "First" | "Second";
+  session: string;
+  maxCredits: number;
+  coreCourses: {_id:string; code: string; title: string; creditUnits: number;}[];
+  startDate: Date;
+  endDate: Date;
+  createdBy?: string;
+}
+
+export interface RegistrationSettingsResponse {
+  regSettings: RegistrationSetting;
+  carryOverCourses: {_id:string; code: string; title: string; creditUnits: number;}[];
+}
+
+

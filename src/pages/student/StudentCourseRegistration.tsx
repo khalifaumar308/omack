@@ -3,8 +3,8 @@ import React, { useEffect, useState } from 'react';
 import { PDFDownloadLink } from '@react-pdf/renderer';
 import CourseRegistrationPDF from '@/components/CourseRegistrationPDF';
 import { Plus, Eye, Send, FileText, Download, Edit } from 'lucide-react';
-import type { Course, StudentRegistrationsInfo } from '@/components/types';
-import { useGetCourseRegistrationInfo, useGetCourses } from '@/lib/api/queries';
+import type { StudentRegistrationsInfo } from '@/components/types';
+import { useGetCourseRegistrationInfo, useGetStudentRegSettingsInfo } from '@/lib/api/queries';
 import { useUser } from '@/contexts/useUser';
 import SemesterCourseReg from '@/components/SemesterCourseReg';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Label } from '@/components/ui/label';
 import { Skeleton } from '@/components/ui/skeleton';
+import { toast } from 'sonner';
 
 
 const StudentCourseRegistration: React.FC = () => {
@@ -20,45 +21,25 @@ const StudentCourseRegistration: React.FC = () => {
   const { user } = useUser()
   const [activeTab, setActiveTab] = useState<'registrations' | 'register'>('registrations');
   const [semester, setSemester] = useState(user?.school?.currentSemester || "First");
-  const [toRetake, setToRetake] = useState<Course[]>([])
+  const [toRetake, setToRetake] = useState<{_id:string; code:string; creditUnits: number; title: string}[]>([])
   const [edit, setEdit] = useState(false)
   const [courseRegEdit, setCourseRegEdit] = useState<StudentRegistrationsInfo>()
   const [openSemesterModal, setOpenSemesterModal] = useState(false)
   // manage pagination passed to SemesterCourseReg
-  const [coursePage, setCoursePage] = useState<number>(1);
-  const [coursePageSize, setCoursePageSize] = useState<number>(10);
-  const [courseSearch, setCourseSearch] = useState<string>('');
 
   const { data: registrationInfo, isLoading, isError } = useGetCourseRegistrationInfo()
-  //get courses (request more rows for client-side use where needed)
-  // fetch courses for the selected semester and pagination controlled by this component
-  const { data: courses, isLoading: courseLoading } = useGetCourses(coursePage, coursePageSize, courseSearch, '', semester, 'all')
-  console.log(courses, courseLoading, "meee", coursePage);
-  // Auto-populate failed courses on component mount
+  const { data:regSettings, isLoading: regSettingsLoading } = useGetStudentRegSettingsInfo(semester, user?.school?.currentSession || '')
+  
+  const onSuccess = () => {
+    setActiveTab('registrations');
+    setEdit(false);
+  }
+
   useEffect(() => {
-    if (registrationInfo) {
-      // Get all course attempts for the selected semester
-      const allAttempts = registrationInfo
-        .filter(reg => reg.semester === semester)
-        .map(reg => reg.courses)
-        .flat();
-
-      // Group attempts by course code
-      const grouped = allAttempts.reduce((acc, item) => {
-        const code = item.course.code;
-        acc[code] = acc[code] || [];
-        acc[code].push(item);
-        return acc;
-      }, {} as Record<string, typeof allAttempts>);
-
-      // Find courses where every attempt is "F"
-      const failedCourses = Object.values(grouped)
-        .filter(attempts => attempts.every(a => a.grade === "F"))
-        .map(attempts => attempts[0].course); // Take one record per course
-
-      setToRetake(failedCourses);
+    if (regSettings && regSettings.carryOverCourses) {
+      setToRetake(regSettings.carryOverCourses);
     }
-  }, [registrationInfo, semester]);
+  }, [regSettings]);
 
   const stats = [
     {
@@ -195,8 +176,14 @@ const StudentCourseRegistration: React.FC = () => {
                     Cancel
                   </Button>
                   <Button onClick={() => {
-                    setActiveTab("register")
-                    setOpenSemesterModal(false)
+                    const exists = registrationInfo?.some(reg => reg.semester === semester && reg.session === user?.school?.currentSession);
+                    if (!exists) {
+                      setActiveTab("register")
+                      setOpenSemesterModal(false)
+                    } else {
+                      toast.error("You have already registered for this semester and session.");
+                      setOpenSemesterModal(false)
+                    }
                   }} >
                     Continue
                   </Button>
@@ -208,40 +195,34 @@ const StudentCourseRegistration: React.FC = () => {
       </div>
 
       {(activeTab === 'register') && (
-        !edit ? (
+        !edit ? ( regSettingsLoading?(
+            <div className="max-w-6xl mx-auto p-6"> 
+              <Skeleton className="w-full h-96" />
+            </div>
+          ): (
           <SemesterCourseReg
             edit={false}
-            courses={courses!}
+            courses={regSettings?.regSettings.coreCourses || []}
             toRetake={toRetake}
             semester={semester}
             status='pending'
-            page={coursePage}
-            setPage={setCoursePage}
-            pageSize={coursePageSize}
-            setPageSize={setCoursePageSize}
-            search={courseSearch}
-            onSearch={(v) => { setCourseSearch(v); setCoursePage(1); }}
-            loading={courseLoading}
+            maxCredits={regSettings?.regSettings.maxCredits || 0}
+            onSuccess={onSuccess}
           />
-        ) : (courseRegEdit && (
+        ))  : (courseRegEdit && (
           <SemesterCourseReg edit={edit} courseReg={{
             ...courseRegEdit, studentId: user?.id || "",
             session: courseRegEdit.session!,
             semester: courseRegEdit.semester!
           }}
             session={user?.school?.currentSession || ''}
-            toRetake={toRetake} courses={courses!}
-            page={coursePage}
-            setPage={setCoursePage}
-            pageSize={coursePageSize}
-            setPageSize={setCoursePageSize}
-            search={courseSearch}
-            onSearch={(v) => { setCourseSearch(v); setCoursePage(1); }}
-            loading={courseLoading}
+            toRetake={toRetake} courses={regSettings?.regSettings.coreCourses || []}
+            maxCredits={regSettings?.regSettings.maxCredits || 0}
             semester={courseRegEdit.semester!}
+            onSuccess={onSuccess}
           />
-        ))
-      )}
+        )
+      ))}
 
       {activeTab === 'registrations' && (
         <div className="bg-white p-6 rounded-lg shadow-sm border">
@@ -328,6 +309,7 @@ const StudentCourseRegistration: React.FC = () => {
                         <button disabled={reg.status === "approved"} onClick={() => {
                           setCourseRegEdit(reg);
                           setEdit(true)
+                          setSemester(reg.semester)
                           setActiveTab("register")
                         }} className="px-3 py-1 bg-blue-500 text-white rounded hover:bg-blue-600 text-sm">
                           <Edit />

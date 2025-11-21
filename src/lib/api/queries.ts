@@ -149,6 +149,15 @@ export const useGetCourseRegistrationInfo = () => {
   });
 }
 
+export const useGetStudentRegSettingsInfo = (semester: string, session: string) => {
+  return useQuery({
+    queryKey: ["studentRegSettings", semester, session],
+    queryFn: () => api.getStudentRegSettingsInfo(semester, session),
+    enabled: true,
+    refetchOnWindowFocus: false,
+  });
+};
+
 export const useGetAdminDashboard = () => {
   return useQuery({
     queryKey: ["adminDashboard"],
@@ -207,10 +216,10 @@ export const useGetPayables = (filters= { page: 1, limit: 20 }) => {
   });
 };
 
-export const useGetRegistrationSettings = (department?: string, level?: string, semester?: string, session?: string) => {
+export const useGetRegistrationSettings = (page:number, department?: string, level?: string, semester?: string, session?: string) => {
   return useQuery({
-    queryKey: ["registrationSettings", department, level, semester, session],
-    queryFn: () => api.getRegistrationSettings({department, level, semester, session}),
+    queryKey: ["registrationSettings", page, department, level, semester, session],
+    queryFn: () => api.getRegistrationSettings({page, department, level, semester, session}),
     refetchOnWindowFocus: false,
   });
 };

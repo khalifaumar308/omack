@@ -56,9 +56,9 @@ import {
   useAdminUpdateBulkRegStatus,
   useRegisterCourse,
 } from "@/lib/api/mutations";
-import SemesterCourseReg from "@/components/SemesterCourseReg";
 import { useUser } from "@/contexts/useUser";
 import { toast } from "sonner";
+import AdminCourseReg from "@/components/AdminCourseReg";
 
 const CourseRegistrations = () => {
   const { user } = useUser();
@@ -230,13 +230,6 @@ const CourseRegistrations = () => {
   // console.log(filteredRegistrations[0], 'fil')
   const startIdx = (currentPage - 1) * pageSize;
   const pagesAfterFilter = Math.max(1, Math.ceil((pagination?.total || filteredRegistrations.length) / pageSize));
-
-  // const getGradeBadgeVariant = (grade?: string) => {
-  //   if (!grade) return "secondary";
-  //   if (["A", "A-", "B+"].includes(grade)) return "default";
-  //   if (["B", "B-", "C+"].includes(grade)) return "secondary";
-  //   return "destructive";
-  // };
 
   const LoadingSkeleton = () => (
     <div className="space-y-4">
@@ -608,7 +601,7 @@ const CourseRegistrations = () => {
                   <div className="text-sm text-muted-foreground">{registrationToEdit.student.matricNo}</div>
                 </div>
                 <div>
-                  <SemesterCourseReg
+                  <AdminCourseReg
                     edit={true}
                     courseReg={{
                       studentId: (registrationToEdit.student as any).id || (registrationToEdit.student as any)._id || '',

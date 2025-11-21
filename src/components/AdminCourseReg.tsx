@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useEffect, useState } from "react";
-import type { StudentRegistrationsInfo } from "./types";
+import type { Course, PopulatedCourse, StudentRegistrationsInfo } from "./types";
+import { Skeleton } from "./ui/skeleton";
 import { toast } from "sonner";
 import { Plus, Send, Trash2 } from "lucide-react";
 import { useUser } from "@/contexts/useUser";
@@ -11,67 +12,102 @@ interface TCourseReg extends StudentRegistrationsInfo {
 	studentId: string;
 }
 
-// interface ICourses {
-// 	data: (Course | PopulatedCourse)[] | [];
-// 	pagination: {
-// 		page: number;
-// 		limit: number; total: number;
-// 		totalPages: number; hasNext: boolean; hasPrev: boolean
-// 	}
-// }
-
-interface CCOurse {
-	_id: string;
-	title: string;
-	creditUnits: number;
-	code: string;
+interface ICourses {
+	data: (Course | PopulatedCourse)[] | [];
+	pagination: {
+		page: number;
+		limit: number; total: number;
+		totalPages: number; hasNext: boolean; hasPrev: boolean
+	}
 }
 
 interface IProps {
 	edit: boolean;
 	courseReg?: TCourseReg;
 	session?: string;
-	toRetake?: CCOurse[];
+	toRetake?: (Course | PopulatedCourse)[];
 	// Accept either Course[] or PopulatedCourse[] or a paginated object containing either
-	courses: CCOurse[];
+	courses: ICourses;
 	semester: string;
-	maxCredits: number;
 	status?: "pending" | "approved" | "rejected";
 	onSuccess?: () => void;
 	// optional external pagination control (when caller manages server pagination)
+	page: number;
+	setPage: (value: React.SetStateAction<number>) => void;
+	pageSize: number;
+	setPageSize?: (value: React.SetStateAction<number>) => void;
+	// show loading fallback while parent fetches courses
+	loading: boolean;
 	// server-side search value (when parent controls search)
+	search?: string;
+	// optional callback when the internal search input changes (to lift search to parent)
+	onSearch: (value: string) => void;
 }
 
 
 interface ISelectedCourse {
 	carryOver: boolean;
-	course: CCOurse;
+	course: Course | PopulatedCourse;
 	canRemove: boolean;
 }
-const SemesterCourseReg = (Props: IProps) => {
+const AdminCourseReg = (Props: IProps) => {
 	// console.log("PProps", Props, 'props in sem reg')
 	const { user } = useUser()
 	// const [semester, setSemester] = useState(Props.courseReg?.semester || Props.semester || "");
-	console.log(Props.courseReg, 'semester prop')
-	const [selectedCourses, setSelectedCourses] = useState<ISelectedCourse[]>(Props.toRetake ? Props.toRetake.map(course => ({ course, carryOver: true, canRemove: true })) : []);
+	const [courseSearch, setCourseSearch] = useState(Props.search || "");
+	const [coursesPagination, setCoursesPagination] = useState<ICourses>({
+		data: [],
+		pagination: { page: 1, limit: 10, total: 0, totalPages: 0, hasNext: false, hasPrev: false }
+	});
+
+	useEffect(() => {
+		if (Props.courses) {
+			setCoursesPagination(Props.courses);
+		}
+	}, [Props.courses])
+
+	useEffect(() => {
+		// sync external search prop to internal state
+		if (Props.search !== undefined) {
+			setCourseSearch(Props.search);
+		}
+	}, [Props.search]);
+
+	// debounce timer id for search
+	const [searchTimer, setSearchTimer] = useState<number | null>(null);
+
+	const [selectedCourses, setSelectedCourses] = useState<ISelectedCourse[]>([]);
 	const [updateStatus, setUpdateStatus] = useState<"pending" | "approved" | "rejected">(Props.status || "pending");
+
+	// Derived courses array and pagination
+	const coursesArray: (Course | PopulatedCourse)[] = coursesPagination.data;
+	const pagination = coursesPagination.pagination;
+
+	//register carry over
+
+
+	useEffect(() => {
+		if (Props.courseReg) {
+			const courses = Props.courseReg?.courses.map(c => c.course) as (Course | PopulatedCourse)[];
+			// new Set to avoid duplicates
+			// const uniqueCourseCodes = new Set(selectedCourses.map(c => c.course.code));
+			console.log("in cccc")
+			setSelectedCourses(prev => [...(new Set([...prev, ...courses.map(course => ({ course, carryOver: false, canRemove: true }))]))]);
+		}
+		// if (Props.toRetake && Props.toRetake.length > 0) {
+		// 	console.log("in toRetake")
+		// 	setSelectedCourses(prev =>[ ...(new Set([...prev, ...Props.toRetake!.map(course => ({ course, carryOver: true, canRemove: false }))]))]);
+		// }
+	}, [Props.courseReg])
+
+
+
+
+	// When server-driven pagination is available and refetch provided, call it on page/search/pageSize change
 
 	const updateRegMutation = useUpdateStudentSemesterReg()
 	const submitRegistrationMutation = useStudentRegisterManyCourses()
 	console.log(Props.toRetake?.length, "to lenght")
-
-	useEffect(() => {
-		if (Props.courseReg) {
-			const courses = Props.courseReg.courses.map(c => ({
-				code: c.course?.code || '',
-				title: c.course?.title || '',
-				creditUnits: c.course?.creditUnits || 0,
-				_id: (c.course as any)?._id || ''
-			}))
-			setSelectedCourses([...selectedCourses, ...courses.map(course => ({ course, carryOver: false, canRemove: true }))])
-		}
-	}, [Props.courseReg])
-
 	const updateRegistration = () => {
 		const courses = selectedCourses.map(c => (c.course as any)._id as string)
 		const update = {
@@ -98,8 +134,8 @@ const SemesterCourseReg = (Props: IProps) => {
 			toast.error('Please select at least one course to register');
 			return;
 		}
-		const toRetake = Props.toRetake?.map(c => c._id) || []
-		const courses = Array.from(new Set([...toRetake, ...selectedCourses.map(c => c.course._id)]))
+		const toRetake = Props.toRetake?.map((c: any) => c._id) || []
+		const courses = Array.from(new Set([...toRetake, ...selectedCourses.map(c => (c.course as any)._id as string)]))
 		//submit registration
 		const reg = {
 			semester: Props.semester, courses, session: user?.school?.currentSession || ''
@@ -107,20 +143,13 @@ const SemesterCourseReg = (Props: IProps) => {
 		submitRegistrationMutation.mutate(reg, {
 			onError: (error: any) => {
 				toast.error(error?.response?.data?.message || 'Registration failed. Please try again.');
-			},
-			onSuccess: () => {
-				toast.success('Courses registered successfully');
-				setSelectedCourses([]);
-				if (Props.onSuccess) {
-					Props.onSuccess();
-				}
 			}
 		});
 	};
 
-	const addCourse = (course: CCOurse) => {
+	const addCourse = (course: Course | PopulatedCourse) => {
 
-		if (selectedCourses.some(c => c.course.code === course.code) || Props.toRetake?.some(c => c.code === course.code)) {
+		if (selectedCourses.some(c => c.course.code === (course as Course).code) || Props.toRetake?.some(c => c.code === (course as Course).code)) {
 			toast.warning('You have already selected this course.');
 			return;
 		}
@@ -131,7 +160,7 @@ const SemesterCourseReg = (Props: IProps) => {
 		setSelectedCourses(selectedCourses.filter(course => course.course.code !== courseCode));
 	};
 
-	const totalCredits = selectedCourses.reduce((sum, course) => sum + course.course.creditUnits, 0);
+	const totalCredits = selectedCourses.reduce((sum, course) => sum + course.course.creditUnits, 0) + (Props.toRetake ? Props.toRetake.reduce((sum, course) => sum + course.creditUnits, 0) : 0);
 	return (
 		<div className="relative">
 			{(updateRegMutation.isPending || submitRegistrationMutation.isPending) && (
@@ -224,37 +253,51 @@ const SemesterCourseReg = (Props: IProps) => {
 								type="text"
 								className="flex-1 px-3 py-2 border rounded focus:outline-none focus:ring focus:border-blue-300"
 								placeholder="Search by code or title..."
-							// value={courseSearch}
-							// onChange={e => {
-							// 	const v = e.target.value;
-							// 	setCourseSearch(v);
-							// 	Props.setPage(1);
-							// 	// debounce calls to parent onSearch to avoid excessive server requests
-							// 	if (searchTimer) window.clearTimeout(searchTimer);
-							// 	const id = window.setTimeout(() => {
-							// 		if (Props.onSearch) Props.onSearch(v);
-							// 	}, 300);
-							// 	setSearchTimer(id);
-							/>
+								value={courseSearch}
+								onChange={e => {
+									const v = e.target.value;
+									setCourseSearch(v);
+									Props.setPage(1);
+									// debounce calls to parent onSearch to avoid excessive server requests
+									if (searchTimer) window.clearTimeout(searchTimer);
+									const id = window.setTimeout(() => {
+										if (Props.onSearch) Props.onSearch(v);
+									}, 300);
+									setSearchTimer(id);
+								}} />
 
 						</div>
 
 						<div className="space-y-4 max-h-96 overflow-y-auto">
-							{(Props.courses.length !== 0) && (
-								Props.courses
+							{Props.loading ? (
+								// show skeleton while parent is fetching
+								Array.from({ length: 6 }).map((_, i) => (
+									<div key={i} className="border rounded-lg p-4">
+										<div className="flex items-center justify-between">
+											<div className="flex-1">
+												<Skeleton className="h-4 w-28 mb-2" />
+												<Skeleton className="h-3 w-48 mb-1" />
+												<Skeleton className="h-3 w-20" />
+											</div>
+											<div className="ml-4 w-8 h-8"><Skeleton className="w-full h-full" /></div>
+										</div>
+									</div>
+								))
+							) : (
+								coursesArray
 									.map(course => (
-										<div key={course._id} className="border rounded-lg p-4 hover:bg-gray-50 transition-colors">
+										<div key={(course as any).id || (course as any)._id} className="border rounded-lg p-4 hover:bg-gray-50 transition-colors">
 											<div className="flex items-center justify-between">
 												<div className="flex-1">
-													<h3 className="font-medium text-gray-800">{course.code}</h3>
-													<p className="text-sm text-gray-600">{course.title}</p>
+													<h3 className="font-medium text-gray-800">{(course as any).code}</h3>
+													<p className="text-sm text-gray-600">{(course as any).title}</p>
 													<p className="text-xs text-gray-500 mt-1">
-														{course.creditUnits} credits
+														{(course as any).creditUnits} credits
 													</p>
 												</div>
 												<button
 													onClick={() => addCourse(course)}
-													disabled={selectedCourses.some(c => c.course.code === course.code)}
+													disabled={selectedCourses.some(c => c.course.code === (course as any).code)}
 													className="ml-4 p-2 bg-blue-500 text-white rounded hover:bg-blue-600 disabled:bg-gray-300 disabled:cursor-not-allowed transition-colors"
 												>
 													<Plus size={16} />
@@ -266,7 +309,7 @@ const SemesterCourseReg = (Props: IProps) => {
 						</div>
 
 						{/* Pagination controls (use server pagination if provided) */}
-						{/* <div className="mt-3 flex items-center justify-between">
+						<div className="mt-3 flex items-center justify-between">
 							<div className="text-sm text-gray-600">{`Showing page ${pagination.page} of ${pagination.totalPages}`}</div>
 							<div className="flex items-center space-x-2">
 								<Button type="button" variant="outline" size="sm" onClick={() => Props.setPage((p: number) => Math.max(1, p - 1))} disabled={!pagination.hasPrev}>Prev</Button>
@@ -280,7 +323,7 @@ const SemesterCourseReg = (Props: IProps) => {
 									}
 								}} disabled={!pagination.hasNext}>Next</Button>
 							</div>
-						</div> */}
+						</div>
 					</div>
 
 					{/* Selected Courses */}
@@ -288,7 +331,7 @@ const SemesterCourseReg = (Props: IProps) => {
 						<div className="flex items-center justify-between mb-4">
 							<h2 className="text-lg font-semibold text-gray-800">Selected Courses</h2>
 							<span className="text-sm text-gray-600">
-								Total Credits: {totalCredits} of {Props.maxCredits}
+								Total Credits: {totalCredits}
 							</span>
 						</div>
 
@@ -297,7 +340,21 @@ const SemesterCourseReg = (Props: IProps) => {
 								<p className="text-gray-500 text-center py-8">No courses selected</p>
 							) : (
 								<>
-
+									{
+										Props.toRetake?.map(course => (
+											<div key={course.code} className="border rounded-lg p-4">
+												<div className="flex items-center justify-between">
+													<div className="flex-1">
+														<h3 className="font-medium text-gray-800">{course.code}</h3>
+														<p className="text-sm text-gray-600">{course.title}</p>
+														<p className="text-xs text-gray-500 mt-1">
+															{course.creditUnits} credits
+														</p>
+													</div>
+												</div>
+											</div>
+										))
+									}
 									{selectedCourses.map(course => (
 										<div key={course.course.code} className="border rounded-lg p-4">
 											<div className="flex items-center justify-between">
@@ -321,10 +378,11 @@ const SemesterCourseReg = (Props: IProps) => {
 										</div>
 									))}
 								</>
+
 							)}
 						</div>
 
-						{(selectedCourses.length > 0 && totalCredits <= Props.maxCredits) && (
+						{selectedCourses.length > 0 && (
 							<div className="mt-6 pt-4 border-t space-y-3">
 								<div className="flex space-x-2">
 
@@ -349,4 +407,4 @@ const SemesterCourseReg = (Props: IProps) => {
 	)
 }
 
-export default SemesterCourseReg
+export default AdminCourseReg
