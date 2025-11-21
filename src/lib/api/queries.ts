@@ -218,7 +218,7 @@ export const useGetPayables = (filters= { page: 1, limit: 20 }) => {
 
 export const useGetRegistrationSettings = (page:number, department?: string, level?: string, semester?: string, session?: string) => {
   return useQuery({
-    queryKey: ["registrationSettings", page, department, level, semester, session],
+    queryKey: ["registrationSettings"],
     queryFn: () => api.getRegistrationSettings({page, department, level, semester, session}),
     refetchOnWindowFocus: false,
   });

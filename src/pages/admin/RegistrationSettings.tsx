@@ -52,7 +52,7 @@ const RegistrationSettings = () => {
   const [settingsFilterLevel, setSettingsFilterLevel] = useState('');
   const [settingsFilterSemester, setSettingsFilterSemester] = useState('');
 
-	const {data: registrationSettingsData, isLoading: isLoadingRegistrationSettings } = useGetRegistrationSettings(settingsPage, settingsFilterDept, settingsFilterLevel,settingsFilterSemester,session);
+	const {data: registrationSettingsData, isLoading: isLoadingRegistrationSettings, refetch } = useGetRegistrationSettings(settingsPage, settingsFilterDept, settingsFilterLevel,settingsFilterSemester,session);
 
   // Fetch courses with filters
   const { data: coursesResponse, isLoading: isLoadingCourses } = useGetCourses(
@@ -144,6 +144,7 @@ const RegistrationSettings = () => {
           endDate
         });
         toast.success('Registration setting updated');
+        refetch();
       } else {
         // Create new setting
         await createRegistrationSetting({ 
@@ -157,6 +158,7 @@ const RegistrationSettings = () => {
           endDate 
         });
         toast.success('Registration setting saved');
+        refetch();
       }
 
       handleResetForm();
