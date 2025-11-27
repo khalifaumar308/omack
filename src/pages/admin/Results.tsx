@@ -1,5 +1,7 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useUser } from "@/contexts/useUser";
 import { useGetStudentsSemesterResults, useGetGradingTemplates, useGetCoursesId } from "@/lib/api/queries";
+import { useGetDepartments } from '@/lib/api/queries';
 import React, { useState, useEffect, useMemo } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
@@ -67,6 +69,12 @@ const Results = () => {
 
 	const { data: gradingTemplatesRaw } = useGetGradingTemplates();
 	const gradingTemplates: GradingTemplate[] = Array.isArray(gradingTemplatesRaw) ? gradingTemplatesRaw : [];
+
+	const { data: departmentsRaw } = useGetDepartments();
+	const departments: any[] = Array.isArray(departmentsRaw) ? departmentsRaw : [];
+	const [selectedDepartment, setSelectedDepartment] = useState<string | null>(null);
+	const [exportLoading, setExportLoading] = useState(false);
+	const [exportLevel, setExportLevel] = useState<string>(levelFilter);
 
 	// Mobile detection hook (must be called unconditionally)
 	const isMobile = useIsMobile();
@@ -258,6 +266,61 @@ const Results = () => {
 					</div>
 
 					<div className="flex gap-2 mb-6">
+						{/* Export controls */}
+						<div className="flex items-center gap-2">
+							<Select value={selectedDepartment || ''} onValueChange={(v) => setSelectedDepartment(v || null)}>
+								<SelectTrigger>
+									<SelectValue placeholder="Select department" />
+								</SelectTrigger>
+								<SelectContent>
+									{departments.map((d: any) => (
+										<SelectItem key={d.id || d._id} value={d.id || d._id}>{d.name}</SelectItem>
+									))}
+								</SelectContent>
+							</Select>
+							{/* Export level selector (allows All or specific level) */}
+							<Select value={exportLevel || 'all'} onValueChange={(v) => setExportLevel(v)}>
+								<SelectTrigger>
+									<SelectValue placeholder="Select level" />
+								</SelectTrigger>
+								<SelectContent>
+									<SelectItem value="all">All Levels</SelectItem>
+									{user?.school?.levels?.map((level: any) => (
+										<SelectItem key={level} value={level}>{level}</SelectItem>
+									))}
+								</SelectContent>
+							</Select>
+							<Button onClick={async () => {
+								if (!selectedDepartment) { toast.error('Select a department first'); return; }
+								setExportLoading(true);
+								try {
+									const lvl = exportLevel || 'all';
+									const url = `/api/exports?departmentId=${selectedDepartment}&level=${encodeURIComponent(lvl)}&semester=${encodeURIComponent(semester)}&session=${encodeURIComponent(session)}`;
+									const res = await fetch(url, { credentials: 'include' });
+									if (!res.ok) {
+										const json = await res.json().catch(() => ({}));
+										throw new Error(json.error || 'Export failed');
+									}
+									const blob = await res.blob();
+									const a = document.createElement('a');
+									const downloadUrl = URL.createObjectURL(blob);
+									a.href = downloadUrl;
+									a.download = `results-${selectedDepartment}-${lvl}-${session}-${semester}.xlsx`;
+									document.body.appendChild(a);
+									a.click();
+									document.body.removeChild(a);
+									URL.revokeObjectURL(downloadUrl);
+									toast.success('Export started');
+								} catch (err: any) {
+									console.error(err);
+									toast.error(err.message || 'Export failed');
+								} finally {
+									setExportLoading(false);
+								}
+							}} disabled={exportLoading}>
+								{exportLoading ? 'Exporting...' : 'Export Excel'}
+							</Button>
+						</div>
 						<Dialog open={isUploadOpen} onOpenChange={setIsUploadOpen}>
 							<DialogTrigger asChild>
 								<Button variant="outline">Upload Results from CSV</Button>
