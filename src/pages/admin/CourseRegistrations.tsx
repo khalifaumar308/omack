@@ -185,8 +185,6 @@ const CourseRegistrations = () => {
     const file = e.target.files?.[0] || null;
     setSelectedFile(file);
   };
-
-  // console.log(students, 'students', courses, 'courses')
   // console.log(bulkFormData, 'bulk')
   const handleBulkUpload = () => {
     if (!selectedFile) return;
@@ -203,10 +201,14 @@ const CourseRegistrations = () => {
         if (!matricNo || !courseCodes || !bulkSemester || !bulkSession) {
           return;
         }
-        const studentId = (students?.find(student => student.matricNo === matricNo.trim()) as any)?._id;
+        const foundStudent = students?.find(student => student.matricNo === matricNo.trim())
+        const studentId = (foundStudent as any)?._id || foundStudent?.id;
+        // console.log(students?.find(student => student.matricNo === matricNo.trim()), matricNo, "dt")
         const courseCds = courseCodes?.trim().split(';');
-        const courseIds = courses?.data?.filter((course: any) => courseCds.includes(course.code)).map((course: any) => course._id);
-        if (studentId === "") {
+        const foundCourses = courses?.data?.filter((course) => courseCds.includes(course.code)) || []
+        const courseIds = foundCourses.map((course: any) => course._id);
+        if (!studentId || studentId === "") {
+          toast.error(`${matricNo} student not found`)
           console.log(matricNo, 'student not found');
         }
         if (studentId && courseIds && courseIds.length > 0 && studentId !== "") {
@@ -215,9 +217,7 @@ const CourseRegistrations = () => {
           });
         }
       });
-
       if (registrations.length > 0) {
-        // console.log(registrations, 'registrw')
         setBulkFormData(registrations);
       }
     };

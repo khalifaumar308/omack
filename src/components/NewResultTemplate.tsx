@@ -288,7 +288,7 @@ const NewResultTemplate = (data: PDFProps) => {
 							style={{ width: 100, height: 100, margin: 10 }}
 						/>}
 						<View style={{ display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center", width: "80%" }}>
-							<Text style={{ color: "white", fontSize: 20, width: "85%", textAlign: "center" }}>O'MARK SCHOOL OF HEALTH TECHNOLOGY</Text>
+							<Text style={{ color: "white", fontSize: 20, width: "85%", textAlign: "center" }}>{data.schoolInfo.name}</Text>
 							<Text style={{ color: "#E0E8EF", fontSize: 8, width: "70%", textAlign: "center", marginTop: "2px" }}>{data.schoolInfo.address}</Text>
 							<View style={{ display: "flex", flexDirection: "row", alignItems: "flex-end", justifyContent: "center", width: "100%", marginTop: "10px", gap: "20px" }}>
 								<View style={{ display: "flex", flexDirection: "row", alignItems: "center", justifyContent: "center", gap: "5px" }}>
