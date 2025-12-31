@@ -27,6 +27,7 @@ import { useAddCourse, useUpdateCourse, useDeleteCourse, useBulkAddCourses } fro
 import { useUser } from "@/contexts/useUser";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
+import { Link } from "react-router";
 
 export default function Courses() {
   const [searchTerm, setSearchTerm] = useState("");
@@ -440,7 +441,9 @@ export default function Courses() {
                   {coursesData.map((course) => (
                     <TableRow key={course.id}>
                       <TableCell className="font-medium">
-                        {course.code}
+                        <Link to={`/admin/courses/${(course as any)._id || course.id}`} className="text-primary hover:underline">
+                          {course.code}
+                        </Link>
                       </TableCell>
                       <TableCell>{course.title}</TableCell>
                       <TableCell>{course.creditUnits}</TableCell>

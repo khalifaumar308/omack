@@ -1,4 +1,4 @@
-import { useQuery, useInfiniteQuery } from "@tanstack/react-query";
+import { useQuery, useInfiniteQuery, useMutation } from "@tanstack/react-query";
 import * as api from "./base";
 import type { PaginatedResponse, CourseRegistrationInstructorItem } from '@/components/types';
 import type { PayableFilters, PayablesResponse } from "./types";
@@ -93,10 +93,19 @@ export const useGetCoursesId = (codes: string[]) => {
   return useQuery({
     queryKey: ["course", codes],
     queryFn: () => api.getCourseIdsFromCodes(codes),
-    enabled: !!codes.length,
+    enabled: Array.isArray(codes) && codes.length > 0,
     refetchOnWindowFocus: false,
   });
 };
+
+export const useGetSemesterCourseRegsStats = (courseCodes:string[], semester: string, session: string) => {
+  return useQuery({
+    queryKey: ["semesterCourseRegsStats", courseCodes, semester, session],
+    queryFn: () => api.getSemesterCourseRegsStats(courseCodes, semester, session),
+    enabled: Array.isArray(courseCodes) && courseCodes.length > 0 && !!semester && !!session,
+    refetchOnWindowFocus: false,
+  });
+}
 
 export const useGetCourseRegistrations = (
   semester: string = 'all',
@@ -133,7 +142,7 @@ export const useGetCourseRegistrationsForInstructor = (
   search: string = ''
 ) => {
   return useQuery({
-    queryKey: ["courseRegistrationsForInstructor"],
+    queryKey: ["courseRegistrationsForInstructor", courseId, semester, session, page, limit, search],
     queryFn: () => api.getCourseRegistrationsForInstructor(courseId as string, semester === 'all' ? undefined : semester, session === 'all' ? undefined : session, page, limit, search) as Promise<PaginatedResponse<CourseRegistrationInstructorItem>>,
     enabled: !!courseId && !!semester && !!session,
     refetchOnWindowFocus: false,
@@ -153,7 +162,7 @@ export const useGetStudentRegSettingsInfo = (semester: string, session: string) 
   return useQuery({
     queryKey: ["studentRegSettings", semester, session],
     queryFn: () => api.getStudentRegSettingsInfo(semester, session),
-    enabled: true,
+    enabled: !!semester && !!session,
     refetchOnWindowFocus: false,
   });
 };
@@ -191,11 +200,12 @@ export const useGetStudentsSemesterResults = (
   search: string = '',
   level: string = 'all'
 ) => {
-  return useQuery({
+  return useQuery<PaginatedResponse<import('@/components/types').StudentsSemesterResultsResponse>>({
     queryKey: ["studentsSemesterResults", semester, session, page, limit, search, level],
     queryFn: () => api.getStudentsSemesterResults(semester, session, page, limit, search, level),
     placeholderData: undefined,
     refetchOnWindowFocus: false,
+    staleTime: 1000 * 30, // 30 seconds
   });
 };
 
@@ -286,11 +296,34 @@ export const useGetGradingTemplates = () => {
   })
 }
 
+// Mutation hook for exporting results (returns Blob)
+export const useExportResults = () => {
+  type ExportParams = { departmentId: string; level?: string; semester: string; session: string };
+  const mutationFn = (params: ExportParams) => api.exportResults(params) as Promise<Blob>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  return useMutation<Blob, any, ExportParams>({ mutationFn });
+}
+
+export const useGetResultsPerCourse = (
+  courseId: string | undefined,
+  semester: string,
+  session: string
+) => {
+  return useQuery({
+    queryKey: ["resultsPerCourse", courseId, semester, session],
+    queryFn: () => api.getCourseRegPercourse(courseId as string, semester, session),
+    placeholderData: undefined,
+    enabled: !!courseId,
+    refetchOnWindowFocus: false,
+  });
+};
+
 export const useGetGradingTemplateById = (id:string) => {
   return useQuery({
-    queryKey: ["gradingTemplates"],
+    queryKey: ["gradingTemplate", id],
     queryFn: ()=>api.getGradingTemplateById(id),
     placeholderData: undefined,
+    enabled: !!id,
     refetchOnWindowFocus: false,
   })
 }

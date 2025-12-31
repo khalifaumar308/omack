@@ -31,6 +31,7 @@ import InstructorCourse from "./pages/instructors/InstructorCourse";
 import Payables from "./pages/admin/Payables";
 import Payable from "./pages/admin/Payable";
 import RegistrationSettings from "./pages/admin/RegistrationSettings";
+import CourseDetails from "./pages/admin/CourseDetails";
 
 const queryClient = new QueryClient();
 function App() {
@@ -68,6 +69,7 @@ function App() {
                 <Route path="/admin/settings" element={<SchoolSettings />} />
                 <Route path="/admin/payables" element={<Payables />} />
                 <Route path="/admin/payables/:id" element={<Payable />} />
+                <Route path="/admin/courses/:id" element={<CourseDetails />} />
               </Route>
               {/* Student Routes */}
               <Route path="/student" element={

@@ -1,8 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import { useUser } from "@/contexts/useUser";
-import { useGetStudentsSemesterResults, useGetGradingTemplates, useGetCoursesId } from "@/lib/api/queries";
+import { useGetStudentsSemesterResults, useGetGradingTemplates, useGetCoursesId, useExportResults, useGetSemesterCourseRegsStats } from "@/lib/api/queries";
 import { useGetDepartments } from '@/lib/api/queries';
-import React, { useState, useEffect, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -41,10 +41,9 @@ const Results = () => {
 	const [session, setSession] = useState(user?.school?.currentSession || '2025/2026');
 	const [searchTerm, setSearchTerm] = useState('');
 	const [levelFilter, setLevelFilter] = useState('all');
-	const [courseCodes, setCourseCodes] = useState<string[]>([]);
 	const [courseCodesToFetch, setCourseCodesToFetch] = useState<string[]>([]);
+	const [typedCourses, setTypedCourses] = useState<string>('');
 	const { data: courseIds, isLoading: courseIdsLoading, isError: courseIdsError } = useGetCoursesId(courseCodesToFetch);
-	console.log(user?.school, "school");
 	const [currentPage, setCurrentPage] = useState(1);
 	const [pageSize, setPageSize] = useState(10);
 	const [serverSearch, setServerSearch] = useState('');
@@ -66,20 +65,20 @@ const Results = () => {
 	const [uploadSession, setUploadSession] = useState('2025/2026');
 	const [uploadFile, setUploadFile] = useState<File | null>(null);
 	const [parsedData, setParsedData] = useState<UploadData[]>([]);
-
+	// course stats for upload preview (only fetched when Fetch Courses button clicked)
+	const { data: courseRegStats } = useGetSemesterCourseRegsStats(courseCodesToFetch, uploadSemester, uploadSession);
 	const { data: gradingTemplatesRaw } = useGetGradingTemplates();
-	const gradingTemplates: GradingTemplate[] = Array.isArray(gradingTemplatesRaw) ? gradingTemplatesRaw : [];
-
+	const gradingTemplates: GradingTemplate[] = useMemo(() => Array.isArray(gradingTemplatesRaw) ? gradingTemplatesRaw : [], [gradingTemplatesRaw]);
 	const { data: departmentsRaw } = useGetDepartments();
-	const departments: any[] = Array.isArray(departmentsRaw) ? departmentsRaw : [];
+	const departments: any[] = useMemo(() => Array.isArray(departmentsRaw) ? departmentsRaw : [], [departmentsRaw]);
 	const [selectedDepartment, setSelectedDepartment] = useState<string | null>(null);
-	const [exportLoading, setExportLoading] = useState(false);
+	const exportMut = useExportResults();
+	const exportLoading = exportMut.isPending;
 	const [exportLevel, setExportLevel] = useState<string>(levelFilter);
 
 	// Mobile detection hook (must be called unconditionally)
 	const isMobile = useIsMobile();
-
-	const handleFileUpload = (event: React.ChangeEvent<HTMLInputElement>) => {
+	const handleFileUpload = useCallback((event: React.ChangeEvent<HTMLInputElement>) => {
 		const file = event.target.files?.[0];
 		if (!file) return;
 
@@ -96,29 +95,31 @@ const Results = () => {
 			const headers = lines[0].split(',').map(h => h.trim());
 			const data: UploadData[] = []
 			lines.slice(1).forEach((line) => {
-				const values = line.split(',').map(v => v.trim());
-				// index 0 is matric no, the rest are course scores
-				values.slice(1).forEach((score, index) => {
-					const cc = {
-						//get course id from courseIds
-						course: (courseIds?.find((c) => c.code === headers[index + 1]))?.id || "",
-						// course: headers[index + 1],
-						score: parseFloat(score) || 0,
-						matricNo: values[0],
-						semester: uploadSemester,
-						session: uploadSession,
-					}
-					if (cc.course && cc.matricNo && !isNaN(cc.score)) {
-						data.push(cc);
-					}
-				});
+				if (line && line.length>0) {
+					const values = line.split(',').map(v => v.trim());
+					// index 0 is matric no, the rest are course scores
+					values.slice(2).forEach((score, index) => {
+						const cc = {
+							//get course id from courseIds
+							course: (courseIds?.find((c) => c.code === headers[index + 2]))?.id || "",
+							// course: headers[index + 1],
+							score: parseFloat(score) || 0,
+							matricNo: values[0],
+							semester: uploadSemester,
+							session: uploadSession,
+						}
+						if (cc.course && cc.matricNo && !isNaN(cc.score)) {
+							data.push(cc);
+						}
+					});	
+				}
 			});
 			setParsedData(data);
 		};
 		reader.readAsText(file);
-	};
+	}, [courseIds, uploadSemester, uploadSession]);
 
-	const handleUploadSubmit = () => {
+	const handleUploadSubmit = useCallback(() => {
 		if (!uploadFile || parsedData.length === 0) {
 			console.error('Missing required fields or data');
 			return;
@@ -136,7 +137,7 @@ const Results = () => {
 				toast.error(`Upload failed. ${err.message || 'Please try again.'}`);
 			},
 		});
-	};
+	}, [uploadFile, parsedData, uploadResults]);
 
 	// Debounce search and level filter for server-side
 	useEffect(() => {
@@ -146,7 +147,7 @@ const Results = () => {
 			setCurrentPage(1);
 		}, 400);
 		return () => clearTimeout(handler);
-	}, [searchTerm, levelFilter, semester, session, pageSize]);
+	}, [searchTerm, levelFilter]);
 
 	const paginatedResults = useMemo(() => data?.data || [], [data]);
 	const totalItems = pagination.total;
@@ -169,6 +170,22 @@ const Results = () => {
 		if (totalPages > 1) pages.push(totalPages);
 		return pages;
 	}, [totalPages, currentPage]);
+
+	// Stable row renderer for react-window to avoid remounting rows on each render
+	const RowRenderer = useCallback(({ index, style }: ListChildComponentProps) => {
+		const result = paginatedResults[index];
+		return (
+			<ResultRow
+				key={result.student.matricNo}
+				result={result}
+				gradingTemplates={gradingTemplates}
+				session={session}
+				semester={semester}
+				style={style}
+				school={user!.school!}
+			/>
+		);
+	}, [paginatedResults, gradingTemplates, session, semester, user]);
 
 
 	if (userLoading || isLoading) return (
@@ -212,8 +229,6 @@ const Results = () => {
 		</div>
 	);
 	if (error) return <div>Error loading results</div>;
-	// ResultRow is extracted to ./ResultRow and react-window is used for virtualization
-
 	return (
 		<div className="container mx-auto p-4 sm:p-6">
 			<Card>
@@ -290,33 +305,31 @@ const Results = () => {
 									))}
 								</SelectContent>
 							</Select>
-							<Button onClick={async () => {
+							<Button onClick={() => {
 								if (!selectedDepartment) { toast.error('Select a department first'); return; }
-								setExportLoading(true);
-								try {
-									const lvl = exportLevel || 'all';
-									const url = `/api/exports?departmentId=${selectedDepartment}&level=${encodeURIComponent(lvl)}&semester=${encodeURIComponent(semester)}&session=${encodeURIComponent(session)}`;
-									const res = await fetch(url, { credentials: 'include' });
-									if (!res.ok) {
-										const json = await res.json().catch(() => ({}));
-										throw new Error(json.error || 'Export failed');
+								const lvl = exportLevel || 'all';
+								exportMut.mutate({ departmentId: selectedDepartment, level: lvl, semester, session }, {
+									onSuccess: (blob: Blob) => {
+										try {
+											const downloadUrl = URL.createObjectURL(blob as any);
+											const a = document.createElement('a');
+											a.href = downloadUrl;
+											a.download = `results-${selectedDepartment}-${lvl}-${session}-${semester}.xlsx`;
+											document.body.appendChild(a);
+											a.click();
+											document.body.removeChild(a);
+											URL.revokeObjectURL(downloadUrl);
+											toast.success('Export started');
+										} catch (err: any) {
+											console.error(err);
+											toast.error('Download failed');
+										}
+									},
+									onError: (err: any) => {
+										console.error(err);
+										toast.error(err?.message || 'Export failed');
 									}
-									const blob = await res.blob();
-									const a = document.createElement('a');
-									const downloadUrl = URL.createObjectURL(blob);
-									a.href = downloadUrl;
-									a.download = `results-${selectedDepartment}-${lvl}-${session}-${semester}.xlsx`;
-									document.body.appendChild(a);
-									a.click();
-									document.body.removeChild(a);
-									URL.revokeObjectURL(downloadUrl);
-									toast.success('Export started');
-								} catch (err: any) {
-									console.error(err);
-									toast.error(err.message || 'Export failed');
-								} finally {
-									setExportLoading(false);
-								}
+								});
 							}} disabled={exportLoading}>
 								{exportLoading ? 'Exporting...' : 'Export Excel'}
 							</Button>
@@ -367,30 +380,30 @@ const Results = () => {
 											<Input
 												id="courseCodes"
 												type="text"
-												placeholder="Enter course code and press Enter"
-												value={courseCodes.join(', ')}
+												placeholder="Enter course code to Fetch"
+												value={typedCourses}
 												onChange={(e) => {
-													const codes = e.target.value.split(',').map(c => c.trim().toUpperCase()).filter(c => c);
-													setCourseCodes(codes);
+													setTypedCourses(e.target.value);
 												}}
 											/>
 											<Button
 												variant="destructive"
 												onClick={() => {
-													setCourseCodes([]);
-													setCourseCodesToFetch([]);
+
 													setParsedData([]);
 													setUploadFile(null);
+													setTypedCourses('')
 												}}
 											>
 												Clear
 											</Button>
 											<Button
 												onClick={() => {
-													// Trigger fetch of course IDs
-													setCourseCodesToFetch(courseCodes);
+													// Trigger fetch of course IDs and stats
+													setCourseCodesToFetch(typedCourses.split(',').map(c => c.trim().toUpperCase()).filter(c => c));
+
 												}}
-												disabled={courseCodes.length === 0 || courseIdsLoading}
+												disabled={typedCourses.length === 0 || courseIdsLoading}
 											>
 												{courseIdsLoading ? 'Fetching...' : 'Fetch Courses'}
 											</Button>
@@ -406,9 +419,20 @@ const Results = () => {
 												className="mb-2"
 												onClick={() => {
 													// Generate header: matricNo,<courseCode1>,<courseCode2>,...
-													const courseCodes = courseIds.map(c => c.code);
-													const header = ['matricNo', ...courseCodes].join(',') + '\n';
-													const blob = new Blob([header], { type: 'text/csv' });
+													const courseCodes = courseRegStats?.map(c => c.code) || [];
+													const head = ['MATRIC No', "NAME", ...courseRegStats?.map(c => c.code) || []];
+													const lines: string[] = []
+													courseRegStats?.forEach(({ registrations }) => {
+														registrations.forEach((reg) => {
+															const line = `${reg.student.matricNo},${reg.student.name},${courseCodes.map(() => '0').join(',')}`;
+															if (!lines.includes(line)) {
+																lines.push(line);
+															}
+														})
+													})
+													const header = head.join(',') + '\n';
+													const fileContent = header + lines.join('\n');
+													const blob = new Blob([fileContent], { type: 'text/csv' });
 													const url = URL.createObjectURL(blob);
 													const a = document.createElement('a');
 													a.href = url;
@@ -466,25 +490,12 @@ const Results = () => {
 										</div>
 										<div>
 											<List
-											height={Math.min(400, pageSize * 56)}
-											itemCount={paginatedResults.length}
-											itemSize={56}
-											width="100%"
-										>
-											{({ index, style }: ListChildComponentProps) => {
-												const result = paginatedResults[index];
-												return (
-													<ResultRow
-														key={result.student.matricNo}
-														result={result}
-														gradingTemplates={gradingTemplates}
-														session={session}
-														semester={semester}
-														style={style}
-														school={user!.school!}
-													/>
-												);
-											}}
+												height={Math.min(400, pageSize * 56)}
+												itemCount={paginatedResults.length}
+												itemSize={56}
+												width="100%"
+											>
+												{RowRenderer}
 											</List>
 										</div>
 									</div>

@@ -627,3 +627,20 @@ export const useTransitionStudents = () => {
     },
   });
 };
+
+export const useAddMarksToStudents = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: { courseId: string; semester: string; session: string; marksToAdd: number }) =>
+      api.addMarksToStudents(data.courseId, data.semester, data.session, data.marksToAdd),
+    onSuccess: (data) => {
+      queryClient.invalidateQueries({ queryKey: ["resultsPerCourse"], exact: false });
+      queryClient.invalidateQueries({ queryKey: ["courseRegistrations"], exact: false });
+      toast.success(data.message);
+    },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.message || "Failed to add marks. Please try again.");
+    },
+  });
+};

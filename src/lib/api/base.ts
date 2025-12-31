@@ -24,6 +24,7 @@ import type {
   CourseRegistrationInstructorItem,
   PopulatedCourse,
   CreateCourseForm,
+  PopulatedCourseRegistration,
 } from '@/components/types';
 import type { 
   // WalletBalance,
@@ -662,6 +663,28 @@ export const getCourseRegistrations = async (
   return response.data;
 };
 
+export const getCourseRegPercourse = async (courseId: string, semester: string, session: string) => {
+  const response = await api.get<{ regs: PopulatedCourseRegistration }>(`/course-registrations/course/${courseId}`, {
+    params: { semester, session }
+  });
+  return response.data;
+}
+
+export const addMarksToStudents = async (courseId: string, semester: string, session: string, marksToAdd: number) => {
+  const response = await api.post<{
+    success: boolean;
+    message: string;
+    affectedStudents: number;
+    updatedStudentIds: string[];
+  }>('/course-registrations/add-marks', {
+    courseId,
+    semester,
+    session,
+    marksToAdd
+  });
+  return response.data;
+}
+
 export const updateSemesterCourseReg = async (body:
   {
     studentId: string; semester: string;
@@ -840,10 +863,21 @@ export const createCourse = async (courseData: {
   return response.data;
 };
 
+export const getSemesterCourseRegsStats = async (courseCodes:string[],semester: string, session: string) => {
+  const response = await api.post<{data:{code:string, registrations:PopulatedCourseRegistration[], course:Course}[]}>(`/course-registrations/semester-results`, { courseCodes, semester, session });
+  return response.data.data;
+}
+
 export const getCourseIdsFromCodes = async (courseCodes: string[]) => {
   const response = await api.post<{ courses: { id: string; code: string }[] }>("/courses/ids", { courseCodes });
   return response.data.courses;
 };
+
+// Export results as an XLSX (returns Blob)
+export const exportResults = async (params: { departmentId: string; level?: string; semester: string; session: string }) => {
+  const response = await api.get('/exports', { params, responseType: 'blob' as const });
+  return response.data;
+}
 
 export const getadmindashBoardData = async () => {
   const response = await api.get<{
@@ -1098,6 +1132,9 @@ export default {
   uploadMultipleResults,
   getSemesterResult,
   getTranscript,
+
+  // Export
+  exportResults,
 
   // Courses
   createCourse,

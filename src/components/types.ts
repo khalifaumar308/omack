@@ -203,7 +203,7 @@ export interface ResultSummary extends BaseEntity {
 // =============================================================================
 
 // For when data is populated from references
-export interface PopulatedCourseRegistration extends Omit<CourseRegistration, 'student' | 'course'> {
+export interface  PopulatedCourseRegistration extends Omit<CourseRegistration, 'student' | 'course'> {
   student: Student;
   course: Course;
 }
