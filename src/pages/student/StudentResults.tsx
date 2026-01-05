@@ -35,7 +35,6 @@ import type { PDFProps as ResultPDFProps } from "@/components/NewResultTemplate"
 import TranscriptTemplate from "@/components/TranscriptTemplate";
 import type { TranscriptProps } from "@/components/TranscriptTemplate";
 import type {
-  StudentsSemesterResultsResponse,
   ResultSummary,
   PopulatedDepartment,
   PopulatedFaculty,
@@ -44,6 +43,7 @@ import type {
 import { scoreToComment } from "@/lib/utils";
 import NewResultTemplate from "@/components/NewResultTemplate";
 import type { AxiosError } from "axios";
+import { useInitiatePayablePayment } from "@/lib/api/mutations";
 
 function LoadingSkeletonResults() {
   return (
@@ -129,15 +129,14 @@ const Results = () => {
   const notReleased = !!((semesterError as AxiosError)?.response?.status === 403);
   const { data: transcript = [], isLoading: transcriptLoading } = useGetTranscript();
   const { data:studentDataa, isLoading:fetchingStudent } = useGetStudent(user?.id || '');
-  const currentResult = semesterResult as StudentsSemesterResultsResponse | undefined; // Assume only current student's data
-
+  const currentResult = {summary: semesterResult?.summary, courses: semesterResult?.courses};
   // Find grading template for student's department
   const departmentId = studentDataa?.department && typeof studentDataa.department === 'object' ? studentDataa.department.id : studentDataa?.department;
   const gradingTemplate = (gradingTemplatesRaw ? (JSON.parse(JSON.stringify(gradingTemplatesRaw)) as GradingTemplate[]) : []).find(
     (tpl) => (typeof tpl.department === 'string' ? tpl.department : tpl.department?.id) === departmentId
   );
   const gradeBands = useMemo(() => gradingTemplate?.gradeBands || [], [gradingTemplate]);
-  // console.log("current User", studentDataa);
+  const { mutate:initializePayment, isPending } = useInitiatePayablePayment()
 
   // Student data for PDFs - compute always, null if no user
   const studentData = useMemo<ResultPDFProps['studentData'] & TranscriptProps['studentData'] | null>(() => {
@@ -288,7 +287,24 @@ const Results = () => {
             <p className="text-center py-8 text-muted-foreground">
               Results not released yet for {semester} semester, {session}.
             </p>
-          ) : courses.length === 0 ? (
+          ) :semesterResult?.message?(
+            <div className="text-center py-8 text-muted-foreground">
+              {semesterResult.message}
+              <div className="mt-4">
+                <h3 className="font-medium mb-2">Pending Payments:</h3>
+                <ul className="list-disc list-inside space-y-1">
+                  {semesterResult?.payables?.map((payable) => (
+                    <li key={payable._id} className="flex justify-center-safe items-center gap-2">
+                      <p>
+                        {payable.description} - {payable.totalPaid}/{payable.amount}
+                      </p>
+                      <Button onClick={() => initializePayment({ payableId: payable._id, amount: payable.amount })}>{!isPending ? "Pay Now" : "Processing..."}</Button>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+            </div>
+          ): courses.length === 0 ? (
             <p className="text-center py-8 text-muted-foreground">
               No results available for {semester} semester, {session}.
             </p>
@@ -326,110 +342,121 @@ const Results = () => {
               </div>
 
               {/* Summary Card */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Result Summary</CardTitle>
-                </CardHeader>
-                <CardContent className="grid grid-cols-2 md:grid-cols-5 gap-4 p-4">
-                  <div className="text-center">
-                    <div className="text-sm text-muted-foreground">TCU</div>
-                    <div className="font-bold">{summary.tcu}</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-sm text-muted-foreground">GPA</div>
-                    <div className="font-bold">{summary.gpa.toFixed(2)}</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-sm text-muted-foreground">Classification</div>
-                    <div className="font-bold">{summary.remark}</div>
-                  </div>
-                </CardContent>
-              </Card>
+              {semesterResult?.summary && (
+                <>
+                  <Card>
+                    <CardHeader>
+                      <CardTitle>Result Summary</CardTitle>
+                    </CardHeader>
+                    <CardContent className="grid grid-cols-2 md:grid-cols-5 gap-4 p-4">
+                      <div className="text-center">
+                        <div className="text-sm text-muted-foreground">TCU</div>
+                        <div className="font-bold">{summary.tcu}</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-sm text-muted-foreground">GPA</div>
+                        <div className="font-bold">{summary.gpa.toFixed(2)}</div>
+                      </div>
+                      <div className="text-center">
+                        <div className="text-sm text-muted-foreground">Classification</div>
+                        <div className="font-bold">{summary.remark}</div>
+                      </div>
+                    </CardContent>
+                  </Card>
 
-              {/* Download Semester Result */}
-              <div className="flex justify-center pt-4">
-                <PDFDownloadLink
-                  document={
-                    <NewResultTemplate
-                      studentData={{...studentData, level: pdfSummary.level || studentData.level}}
-                      courses={courses}
-                      summary={pdfSummary}
-                      schoolInfo={user.school!}
-                    />
-                  }
-                  fileName={`${studentDataa!.name.replace(/\s+/g, '_')}-${session}-${semester}-result.pdf`}
-                >
-                  {({ loading }) => (
-                    <Button disabled={loading}>
-                      {loading ? 'Generating PDF...' : 'Download Semester Result'}
-                    </Button>
-                  )}
-                </PDFDownloadLink>
-              </div>
+                  {/* Download Semester Result */}
+                  <div className="flex justify-center pt-4">
+                    <PDFDownloadLink
+                      document={
+                        <NewResultTemplate
+                          studentData={{...studentData, level: pdfSummary.level || studentData.level}}
+                          courses={courses}
+                          summary={pdfSummary}
+                          schoolInfo={user.school!}
+                        />
+                      }
+                      fileName={`${studentDataa!.name.replace(/\s+/g, '_')}-${session}-${semester}-result.pdf`}
+                    >
+                      {({ loading }) => (
+                        <Button disabled={loading}>
+                          {loading ? 'Generating PDF...' : 'Download Semester Result'}
+                        </Button>
+                      )}
+                    </PDFDownloadLink>
+                  </div>
+                </>
+              )}
             </>
           )}
         </CardContent>
       </Card>
 
       {/* Transcript Section */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Academic Transcript</CardTitle>
-        </CardHeader>
-        <CardContent>
-          {transcriptSummaries.length === 0 ? (
-            <p className="text-center py-8 text-muted-foreground">
-              No transcript available yet.
-            </p>
-          ) : (
-            <>
-              <div className="overflow-x-auto mb-6">
-                <Table>
-                  <TableHeader>
-                    <TableRow>
-                      <TableHead>Session</TableHead>
-                      <TableHead>Semester</TableHead>
-                      <TableHead>GPA</TableHead>
-                      <TableHead>CGPA</TableHead>
-                      <TableHead>Classification</TableHead>
-                    </TableRow>
-                  </TableHeader>
-                  <TableBody>
-                    {transcriptSummaries.map((s, id) => (
-                      <TableRow key={id}>
-                        <TableCell>{s.session}</TableCell>
-                        <TableCell>{s.semester}</TableCell>
-                        <TableCell>{s.GPA.toFixed(2)}</TableCell>
-                        <TableCell>{s.CGPA.toFixed(2)}</TableCell>
-                        <TableCell>{scoreToComment(gradingTemplate!, s.CGPA)}</TableCell>
+      {semesterResult?.message ? (
+        <div className="text-center py-8 text-muted-foreground">
+          {semesterResult?.message}
+        </div>
+      ) : (
+        <Card>
+          <CardHeader>
+            <CardTitle>Academic Transcript</CardTitle>
+          </CardHeader>
+          <CardContent>
+            {transcriptSummaries.length === 0 ? (
+              <p className="text-center py-8 text-muted-foreground">
+                No transcript available yet.
+              </p>
+            ) : (
+              <>
+                <div className="overflow-x-auto mb-6">
+                  <Table>
+                    <TableHeader>
+                      <TableRow>
+                        <TableHead>Session</TableHead>
+                        <TableHead>Semester</TableHead>
+                        <TableHead>GPA</TableHead>
+                        <TableHead>CGPA</TableHead>
+                        <TableHead>Classification</TableHead>
                       </TableRow>
-                    ))}
-                  </TableBody>
-                </Table>
-              </div>
+                    </TableHeader>
+                    <TableBody>
+                      {transcriptSummaries.map((s, id) => (
+                        <TableRow key={id}>
+                          <TableCell>{s.session}</TableCell>
+                          <TableCell>{s.semester}</TableCell>
+                          <TableCell>{s.GPA.toFixed(2)}</TableCell>
+                          <TableCell>{s.CGPA.toFixed(2)}</TableCell>
+                          <TableCell>{scoreToComment(gradingTemplate!, s.CGPA)}</TableCell>
+                        </TableRow>
+                      ))}
+                    </TableBody>
+                  </Table>
+                </div>
 
-              {/* Download Transcript */}
-              <div className="flex justify-center pt-4">
-                <PDFDownloadLink
-                  document={
-                    <TranscriptTemplate
-                      studentData={studentData}
-                      summaries={transcriptSummaries}
-                    />
-                  }
-                  fileName={`${studentDataa!.name.replace(/\s+/g, '_')}-transcript.pdf`}
-                >
-                  {({ loading }) => (
-                    <Button disabled={loading}>
-                      {loading ? 'Generating PDF...' : 'Download Transcript'}
-                    </Button>
-                  )}
-                </PDFDownloadLink>
-              </div>
-            </>
-          )}
-        </CardContent>
-      </Card>
+                {/* Download Transcript */}
+                <div className="flex justify-center pt-4">
+                  <PDFDownloadLink
+                    document={
+                      <TranscriptTemplate
+                        studentData={studentData}
+                        summaries={transcriptSummaries}
+                      />
+                    }
+                    fileName={`${studentDataa!.name.replace(/\s+/g, '_')}-transcript.pdf`}
+                  >
+                    {({ loading }) => (
+                      <Button disabled={loading}>
+                        {loading ? 'Generating PDF...' : 'Download Transcript'}
+                      </Button>
+                    )}
+                  </PDFDownloadLink>
+                </div>
+              </>
+            )}
+          </CardContent>
+        </Card>
+       
+      )}
     </div>
   );
 };

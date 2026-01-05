@@ -613,6 +613,27 @@ export const useUpdatePayable = () => {
   });
 };
 
+export const useInitiatePayablePayment = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: { payableId: string; amount: number }) => 
+      api.initiatePayablePayment(data.payableId, data.amount),
+    onSuccess: (paymentInit) => {
+      queryClient.invalidateQueries({ queryKey: ['payables'] });
+      console.log(paymentInit, 'payment init response');
+      toast.success('Payment initialized. Redirecting to payment gateway...');
+      // Redirect user to Paystack authorization URL
+      const url = paymentInit.data.authorization_url;
+      if (url) {
+        window.location.href = url;
+      }
+    },
+    onError: (error: Error) => {
+      toast.error(error.message || 'Failed to initiate payable payment. Please try again.');
+    },
+  })
+};
+
 export const useTransitionStudents = () => {
   const queryClient = useQueryClient();
   return useMutation({

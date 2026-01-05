@@ -4,12 +4,14 @@ export interface Payable {
   department?: string;
   level: string;
   session: string;
-  semester: 'First' | 'Second';
+  semester: 'First' | 'Second' | 'Session';
   partPayment: boolean;
   amount: number;
   dueDate: string;
   description: string;
   isForAllDepartments: boolean;
+  minPercentage: number;
+  linkedTo: "Results" | "Course Registration" | "ID Card" | "Others";
   createdAt?: string;
   updatedAt?: string;
 }
@@ -24,11 +26,14 @@ export interface IPopulatedPayable extends Omit<Payable, 'department'> {
 export interface PayableFormData {
   level: string;
   session: string;
-  semester: 'First' | 'Second';
+  semester: 'First' | 'Second' | 'Session';
   amount: number;
   dueDate: string;
   description: string;
   partPayment?: boolean;
   department?: string;
   isForAllDepartments?: boolean;
+  minPercentage: number;
+  linkedTo: "Results" | "Course Registration" | "ID Card" | "Others";
+
 }

@@ -7,7 +7,7 @@ import type {
   CourseRegistration, ResultSummary,
   RegisterCourseRequest, RegisterManyCoursesRequest,
   UploadResultRequest, UploadMultipleResultsRequest, UploadResultResponse,
-  SemesterResultResponse, CreateSchoolForm,
+  CreateSchoolForm,
   CreateFacultyForm, CreateDepartmentForm, CreateStudentForm,
   CreateInstructorForm,
   PopulatedDepartment,
@@ -26,17 +26,18 @@ import type {
   CreateCourseForm,
   PopulatedCourseRegistration,
 } from '@/components/types';
-import type { 
+import type {
   // WalletBalance,
   WalletTransactionsResponse,
   InitiateWalletFundingRequest,
   InitiateWalletFundingResponse,
-  VerifyWalletFundingResponse, 
+  VerifyWalletFundingResponse,
   WalletBalance
 } from './wallet.types';
 import type { PayableFilters } from '@/types/pagination';
 import type { PopulatedRegistrationSetting } from '@/types/index';
 import type { RegistrationSettingsResponse } from './types';
+import type { IStudentSemesterResultResponce } from '@/types/semester-result';
 
 // Configure your API base URL
 const API_BASE_URL = 'https://hmsms-api.onrender.com/api';
@@ -732,7 +733,7 @@ export const uploadMultipleResults = async (resultsData: UploadMultipleResultsRe
 };
 
 export const getSemesterResult = async (semester: string, session: string) => {
-  const response = await api.get<SemesterResultResponse>(`/course-registrations/semester?semester=${semester}&session=${session}`);
+  const response = await api.get<IStudentSemesterResultResponce>(`/course-registrations/semester?semester=${semester}&session=${session}`);
   return response.data;
 };
 
@@ -831,6 +832,12 @@ export const initiateWalletFunding = async (
   return response.data;
 };
 
+export const initiatePayablePayment = async (
+  payableId: string, amount: number
+) => {
+  const response = await api.post<{status: boolean,message: string, data: {authorization_url: string, reference: string, access_code: string}}>(`/payables/initiate-payment/${payableId}?amount=${amount}`);
+  return response.data;
+};
 export const getWalletBalance = async (): Promise<WalletBalance> => {
   const response = await api.get<WalletBalance>('/wallet/balance');
   return response.data;
@@ -863,8 +870,8 @@ export const createCourse = async (courseData: {
   return response.data;
 };
 
-export const getSemesterCourseRegsStats = async (courseCodes:string[],semester: string, session: string) => {
-  const response = await api.post<{data:{code:string, registrations:PopulatedCourseRegistration[], course:Course}[]}>(`/course-registrations/semester-results`, { courseCodes, semester, session });
+export const getSemesterCourseRegsStats = async (courseCodes: string[], semester: string, session: string) => {
+  const response = await api.post<{ data: { code: string, registrations: PopulatedCourseRegistration[], course: Course }[] }>(`/course-registrations/semester-results`, { courseCodes, semester, session });
   return response.data.data;
 }
 
@@ -980,7 +987,7 @@ export const getStudentRegstrationsInfo = async () => {
   return response.data;
 }
 
-export const getStudentRegSettingsInfo = async (semester:string, session:string) => {
+export const getStudentRegSettingsInfo = async (semester: string, session: string) => {
   const response = await api.get<RegistrationSettingsResponse>(`/course-registrations/student-reg-settings/?semester=${semester}&session=${session}`);
   return response.data;
 }

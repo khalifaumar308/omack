@@ -38,6 +38,7 @@ import {
   TableHeader,
   TableRow,
 } from '@/components/ui/table';
+import { Badge } from '@/components/ui/badge';
 // import { useToast } from '@/components/ui/use-toast';
 import type { Payable, PayableFormData } from '@/types/payable';
 import { useQueryClient } from '@tanstack/react-query';
@@ -53,7 +54,7 @@ export default function PayablesPage() {
   const [isEditOpen, setIsEditOpen] = useState(false);
   const [selectedPayable, setSelectedPayable] = useState<Payable | null>(null);
   const { user } = useUser();
-//   const { toast } = useToast();
+  //   const { toast } = useToast();
   const queryClient = useQueryClient();
 
   const [filters, setFilters] = useState<PayableFilters>({
@@ -82,12 +83,23 @@ export default function PayablesPage() {
         partPayment: formData.get('partPayment') === 'true',
         isForAllDepartments: formData.get('isForAllDepartments') === 'true',
         department: formData.get('isForAllDepartments') === 'true' ? undefined : formData.get('department') as string,
+        minPercentage: Number(formData.get('minPercentage') as string) || 0,
+        linkedTo: formData.get('linkedTo') as "Results" | "Course Registration" | "ID Card" | "Others",
       };
       console.log(data, "data");
       if (selectedPayable) {
-        updateMutation.mutate({ payableId: selectedPayable._id!, payableData: data });
+        updateMutation.mutate({ payableId: selectedPayable._id!, payableData: data }, {
+          onSuccess: () => {
+            setIsEditOpen(false);
+            setSelectedPayable(null);
+          },
+        });
       } else {
-        createMutation.mutate(data);
+        createMutation.mutate(data, {
+          onSuccess: () => {
+            setIsCreateOpen(false);
+          },
+        });
       }
     },
     [selectedPayable, createMutation, updateMutation]
@@ -106,8 +118,6 @@ export default function PayablesPage() {
     setSelectedPayable(payable);
     setIsEditOpen(true);
   }, []);
-
-  console.log(payablesData)
 
   if (isLoading) {
     return (
@@ -187,7 +197,7 @@ export default function PayablesPage() {
             <p className="text-sm text-muted-foreground">
               Please try again later or contact support if the problem persists.
             </p>
-            <Button 
+            <Button
               onClick={() => queryClient.invalidateQueries({ queryKey: ['payables'] })}
               variant="outline"
             >
@@ -227,12 +237,12 @@ export default function PayablesPage() {
             </div>
             <div className="space-y-2">
               <Label>Semester</Label>
-              <Select 
-                value={filters.semester || 'all'} 
-                onValueChange={(value) => setFilters(prev => ({ 
-                  ...prev, 
-                  semester: value === 'all' ? undefined : value, 
-                  page: 1 
+              <Select
+                value={filters.semester || 'all'}
+                onValueChange={(value) => setFilters(prev => ({
+                  ...prev,
+                  semester: value === 'all' ? undefined : value,
+                  page: 1
                 }))}
               >
                 <SelectTrigger>
@@ -328,6 +338,7 @@ export default function PayablesPage() {
                   <TableHead>Session</TableHead>
                   <TableHead>Semester</TableHead>
                   <TableHead>Department</TableHead>
+                  <TableHead>Linked To</TableHead>
                   <TableHead className="">Actions</TableHead>
                 </TableRow>
               </TableHeader>
@@ -336,7 +347,7 @@ export default function PayablesPage() {
                   <TableRow key={payable._id}>
                     <TableCell>
                       <Link to={`/admin/payables/${payable._id}`} className="hover:cursor-pointer hover:underline font-bold">
-                      {payable._id?.slice(0, 6).toLocaleUpperCase()}
+                        {payable._id?.slice(0, 6).toLocaleUpperCase()}
                       </Link>
                     </TableCell>
                     <TableCell>{payable.description}</TableCell>
@@ -351,11 +362,31 @@ export default function PayablesPage() {
                       {payable.isForAllDepartments ? 'All Departments' : payable.department?.name}
                     </TableCell>
                     <TableCell>
+                      {payable.linkedTo ? (
+                        <Badge variant={(function getVariant() {
+                          switch (payable.linkedTo) {
+                            case 'Results':
+                              return 'secondary';
+                            case 'Course Registration':
+                              return 'default';
+                            case 'ID Card':
+                              return 'outline';
+                            default:
+                              return 'destructive';
+                          }
+                        })()}>
+                          {payable.linkedTo}
+                        </Badge>
+                      ) : (
+                        <span className="text-sm text-muted-foreground">-</span>
+                      )}
+                    </TableCell>
+                    <TableCell>
                       <div className="flex space-x-2">
                         <Button
                           variant="outline"
                           size="icon"
-                          onClick={() => handleEdit({...payable, department: payable.department?._id || ''})}
+                          onClick={() => handleEdit({ ...payable, department: payable.department?._id || '' })}
                         >
                           <Pencil className="h-4 w-4" />
                         </Button>
@@ -372,10 +403,10 @@ export default function PayablesPage() {
                 ))}
                 {!isLoading && payablesData?.data.length === 0 && (
                   <TableRow>
-                    <TableCell colSpan={7} className="text-center py-8">
-                      No payables found
-                    </TableCell>
-                  </TableRow>
+                      <TableCell colSpan={10} className="text-center py-8">
+                        No payables found
+                      </TableCell>
+                    </TableRow>
                 )}
               </TableBody>
             </Table>
@@ -465,7 +496,7 @@ function PayableForm({ payable, levels, sessions }: { payable?: Payable | null; 
             ))}
           </SelectContent>
         </Select>
-        
+
       </div>
       <div className="space-y-2">
         <Label htmlFor="amount">Amount</Label>
@@ -500,7 +531,31 @@ function PayableForm({ payable, levels, sessions }: { payable?: Payable | null; 
             ))}
           </SelectContent>
         </Select>
-        
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="linkedTo">Linked To</Label>
+        <Select name="linkedTo" defaultValue={payable?.linkedTo || 'Others'}>
+          <SelectTrigger>
+            <SelectValue placeholder="Select linked to" />
+          </SelectTrigger>
+          <SelectContent>
+            {["Results", "Course Registration", "ID Card", "Others"].map((sess) => (
+              <SelectItem key={sess} value={sess}>{sess}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+      <div className="space-y-2">
+        <Label htmlFor="dueDate">Minimum Percentage </Label>
+        <Input
+          id="minPercentage"
+          name="minPercentage"
+          type="number"
+          min={0}
+          max={100}
+          defaultValue={payable?.minPercentage || 100}
+          required
+        />
       </div>
       <div className="space-y-2">
         <Label htmlFor="semester">Semester</Label>
@@ -511,6 +566,7 @@ function PayableForm({ payable, levels, sessions }: { payable?: Payable | null; 
           <SelectContent>
             <SelectItem value="First">First</SelectItem>
             <SelectItem value="Second">Second</SelectItem>
+            <SelectItem value="Session">All</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -528,8 +584,8 @@ function PayableForm({ payable, levels, sessions }: { payable?: Payable | null; 
       </div>
       <div className="space-y-2">
         <Label htmlFor="isForAllDepartments">Department Scope</Label>
-        <Select 
-          name="isForAllDepartments" 
+        <Select
+          name="isForAllDepartments"
           value={String(isForAllDepts)}
           onValueChange={(value) => setIsForAllDepts(value === 'true')}
         >
@@ -542,10 +598,11 @@ function PayableForm({ payable, levels, sessions }: { payable?: Payable | null; 
           </SelectContent>
         </Select>
       </div>
+
       <div className="space-y-2">
         <Label htmlFor="department">Department</Label>
-        <Select 
-          name="department" 
+        <Select
+          name="department"
           disabled={isForAllDepts || isLoadingDepartments}
           value={payable?.department || ''}
         >

@@ -257,7 +257,6 @@ export interface PDFProps {
 }
 
 const ResultTemplate: React.FC<PDFProps> = ({ studentData, courses, summary }) => {
-	console.log({ studentData, courses, summary })
 	return(
 	<Document>
 		<Page size="A4" style={styles.page}>

@@ -100,7 +100,7 @@ export default function Students() {
     //     deleteStudentMutation.mutate(studentId);
     //   }
     // };
-    // console.log(departments);
+    console.log(departments);
     const resetForm = () => {
       setFormData({
         name: "",

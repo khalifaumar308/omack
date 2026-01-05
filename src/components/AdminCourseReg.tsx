@@ -91,7 +91,6 @@ const AdminCourseReg = (Props: IProps) => {
 			const courses = Props.courseReg?.courses.map(c => c.course) as (Course | PopulatedCourse)[];
 			// new Set to avoid duplicates
 			// const uniqueCourseCodes = new Set(selectedCourses.map(c => c.course.code));
-			console.log("in cccc")
 			setSelectedCourses(prev => [...(new Set([...prev, ...courses.map(course => ({ course, carryOver: false, canRemove: true }))]))]);
 		}
 		// if (Props.toRetake && Props.toRetake.length > 0) {

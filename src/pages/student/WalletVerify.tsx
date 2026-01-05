@@ -21,8 +21,8 @@ export default function WalletVerify() {
 
     (async () => {
       try {
-  const res = await verifyMutation.mutateAsync({ reference });
-  const msg = (res as { message?: string })?.message || 'Payment verified successfully';
+        const res = await verifyMutation.mutateAsync({ reference });
+        const msg = (res as { message?: string })?.message || 'Payment verified successfully';
         setStatus('success');
         setMessage(msg);
         toast.success(msg);

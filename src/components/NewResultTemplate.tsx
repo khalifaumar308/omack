@@ -406,10 +406,11 @@ const NewResultTemplate = (data: PDFProps) => {
 					</View>
 				</View>
 				<View style={{ width: "25%", height: "100%", backgroundColor: "#E0E8EF" }}>
-					<Image
+					{data.studentData?.image && (
+						<Image
 						src={data.studentData?.image}
 						style={{ width: "80%", height: "auto", margin: "10% 10% 0 10%", borderRadius: "5px", objectFit: "cover" }}
-					/>
+					/>)}
 					<Text style={{ fontSize: 10, color: "#2268AC", textAlign: "center", marginTop: "10px" }}>{data.studentData.name}</Text>
 					<Text style={{ fontSize: 10, textAlign: "center", marginTop: "5px" }}>{data.studentData.matric}</Text>
 					<View style={{ width: "100%", height: "auto", marginTop: "20px", padding: "0 10px", display: "flex", flexDirection: "column", gap: "5px" }}>

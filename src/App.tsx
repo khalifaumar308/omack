@@ -82,6 +82,7 @@ function App() {
                 <Route path="/student/settings" element={<StudentProfile />} />
                 <Route path="/student/course-registration" element={<StudentCourseRegistration />} />
                 <Route path="/student/wallet" element={<WalletManagement />} />
+                <Route path="/student/payment-callback" element={<WalletVerify />} />
               </Route>
               {/* Student Routes */}
               <Route path="/instructor" element={
