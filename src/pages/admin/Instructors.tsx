@@ -370,7 +370,7 @@ const Instructors: React.FC = () => {
                   // Both Instructor and PopulatedInstructor extend BaseEntity so `id` should exist
                   console.log(selectedCourses, editingInstructor)
                   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                  await api.updateInstructor((editingInstructor as any)._id, { courses: [...(editingInstructor.courses as any),...selectedCourses.map(c => c.id)] });
+                  await api.updateInstructor((editingInstructor as any)._id || (editingInstructor as any).id, { courses: [...(editingInstructor.courses as any),...selectedCourses.map(c => c.id)] });
                   queryClient.invalidateQueries({ queryKey: ['instructors'] });
                   toast.success('Courses assigned successfully');
                   setOpenEdit(false);

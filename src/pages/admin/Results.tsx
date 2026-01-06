@@ -72,8 +72,7 @@ const Results = () => {
 	const { data: departmentsRaw } = useGetDepartments();
 	const departments: any[] = useMemo(() => Array.isArray(departmentsRaw) ? departmentsRaw : [], [departmentsRaw]);
 	const [selectedDepartment, setSelectedDepartment] = useState<string | null>(null);
-	const exportMut = useExportResults();
-	const exportLoading = exportMut.isPending;
+	const {mutate: exportMut, isPending: exportLoading} = useExportResults();
 	const [exportLevel, setExportLevel] = useState<string>(levelFilter);
 
 	// Mobile detection hook (must be called unconditionally)
@@ -308,7 +307,7 @@ const Results = () => {
 							<Button onClick={() => {
 								if (!selectedDepartment) { toast.error('Select a department first'); return; }
 								const lvl = exportLevel || 'all';
-								exportMut.mutate({ departmentId: selectedDepartment, level: lvl, semester, session }, {
+								exportMut({ departmentId: selectedDepartment, level: lvl, semester, session }, {
 									onSuccess: (blob: Blob) => {
 										try {
 											const downloadUrl = URL.createObjectURL(blob as any);
