@@ -596,7 +596,7 @@ export default function Students() {
                         <TableCell>
                           <div className="flex space-x-2">
                             <Button variant="outline" size="sm" asChild>
-                              <Link to={`/admin/students/${(student as any)._id}`}>
+                              <Link to={`/admin/students/${(student as any)._id || student.id}`}>
                                 <Eye className="h-4 w-4" />
                               </Link>
                             </Button>
