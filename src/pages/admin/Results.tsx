@@ -72,7 +72,7 @@ const Results = () => {
 	const { data: departmentsRaw } = useGetDepartments();
 	const departments: any[] = useMemo(() => Array.isArray(departmentsRaw) ? departmentsRaw : [], [departmentsRaw]);
 	const [selectedDepartment, setSelectedDepartment] = useState<string | null>(null);
-	const {mutate: exportMut, isPending: exportLoading} = useExportResults();
+	const { mutate: exportMut, isPending: exportLoading } = useExportResults();
 	const [exportLevel, setExportLevel] = useState<string>(levelFilter);
 
 	// Mobile detection hook (must be called unconditionally)
@@ -94,7 +94,7 @@ const Results = () => {
 			const headers = lines[0].split(',').map(h => h.trim());
 			const data: UploadData[] = []
 			lines.slice(1).forEach((line) => {
-				if (line && line.length>0) {
+				if (line && line.length > 0) {
 					const values = line.split(',').map(v => v.trim());
 					// index 0 is matric no, the rest are course scores
 					values.slice(2).forEach((score, index) => {
@@ -110,7 +110,7 @@ const Results = () => {
 						if (cc.course && cc.matricNo && !isNaN(cc.score)) {
 							data.push(cc);
 						}
-					});	
+					});
 				}
 			});
 			setParsedData(data);
@@ -187,46 +187,7 @@ const Results = () => {
 	}, [paginatedResults, gradingTemplates, session, semester, user]);
 
 
-	if (userLoading || isLoading) return (
-		<div className="container mx-auto p-6">
-			<Card>
-				<CardContent className="p-6">
-					<div className="flex flex-col gap-6 animate-pulse">
-						<div className="h-8 w-1/3 bg-slate-200 rounded mb-4" />
-						<div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-							{[...Array(4)].map((_, i) => (
-								<div key={i} className="h-10 bg-slate-100 rounded" />
-							))}
-						</div>
-						<div className="overflow-x-auto">
-							<table className="min-w-[600px] w-full text-sm">
-								<thead>
-									<tr className="bg-slate-100">
-										{[...Array(7)].map((_, i) => (
-											<th key={i} className="py-2 px-2 text-left text-slate-700">
-												<div className="h-4 w-20 bg-slate-200 rounded" />
-											</th>
-										))}
-									</tr>
-								</thead>
-								<tbody>
-									{[...Array(6)].map((_, i) => (
-										<tr key={i} className="border-b border-slate-100">
-											{[...Array(7)].map((_, j) => (
-												<td key={j} className="py-2 px-2">
-													<div className="h-4 w-24 bg-slate-100 rounded" />
-												</td>
-											))}
-										</tr>
-									))}
-								</tbody>
-							</table>
-						</div>
-					</div>
-				</CardContent>
-			</Card>
-		</div>
-	);
+	// if ;
 	if (error) return <div>Error loading results</div>;
 	return (
 		<div className="container mx-auto p-4 sm:p-6">
@@ -460,107 +421,152 @@ const Results = () => {
 							</DialogContent>
 						</Dialog>
 					</div>
-
-					{totalItems === 0 && (
-						<div className="text-center py-8 text-muted-foreground">
-							No results found for the selected filters.
-						</div>
-					)}
-
-					{totalItems > 0 && (
-						<>
-							{isMobile ? (
-								<div className="grid grid-cols-1">
-									{paginatedResults.map((result) => (
-										<ResultRow key={result.student.matricNo} result={result} gradingTemplates={gradingTemplates} session={session} semester={semester} school={user!.school!} variant="card" />
-									))}
-								</div>
-							) : (
-								<div className="overflow-x-auto">
-									<div className="w-full">
-										<div className="grid grid-cols-9 gap-2 border-b py-2 px-2 font-medium bg-slate-100">
-											<div className="col-span-2">Student Name</div>
-											<div className="col-span-2">Matric No.</div>
-											<div className="col-span-1">Level</div>
-											<div className="col-span-1">Passed</div>
-											<div className="col-span-1">Failed</div>
-											<div className="col-span-1">GPA</div>
-											<div className="col-span-1">Actions</div>
+					{(userLoading || isLoading) ? (
+						<div className="container mx-auto p-6">
+							<Card>
+								<CardContent className="p-6">
+									<div className="flex flex-col gap-6 animate-pulse">
+										<div className="h-8 w-1/3 bg-slate-200 rounded mb-4" />
+										<div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+											{[...Array(4)].map((_, i) => (
+												<div key={i} className="h-10 bg-slate-100 rounded" />
+											))}
 										</div>
-										<div>
-											<List
-												height={Math.min(400, pageSize * 56)}
-												itemCount={paginatedResults.length}
-												itemSize={56}
-												width="100%"
-											>
-												{RowRenderer}
-											</List>
+										<div className="overflow-x-auto">
+											<table className="min-w-[600px] w-full text-sm">
+												<thead>
+													<tr className="bg-slate-100">
+														{[...Array(7)].map((_, i) => (
+															<th key={i} className="py-2 px-2 text-left text-slate-700">
+																<div className="h-4 w-20 bg-slate-200 rounded" />
+															</th>
+														))}
+													</tr>
+												</thead>
+												<tbody>
+													{[...Array(6)].map((_, i) => (
+														<tr key={i} className="border-b border-slate-100">
+															{[...Array(7)].map((_, j) => (
+																<td key={j} className="py-2 px-2">
+																	<div className="h-4 w-24 bg-slate-100 rounded" />
+																</td>
+															))}
+														</tr>
+													))}
+												</tbody>
+											</table>
 										</div>
 									</div>
+								</CardContent>
+							</Card>
+						</div>
+					) : (
+						<>
+
+							{totalItems === 0 && (
+								<div className="text-center py-8 text-muted-foreground">
+									No results found for the selected filters.
 								</div>
 							)}
 
-							{/* Pagination Controls (responsive) */}
-							<div className="mt-4">
-								{!isMobile ? (
-									<div className="flex items-center justify-between">
-										<div className="flex items-center gap-2">
-											<span className="text-sm text-muted-foreground">Rows per page:</span>
-											<Select value={String(pageSize)} onValueChange={(v) => setPageSize(parseInt(v))}>
-												<SelectTrigger>
-													<SelectValue />
-												</SelectTrigger>
-												<SelectContent>
-													<SelectItem value="5">5</SelectItem>
-													<SelectItem value="10">10</SelectItem>
-													<SelectItem value="25">25</SelectItem>
-													<SelectItem value="50">50</SelectItem>
-												</SelectContent>
-											</Select>
+							{totalItems > 0 && (
+								<>
+									{isMobile ? (
+										<div className="grid grid-cols-1">
+											{paginatedResults.map((result) => (
+												<ResultRow key={result.student.matricNo} result={result} gradingTemplates={gradingTemplates} session={session} semester={semester} school={user!.school!} variant="card" />
+											))}
 										</div>
-										<div className="flex items-center gap-2">
-											<Button variant="outline" size="sm" disabled={currentPage <= 1} onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}>Previous</Button>
-											<div className="flex items-center gap-1">
-												{/* Windowed pagination with ellipsis */}
-												{pageButtons.map((p, idx) => {
-													if (p === 'ellipsis-left' || p === 'ellipsis-right') {
-														return <span key={String(p) + idx} className="px-2">&hellip;</span>;
-													}
-													return (
-														<Button key={`p-${p}`} variant={p === currentPage ? 'default' : 'ghost'} size="sm" onClick={() => setCurrentPage(Number(p))}>{p}</Button>
-													);
-												})}
+									) : (
+										<div className="overflow-x-auto">
+											<div className="w-full">
+												<div className="grid grid-cols-9 gap-2 border-b py-2 px-2 font-medium bg-slate-100">
+													<div className="col-span-2">Student Name</div>
+													<div className="col-span-2">Matric No.</div>
+													<div className="col-span-1">Level</div>
+													<div className="col-span-1">Passed</div>
+													<div className="col-span-1">Failed</div>
+													<div className="col-span-1">GPA</div>
+													<div className="col-span-1">Actions</div>
+												</div>
+												<div>
+													<List
+														height={Math.min(400, pageSize * 56)}
+														itemCount={paginatedResults.length}
+														itemSize={56}
+														width="100%"
+													>
+														{RowRenderer}
+													</List>
+												</div>
 											</div>
-											<Button variant="outline" size="sm" disabled={currentPage >= Math.max(1, Math.ceil(totalItems / pageSize))} onClick={() => setCurrentPage((p) => Math.min(Math.max(1, Math.ceil(totalItems / pageSize)), p + 1))}>Next</Button>
 										</div>
+									)}
+
+									{/* Pagination Controls (responsive) */}
+									<div className="mt-4">
+										{!isMobile ? (
+											<div className="flex items-center justify-between">
+												<div className="flex items-center gap-2">
+													<span className="text-sm text-muted-foreground">Rows per page:</span>
+													<Select value={String(pageSize)} onValueChange={(v) => setPageSize(parseInt(v))}>
+														<SelectTrigger>
+															<SelectValue />
+														</SelectTrigger>
+														<SelectContent>
+															<SelectItem value="5">5</SelectItem>
+															<SelectItem value="10">10</SelectItem>
+															<SelectItem value="25">25</SelectItem>
+															<SelectItem value="50">50</SelectItem>
+														</SelectContent>
+													</Select>
+												</div>
+												<div className="flex items-center gap-2">
+													<Button variant="outline" size="sm" disabled={currentPage <= 1} onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}>Previous</Button>
+													<div className="flex items-center gap-1">
+														{/* Windowed pagination with ellipsis */}
+														{pageButtons.map((p, idx) => {
+															if (p === 'ellipsis-left' || p === 'ellipsis-right') {
+																return <span key={String(p) + idx} className="px-2">&hellip;</span>;
+															}
+															return (
+																<Button key={`p-${p}`} variant={p === currentPage ? 'default' : 'ghost'} size="sm" onClick={() => setCurrentPage(Number(p))}>{p}</Button>
+															);
+														})}
+													</div>
+													<Button variant="outline" size="sm" disabled={currentPage >= Math.max(1, Math.ceil(totalItems / pageSize))} onClick={() => setCurrentPage((p) => Math.min(Math.max(1, Math.ceil(totalItems / pageSize)), p + 1))}>Next</Button>
+												</div>
+											</div>
+										) : (
+											<div className="flex items-center justify-between gap-2 flex-wrap">
+												<div className="flex items-center gap-2">
+													<Button variant="outline" size="sm" disabled={currentPage <= 1} onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}>Prev</Button>
+													<div className="text-sm text-muted-foreground">Page <span className="font-medium">{currentPage}</span> of <span className="font-medium">{totalPages}</span></div>
+													<Button variant="outline" size="sm" disabled={currentPage >= Math.max(1, Math.ceil(totalItems / pageSize))} onClick={() => setCurrentPage((p) => Math.min(Math.max(1, Math.ceil(totalItems / pageSize)), p + 1))}>Next</Button>
+												</div>
+												<div className="flex items-center gap-2">
+													<span className="text-sm text-muted-foreground">Rows:</span>
+													<Select value={String(pageSize)} onValueChange={(v) => setPageSize(parseInt(v))}>
+														<SelectTrigger>
+															<SelectValue />
+														</SelectTrigger>
+														<SelectContent>
+															<SelectItem value="5">5</SelectItem>
+															<SelectItem value="10">10</SelectItem>
+															<SelectItem value="25">25</SelectItem>
+															<SelectItem value="50">50</SelectItem>
+														</SelectContent>
+													</Select>
+												</div>
+											</div>
+										)}
 									</div>
-								) : (
-									<div className="flex items-center justify-between gap-2 flex-wrap">
-										<div className="flex items-center gap-2">
-											<Button variant="outline" size="sm" disabled={currentPage <= 1} onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}>Prev</Button>
-											<div className="text-sm text-muted-foreground">Page <span className="font-medium">{currentPage}</span> of <span className="font-medium">{totalPages}</span></div>
-											<Button variant="outline" size="sm" disabled={currentPage >= Math.max(1, Math.ceil(totalItems / pageSize))} onClick={() => setCurrentPage((p) => Math.min(Math.max(1, Math.ceil(totalItems / pageSize)), p + 1))}>Next</Button>
-										</div>
-										<div className="flex items-center gap-2">
-											<span className="text-sm text-muted-foreground">Rows:</span>
-											<Select value={String(pageSize)} onValueChange={(v) => setPageSize(parseInt(v))}>
-												<SelectTrigger>
-													<SelectValue />
-												</SelectTrigger>
-												<SelectContent>
-													<SelectItem value="5">5</SelectItem>
-													<SelectItem value="10">10</SelectItem>
-													<SelectItem value="25">25</SelectItem>
-													<SelectItem value="50">50</SelectItem>
-												</SelectContent>
-											</Select>
-										</div>
-									</div>
-								)}
-							</div>
+								</>
+							)}
 						</>
 					)}
+
+
 				</CardContent>
 			</Card>
 		</div>
