@@ -114,12 +114,12 @@ function StudentDashboard() {
       value: studentSummary?.coursesCount ?? 0,
       color: 'bg-blue-500'
     },
-    {
-      icon: GraduationCap,
-      label: 'Current CGPA',
-      value: Math.round((studentSummary?.currentCgpa ?? 0) * 100) / 100 || 0,
-      color: 'bg-green-500'
-    },
+    // {
+    //   icon: GraduationCap,
+    //   label: 'Current CGPA',
+    //   value: Math.round((studentSummary?.currentCgpa ?? 0) * 100) / 100 || 0,
+    //   color: 'bg-green-500'
+    // },
     {
       icon: Calendar,
       label: 'Current Semester',
