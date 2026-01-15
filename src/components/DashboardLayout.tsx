@@ -15,7 +15,6 @@ import {
 } from "@/components/ui/sidebar";
 import {
   BookOpen,
-  GraduationCap,
   Home,
   Settings,
   Users,
@@ -32,14 +31,14 @@ import { userLogout } from "@/lib/api/base";
 import { Button } from "@/components/ui/button";
 
 export function DashboardLayout() {
-// Sidebar item type definition
-type SidebarItem = {
-  title: string;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  icon: any;
-  url?: string;
-  items?: { title: string; url: string }[];
-};
+  // Sidebar item type definition
+  type SidebarItem = {
+    title: string;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    icon: any;
+    url?: string;
+    items?: { title: string; url: string }[];
+  };
 
   const location = useLocation();
   const { user, isLoading } = useUser();
@@ -130,38 +129,38 @@ type SidebarItem = {
   };
 
   const adminRoutes: SidebarItem[] = [
-      {
-        title: "Dashboard",
-        icon: Home,
-        url: "/admin/",
-      },
-      {
-        title: "User Management",
-        icon: Users,
-        items: [
-          { title: "Students", url: "/admin/students" },
-          { title: "Instructors", url: "/admin/instructors" },
-          { title: "Course Registrations", url: "/admin/course-registrations" },
-          { title: "Results", url: "/admin/results" },
-        ]
-      },
-      {
-        title: "Finance",
-        icon: Wallet,
-        items: [
-          { title: "Payables", url: "/admin/payables" },
-        ]
-      },
-      {
-        title: "Academic Structure", icon: Building, items: [
-          { title: "Faculties", url: "/admin/faculties" },
-          { title: "Departments", url: "/admin/departments" },
-          { title: "Courses", url: "/admin/courses" },
-          { title: "Grading Templates", url: "/admin/grading-templates" },
-          { title: "School Settings", url: "/admin/settings" },
-        ]
-      },
-    ]
+    {
+      title: "Dashboard",
+      icon: Home,
+      url: "/admin/",
+    },
+    {
+      title: "User Management",
+      icon: Users,
+      items: [
+        { title: "Students", url: "/admin/students" },
+        { title: "Instructors", url: "/admin/instructors" },
+        { title: "Course Registrations", url: "/admin/course-registrations" },
+        { title: "Results", url: "/admin/results" },
+      ]
+    },
+    {
+      title: "Finance",
+      icon: Wallet,
+      items: [
+        { title: "Payables", url: "/admin/payables" },
+      ]
+    },
+    {
+      title: "Academic Structure", icon: Building, items: [
+        { title: "Faculties", url: "/admin/faculties" },
+        { title: "Departments", url: "/admin/departments" },
+        { title: "Courses", url: "/admin/courses" },
+        { title: "Grading Templates", url: "/admin/grading-templates" },
+        { title: "School Settings", url: "/admin/settings" },
+      ]
+    },
+  ]
   // const menuItems = [
   //   { id: 'dashboard', icon: Home, label: 'Dashboard' },
   //   { id: 'course-registration', icon: BookOpen, label: 'Course Registration' },
@@ -188,7 +187,7 @@ type SidebarItem = {
     { title: "Settings", icon: Settings, url: "/instructor/settings" },
   ]
 
-  const filteredSidebarItems = user?.role === 'school-admin' ? adminRoutes : (user?.role==='student'?studentRoutes:(user?.role==='instructor'?instructorRoutes:getFilteredSidebarItems()));
+  const filteredSidebarItems = user?.role === 'school-admin' ? adminRoutes : (user?.role === 'student' ? studentRoutes : (user?.role === 'instructor' ? instructorRoutes : getFilteredSidebarItems()));
 
   return (
     <SidebarProvider>
@@ -196,9 +195,9 @@ type SidebarItem = {
         <Sidebar className="border-r">
           <SidebarHeader className="border-b p-4">
             <div className="flex items-center gap-2">
-              <GraduationCap className="h-6 w-6 text-primary" />
+              <img src="/acohsatlogo.jpg" alt="ACOHSAT" className="h-10 w-10 rounded-full object-cover" />
               <h2 className="text-lg font-semibold text-foreground">
-                SKOOL_MS
+                ACOHSAT HMS
               </h2>
             </div>
           </SidebarHeader>
@@ -252,9 +251,9 @@ type SidebarItem = {
               <div className="flex items-center gap-3 flex-shrink-0">
                 <SidebarTrigger className="-ml-1" />
                 <div className="flex items-center gap-2">
-                  <GraduationCap className="h-6 w-6 text-primary" />
+                  <img src="/acohsatlogo.jpg" alt="ACOHSAT" className="h-8 w-8 rounded-full object-cover" />
                   <div className="hidden sm:flex flex-col leading-tight">
-                    <div className="text-sm font-semibold text-slate-800">SKOOL_MS</div>
+                    <div className="text-sm font-semibold text-slate-800">ACOHSAT HMS</div>
                     <div className="text-xs text-muted-foreground truncate max-w-[200px]">{user?.school?.name}</div>
                   </div>
                 </div>
@@ -277,7 +276,7 @@ type SidebarItem = {
                   <span className="text-sm font-medium text-slate-700 truncate">{user?.name}</span>
                   <span className="text-xs text-muted-foreground truncate">{user?.role}</span>
                 </div>
-                <div className="h-9 w-9 rounded-full bg-slate-100 flex items-center justify-center text-slate-700 font-medium flex-shrink-0">{((user?.name || '') as string).split(' ').map(n=>n?.[0]).slice(0,2).join('') || 'U'}</div>
+                <div className="h-9 w-9 rounded-full bg-slate-100 flex items-center justify-center text-slate-700 font-medium flex-shrink-0">{((user?.name || '') as string).split(' ').map(n => n?.[0]).slice(0, 2).join('') || 'U'}</div>
                 <Button variant="ghost" size="sm" onClick={handleLogout} className="ml-1">
                   Logout
                 </Button>

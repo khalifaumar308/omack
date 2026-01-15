@@ -18,13 +18,13 @@ export default function Login() {
         // Save token to localStorage or context
         // console.log(data, 'success')
         const role = data.user.role
-        if(role === 'super-admin'){
+        if (role === 'super-admin') {
           window.location.href = "/super-admin/schools";
-        } else if(role === 'school-admin'){
+        } else if (role === 'school-admin') {
           window.location.href = "/admin/";
-        } else if(role === 'student'){
+        } else if (role === 'student') {
           window.location.href = "/student/";
-        } else if(role === 'instructor'){
+        } else if (role === 'instructor') {
           window.location.href = "/instructor/";
         } else {
           window.location.href = "/";
@@ -37,14 +37,14 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen min-w-screen flex items-center justify-center bg-gradient-to-br from-purple-700 via-indigo-600 to-sky-500 p-6">
+    <div className="min-h-screen min-w-screen flex items-center justify-center bg-gradient-to-br from-blue-700 via-blue-600 to-cyan-500 p-6">
       <div className="w-full max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8 items-stretch min-h-[80vh]">
         {/* Decorative panel */}
-        <div className="hidden md:flex flex-col items-start justify-center space-y-6 p-10 rounded-3xl bg-gradient-to-br from-purple-700 via-indigo-600 to-sky-500 text-white shadow-2xl h-full">
-          <img src="/hmslogo.jpeg" alt="Logo" className="w-24 h-24 rounded-full shadow-lg ring-4 ring-white/20" />
+        <div className="hidden md:flex flex-col items-start justify-center space-y-6 p-10 rounded-3xl bg-gradient-to-br from-blue-700 via-blue-600 to-cyan-500 text-white shadow-2xl h-full">
+          <img src="/acohsatlogo.jpg" alt="ACOHSAT Logo" className="w-32 h-32 rounded-full shadow-lg ring-4 ring-white/20 bg-white p-2" />
           <div>
-            <h2 className="text-3xl font-extrabold tracking-tight">HSMS Portal</h2>
-            <p className="mt-2 text-sm opacity-95 max-w-md">Securely manage students, courses and results. Quick access for admins and students.</p>
+            <h2 className="text-3xl font-extrabold tracking-tight">ACOHSAT Portal</h2>
+            <p className="mt-2 text-sm opacity-95 max-w-md">Apex College of Health Sciences and Technology - Securely manage students, courses and results.</p>
           </div>
           <div className="mt-6 text-sm opacity-95">
             <ul className="space-y-3 pl-3 list-disc">
@@ -58,9 +58,9 @@ export default function Login() {
         {/* Login card */}
         <Card className="w-full max-w-md mx-auto shadow-2xl rounded-3xl bg-white/95 h-full flex flex-col">
           <CardHeader className="text-center pt-10">
-            <img src="/hmslogo.jpeg" alt="Logo" className="mx-auto mb-4 w-24 h-24 rounded-full shadow-md" />
+            <img src="/acohsatlogo.jpg" alt="ACOHSAT Logo" className="mx-auto mb-4 w-32 h-32 rounded-full shadow-md bg-white p-2" />
             <CardTitle className="text-3xl font-extrabold text-slate-900">Welcome back</CardTitle>
-            <p className="text-sm text-slate-600 mt-1">Sign in to continue to the HSMS dashboard</p>
+            <p className="text-sm text-slate-600 mt-1">Sign in to continue to the ACOHSAT portal</p>
           </CardHeader>
           <CardContent className="pt-6 pb-8 px-8 flex-1">
             <form onSubmit={handleSubmit} className="space-y-6">
@@ -75,14 +75,14 @@ export default function Login() {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="bg-white border-gray-200 focus:ring-2 focus:ring-purple-400 focus:border-purple-400"
+                  className="bg-white border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
                   placeholder="you@school.edu"
                 />
               </div>
               <div>
                 <div className="flex items-center justify-between mb-2">
                   <label htmlFor="password" className="text-sm font-medium text-gray-700">Password</label>
-                  <a href="#" className="text-sm text-indigo-600 hover:underline">Forgot?</a>
+                  <a href="#" className="text-sm text-blue-600 hover:underline">Forgot?</a>
                 </div>
                 <div className="relative">
                   <Input
@@ -92,7 +92,7 @@ export default function Login() {
                     required
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="bg-white border-gray-200 focus:ring-2 focus:ring-purple-400 focus:border-purple-400 pr-10"
+                    className="bg-white border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 pr-10"
                     placeholder="Enter your password"
                   />
                   <Button
@@ -110,7 +110,7 @@ export default function Login() {
               {error && <div className="text-red-600 text-sm text-center p-2 bg-red-50 rounded-md border border-red-200">{error.message}</div>}
               <Button
                 type="submit"
-                className="w-full bg-gradient-to-r from-purple-600 to-indigo-500 hover:from-purple-700 hover:to-indigo-600 text-white font-semibold rounded-lg transition-colors duration-200 shadow-lg py-3"
+                className="w-full bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 text-white font-semibold rounded-lg transition-colors duration-200 shadow-lg py-3"
                 disabled={isPending}
               >
                 {isPending ? "Signing in..." : "Sign In"}
@@ -131,7 +131,7 @@ export default function Login() {
               </div>
             </div>
             <div className="mt-6 text-center text-xs text-gray-500">
-              &copy; {new Date().getFullYear()} HSMS. All rights reserved.
+              &copy; {new Date().getFullYear()} ACOHSAT. All rights reserved.
             </div>
           </CardContent>
         </Card>
