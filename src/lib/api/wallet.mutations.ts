@@ -19,7 +19,10 @@ export const useVerifyWalletFunding = () => {
   const queryClient = useQueryClient();
   
   return useMutation<VerifyWalletFundingResponse, Error, { reference: string }>({
-    mutationFn: (data) => walletApi.verifyWalletFunding(data.reference),
+    mutationFn: (data) => {
+      // console.log(data, "dataaa")
+      return walletApi.verifyWalletFunding(data.reference)
+    },
     onSuccess: () => {
       // Invalidate and refetch balance and transactions
       queryClient.invalidateQueries({ queryKey: ["wallet-balance"] });

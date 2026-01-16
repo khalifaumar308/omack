@@ -10,7 +10,8 @@ export default function WalletVerify() {
   const [status, setStatus] = useState<'verifying' | 'success' | 'failed'>('verifying');
   const [message, setMessage] = useState<string | null>(null);
   const [countdown, setCountdown] = useState<number>(5);
-
+  // const params = Object.fromEntries(searchParams.entries());
+  // console.log('WalletVerify params:', params)
   useEffect(() => {
     const reference = searchParams.get('reference') || searchParams.get('trxref');
     if (!reference) {
@@ -45,7 +46,7 @@ export default function WalletVerify() {
       setCountdown(c => {
         if (c <= 1) {
           clearInterval(t);
-          navigate('/student/wallet');
+          navigate('/student/results');
           return 0;
         }
         return c - 1;
