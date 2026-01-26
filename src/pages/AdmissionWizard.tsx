@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useForm, FormProvider } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
@@ -57,19 +57,19 @@ const admissionSchema = z.object({
   residentialAddress: z.string().min(10, 'Address must be at least 10 characters'),
   nin: z.string().regex(ninRegex, 'NIN must be exactly 11 digits'),
   passportPhoto: z.string().url('Valid photo URL is required'),
-  
+
   // JAMB Details
   jambRegNumber: z.string().regex(jambRegex, 'Invalid JAMB registration number'),
   jambScore: z.number().min(100, 'JAMB score must be at least 100').max(400, 'JAMB score cannot exceed 400'),
-  
+
   // Programme
   firstChoice: z.string().min(2, 'Select first choice of programme'),
   secondChoice: z.string().min(2, 'Select second choice of programme'),
-  
+
   // O-Level Results
   firstSitting: olevelSittingSchema,
   secondSitting: olevelSittingSchema.optional(),
-  
+
   // Next of Kin
   nokFullName: z.string().min(3, 'Next of kin full name is required'),
   nokRelationship: z.string().min(2, 'Relationship is required'),
@@ -88,6 +88,9 @@ export default function AdmissionWizard() {
   const [step, setStep] = useState(1);
   const [direction, setDirection] = useState(0);
   const [applicationNumber, setApplicationNumber] = useState<string | null>(null);
+  const [redirectUrl, setRedirectUrl] = useState<string | null>(null);
+  const [redirectCountdown, setRedirectCountdown] = useState<number>(5);
+  const [isRedirecting, setIsRedirecting] = useState<boolean>(false);
   const { mutate: submitApplication, isPending, isSuccess } = useSubmitApplication();
 
   const methods = useForm<FormData>({
@@ -124,7 +127,7 @@ export default function AdmissionWizard() {
 
   const nextStep = async () => {
     let fieldsToValidate: (keyof FormData)[] = [];
-    
+
     if (step === 1) {
       fieldsToValidate = ['surname', 'firstName', 'dateOfBirth', 'gender', 'stateOfOrigin', 'lga', 'nationality', 'religion', 'maritalStatus', 'phoneNumber', 'email', 'residentialAddress', 'nin', 'passportPhoto'];
     } else if (step === 2) {
@@ -152,11 +155,14 @@ export default function AdmissionWizard() {
     const submitData: SubmitApplicationRequest = { ...(data as any) };
     submitApplication(submitData, {
       onSuccess: (response) => {
-          toast.success('Application submitted successfully!, Initializing Payment...');
-            setApplicationNumber(response.application._id);
+        toast.success('Application submitted successfully!, Initializing Payment...');
+        setApplicationNumber(response.application._id);
+        console.log('Payment Info:', response.payment);
         if (response.payment) {
-          // Redirect to payment gateway
-          window.location.href = response.payment.authorization_url;
+          // Initialize redirect flow: show success UI with countdown, then redirect after 5s
+          setRedirectUrl(response.payment.authorization_url);
+          setRedirectCountdown(5);
+          setIsRedirecting(true);
         }
       },
       onError: (error) => {
@@ -164,7 +170,26 @@ export default function AdmissionWizard() {
       }
     });
   }
-    
+
+  // Redirect countdown effect (runs when redirect flow is started)
+  useEffect(() => {
+    if (!isRedirecting || !redirectUrl) return;
+
+    const tick = setInterval(() => {
+      setRedirectCountdown((c) => {
+        if (c <= 1) {
+          clearInterval(tick);
+          // final redirect
+          window.location.href = redirectUrl;
+          return 0;
+        }
+        return c - 1;
+      });
+    }, 1000);
+
+    return () => clearInterval(tick);
+  }, [isRedirecting, redirectUrl]);
+
 
   if (isSuccess) {
     return (
@@ -180,6 +205,7 @@ export default function AdmissionWizard() {
           </div>
           <h2 className="text-3xl font-bold text-gray-900 mb-4">Application Submitted!</h2>
           <p className="text-gray-600 mb-6">Your complementary admission application has been received. You will be notified via email about the next steps.</p>
+          <p className="text-sm text-amber-700 font-medium mb-6">Important: Your application will not be considered until payment is completed. You will be redirected to the payment gateway to complete payment.</p>
           {applicationNumber && (
             <div className="mb-6">
               <p className="text-lg font-semibold text-gray-800 mb-2">Your Application Number:</p>
@@ -198,16 +224,60 @@ export default function AdmissionWizard() {
               </div>
             </div>
           )}
-          <button
-            onClick={() => window.location.reload()}
-            className="bg-emerald-600 text-white px-6 py-3 rounded-lg hover:bg-emerald-700 transition-colors"
-          >
-            Submit Another Application
-          </button>
+          {isRedirecting ? (
+            <div>
+              <p className="text-gray-700 mb-4">Redirecting to payment gateway in <span className="font-semibold">{redirectCountdown}</span>s...</p>
+              <div className="flex items-center justify-center gap-3">
+                <button
+                  className="bg-indigo-500 text-white px-6 py-3 rounded-lg opacity-80 cursor-not-allowed"
+                  disabled
+                >
+                  Redirecting…
+                </button>
+
+                {/* Optional immediate proceed button */}
+                {redirectUrl && (
+                  <button
+                    onClick={() => { window.location.href = redirectUrl; }}
+                    className="bg-emerald-600 text-white px-4 py-3 rounded-lg hover:bg-emerald-700 transition-colors"
+                    aria-label="Proceed to payment now"
+                  >
+                    Proceed to payment now
+                  </button>
+                )}
+              </div>
+            </div>
+          ) : (
+            <button
+              onClick={() => window.location.reload()}
+              className="bg-emerald-600 text-white px-6 py-3 rounded-lg hover:bg-emerald-700 transition-colors"
+            >
+              Submit Another Application
+            </button>
+          )}
         </div>
       </motion.div>
     );
   }
+
+  // Redirect countdown effect (runs when redirect flow is started)
+  // useEffect(() => {
+  //   if (!isRedirecting || !redirectUrl) return;
+
+  //   const tick = setInterval(() => {
+  //     setRedirectCountdown((c) => {
+  //       if (c <= 1) {
+  //         clearInterval(tick);
+  //         // final redirect
+  //         window.location.href = redirectUrl;
+  //         return 0;
+  //       }
+  //       return c - 1;
+  //     });
+  //   }, 1000);
+
+  //   return () => clearInterval(tick);
+  // }, [isRedirecting, redirectUrl]);
 
   return (
     <div>
@@ -244,91 +314,91 @@ export default function AdmissionWizard() {
                   </motion.div>
                 )}
 
-            {/* Step 4: Next of Kin */}
-            {step === 4 && (
-              <motion.div key={4} custom={direction} variants={variants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.4 }} className="space-y-6">
-                <h2 className="text-2xl font-bold text-gray-900 mb-6">Next of Kin Information</h2>
+                {/* Step 4: Next of Kin */}
+                {step === 4 && (
+                  <motion.div key={4} custom={direction} variants={variants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.4 }} className="space-y-6">
+                    <h2 className="text-2xl font-bold text-gray-900 mb-6">Next of Kin Information</h2>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Full Name *</label>
-                  <input
-                    {...register('nokFullName')}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                    placeholder="Enter full name"
-                  />
-                  {errors.nokFullName?.message && <p className="text-red-600 text-sm mt-1">{String(errors.nokFullName.message)}</p>}
-                </div>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Full Name *</label>
+                      <input
+                        {...register('nokFullName')}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                        placeholder="Enter full name"
+                      />
+                      {errors.nokFullName?.message && <p className="text-red-600 text-sm mt-1">{String(errors.nokFullName.message)}</p>}
+                    </div>
 
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Relationship *</label>
-                    <input
-                      {...register('nokRelationship')}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                      placeholder="e.g., Father, Mother, Guardian"
-                    />
-                    {errors.nokRelationship?.message && <p className="text-red-600 text-sm mt-1">{String(errors.nokRelationship.message)}</p>}
-                  </div>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Relationship *</label>
+                        <input
+                          {...register('nokRelationship')}
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                          placeholder="e.g., Father, Mother, Guardian"
+                        />
+                        {errors.nokRelationship?.message && <p className="text-red-600 text-sm mt-1">{String(errors.nokRelationship.message)}</p>}
+                      </div>
 
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-2">Phone Number *</label>
-                    <input
-                      {...register('nokPhoneNumber')}
-                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                      placeholder="+234 or 0801234567"
-                    />
-                    {errors.nokPhoneNumber?.message && <p className="text-red-600 text-sm mt-1">{String(errors.nokPhoneNumber.message)}</p>}
-                  </div>
-                </div>
+                      <div>
+                        <label className="block text-sm font-medium text-gray-700 mb-2">Phone Number *</label>
+                        <input
+                          {...register('nokPhoneNumber')}
+                          className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                          placeholder="+234 or 0801234567"
+                        />
+                        {errors.nokPhoneNumber?.message && <p className="text-red-600 text-sm mt-1">{String(errors.nokPhoneNumber.message)}</p>}
+                      </div>
+                    </div>
 
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Address *</label>
-                  <textarea
-                    {...register('nokAddress')}
-                    rows={3}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                    placeholder="Enter full address"
-                  />
-                  {errors.nokAddress?.message && <p className="text-red-600 text-sm mt-1">{String(errors.nokAddress.message)}</p>}
-                </div>
-              </motion.div>
-            )}
-            </AnimatePresence>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Address *</label>
+                      <textarea
+                        {...register('nokAddress')}
+                        rows={3}
+                        className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                        placeholder="Enter full address"
+                      />
+                      {errors.nokAddress?.message && <p className="text-red-600 text-sm mt-1">{String(errors.nokAddress.message)}</p>}
+                    </div>
+                  </motion.div>
+                )}
+              </AnimatePresence>
 
-            {/* Navigation Buttons */}
-            <div className="flex justify-between mt-8 pt-6 border-t border-gray-200">
-              {step > 1 ? (
-                <button
-                  type="button"
-                  onClick={prevStep}
-                  className="flex items-center px-6 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-                >
-                  <ChevronLeft className="w-5 h-5 mr-2" />
-                  Previous
-                </button>
-              ) : (
-                <div />
-              )}
+              {/* Navigation Buttons */}
+              <div className="flex justify-between mt-8 pt-6 border-t border-gray-200">
+                {step > 1 ? (
+                  <button
+                    type="button"
+                    onClick={prevStep}
+                    className="flex items-center px-6 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                  >
+                    <ChevronLeft className="w-5 h-5 mr-2" />
+                    Previous
+                  </button>
+                ) : (
+                  <div />
+                )}
 
-              {step < 4 ? (
-                <button
-                  type="button"
-                  onClick={nextStep}
-                  className="flex items-center px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors ml-auto"
-                >
-                  Next
-                  <ChevronRight className="w-5 h-5 ml-2" />
-                </button>
-              ) : (
-                <button
-                  type="submit"
-                  disabled={isPending}
-                  className="flex items-center px-8 py-3 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed ml-auto"
-                >
-                  {isPending ? 'Submitting...' : 'Submit Application'}
-                </button>
-              )}
-            </div>
+                {step < 4 ? (
+                  <button
+                    type="button"
+                    onClick={nextStep}
+                    className="flex items-center px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors ml-auto"
+                  >
+                    Next
+                    <ChevronRight className="w-5 h-5 ml-2" />
+                  </button>
+                ) : (
+                  <button
+                    type="submit"
+                    disabled={isPending}
+                    className="flex items-center px-8 py-3 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed ml-auto"
+                  >
+                    {isPending ? 'Submitting...' : 'Submit Application'}
+                  </button>
+                )}
+              </div>
             </FormProvider>
           </form>
         </div>

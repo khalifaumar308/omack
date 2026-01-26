@@ -114,7 +114,9 @@ export default function SchoolSettings() {
     uploadLogoMutation.mutate(file, {
       onSuccess: (data) => {
         console.log("Logo uploaded successfully:", data);
-        setLogo(data.url);
+        if (data && typeof data.url === 'string') {
+          setLogo(data.url);
+        }
       },
     });
     

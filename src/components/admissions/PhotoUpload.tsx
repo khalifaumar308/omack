@@ -18,15 +18,16 @@ export default function PhotoUpload() {
     // formData.append('file', file);
     uploadFile(file, {
       onSuccess: (res) => {
-        if (res.success && res.data?.url) {
-          setValue('passportPhoto', res.data.url);
-          setPhotoPreview(res.data.url);
+        if (res.url) {
+          setValue('passportPhoto', res.url);
+          setPhotoPreview(res.url);
         } else {
-          toast.error('Failed to upload photo. Please try again.');
+          toast.error(res.message || 'Failed to upload photo. Please try again.');
         }
       },
-      onError: () => {
-        toast.error('Failed to upload photo. Please try again.');
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+      onError: (data:any) => {
+        toast.error(data.message || 'Failed to upload photo. Please try again.');
       },
     });
   };

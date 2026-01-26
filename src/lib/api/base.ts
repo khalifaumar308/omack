@@ -608,7 +608,7 @@ export const exportCourseRegistrationsCsv = async (courseId: string, semester?: 
 }
 // Upload file using multipart/form-data to server upload route
 export const uploadFile = async (formData: FormData) => {
-  const response = await api.post('/uploads/file', formData, {
+  const response = await api.post<{message: string, url?:string, key?:string}>('/uploads/file', formData, {
     headers: {
       // Let browser set the Content-Type with boundary
       'Content-Type': 'multipart/form-data',

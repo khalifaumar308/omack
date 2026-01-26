@@ -94,7 +94,8 @@ const StudentProfile: React.FC = () => {
         // optionally include folder or filename
         fd.append('folder', `students/${student.id}`);
         const res = await uploadMutation.mutateAsync(fd);
-        photoUrl = (res.url || res.secure_url || photoUrl) as string;
+        const resAny = res as any;
+        photoUrl = (resAny.url || resAny.secure_url || photoUrl) as string;
         setUploadingImage(false);
       }
 
