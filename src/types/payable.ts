@@ -3,15 +3,16 @@ export interface Payable {
   school: string;
   department?: string;
   level: string;
+  targetGroup: "Student" | "Applicant" | "Both";
   session: string;
-  semester: 'First' | 'Second' | 'Session';
+  semester: "First" | "Second" | "Session";
   partPayment: boolean;
+  minPercentage?: number;
   amount: number;
-  dueDate: string;
+  dueDate: Date;
   description: string;
   isForAllDepartments: boolean;
-  minPercentage: number;
-  linkedTo: "Results" | "Course Registration" | "ID Card" | "Others";
+  linkedTo?: "Results" | "Course Registration" | "ID Card" | "Application" | "Others";
   createdAt?: string;
   updatedAt?: string;
 }

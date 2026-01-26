@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Menu, X } from 'lucide-react';
-import { Link } from 'react-router';
+import { Link } from 'react-router-dom';
 
 interface NavigationProps {
   isScrolled: boolean;
@@ -87,9 +87,14 @@ const Navigation: React.FC<NavigationProps> = ({ isScrolled }) => {
             transition={{ duration: 0.5 }}
             className="hidden lg:block"
           >
-            <Link to="/apply" className="px-6 py-2 rounded-lg bg-gradient-to-r from-blue-600 to-teal-600 text-white font-medium hover:shadow-lg transition-shadow">
-              Apply Now
-            </Link>
+            <div className="flex items-center gap-3">
+              <Link to="/login" className={`px-4 py-2 rounded-lg font-medium ${isScrolled ? 'text-gray-700 hover:text-blue-600' : 'text-white hover:text-blue-200'}`}>
+                Login
+              </Link>
+              <Link to="/apply" className="px-6 py-2 rounded-lg bg-gradient-to-r from-blue-600 to-teal-600 text-white font-medium hover:shadow-lg transition-shadow">
+                Apply Now
+              </Link>
+            </div>
           </motion.div>
 
           {/* Mobile Menu Button */}
@@ -131,9 +136,10 @@ const Navigation: React.FC<NavigationProps> = ({ isScrolled }) => {
                     {link.label}
                   </motion.button>
                 ))}
-                <Link to="/apply" className="w-full px-4 py-2 rounded-lg bg-gradient-to-r from-blue-600 to-teal-600 text-white font-medium">
-                  Apply Now
-                </Link>
+                <div className="flex flex-col gap-2">
+                  <Link to="/login" className="w-full text-center px-4 py-2 rounded-lg text-gray-700 hover:text-blue-600">Login</Link>
+                  <Link to="/apply" className="w-full px-4 py-2 rounded-lg bg-gradient-to-r from-blue-600 to-teal-600 text-white font-medium">Apply Now</Link>
+                </div>
               </div>
             </motion.div>
           )}

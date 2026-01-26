@@ -4,6 +4,8 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useLogin } from "@/lib/api/mutations";
+import Navigation from '@/components/landing/Navigation';
+import Footer from '@/components/landing/Footer';
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -37,8 +39,11 @@ export default function Login() {
   };
 
   return (
-    <div className="min-h-screen min-w-screen flex items-center justify-center bg-gradient-to-br from-blue-700 via-blue-600 to-cyan-500 p-6">
-      <div className="w-full max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8 items-stretch min-h-[80vh]">
+    <div>
+      <Navigation isScrolled={false} />
+
+      <main className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-700 via-blue-600 to-cyan-500 p-6 mt-16">
+        <div className="w-full max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8 items-stretch min-h-[80vh]">
         {/* Decorative panel */}
         <div className="hidden md:flex flex-col items-start justify-center space-y-6 p-10 rounded-3xl bg-gradient-to-br from-blue-700 via-blue-600 to-cyan-500 text-white shadow-2xl h-full">
           <img src="/acohsatlogo.jpg" alt="ACOHSAT Logo" className="w-32 h-32 rounded-full shadow-lg ring-4 ring-white/20 bg-white p-2" />
@@ -135,7 +140,10 @@ export default function Login() {
             </div>
           </CardContent>
         </Card>
-      </div>
+        </div>
+      </main>
+
+      <Footer />
     </div>
   );
 }

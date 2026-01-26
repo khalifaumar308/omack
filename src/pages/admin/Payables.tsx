@@ -338,6 +338,7 @@ export default function PayablesPage() {
                   <TableHead>Session</TableHead>
                   <TableHead>Semester</TableHead>
                   <TableHead>Department</TableHead>
+                  <TableHead>Target Group</TableHead>
                   <TableHead>Linked To</TableHead>
                   <TableHead className="">Actions</TableHead>
                 </TableRow>
@@ -360,6 +361,9 @@ export default function PayablesPage() {
                     <TableCell>{payable.semester}</TableCell>
                     <TableCell>
                       {payable.isForAllDepartments ? 'All Departments' : payable.department?.name}
+                    </TableCell>
+                    <TableCell>
+                      {payable.targetGroup}
                     </TableCell>
                     <TableCell>
                       {payable.linkedTo ? (
@@ -533,13 +537,26 @@ function PayableForm({ payable, levels, sessions }: { payable?: Payable | null; 
         </Select>
       </div>
       <div className="space-y-2">
+        <Label htmlFor="linkedTo">Target Group</Label>
+        <Select name="targetGroup" defaultValue={payable?.targetGroup || 'Student'}>
+          <SelectTrigger>
+            <SelectValue placeholder="Select Target Group" />
+          </SelectTrigger>
+          <SelectContent>
+            {["Student", "Applicant", "Both"].map((targetGroup) => (
+              <SelectItem key={targetGroup} value={targetGroup}>{targetGroup}</SelectItem>
+            ))}
+          </SelectContent>
+        </Select>
+      </div>
+      <div className="space-y-2">
         <Label htmlFor="linkedTo">Linked To</Label>
         <Select name="linkedTo" defaultValue={payable?.linkedTo || 'Others'}>
           <SelectTrigger>
             <SelectValue placeholder="Select linked to" />
           </SelectTrigger>
           <SelectContent>
-            {["Results", "Course Registration", "ID Card", "Others"].map((sess) => (
+            {["Results", "Course Registration", "ID Card", "Application", "Others"].map((sess) => (
               <SelectItem key={sess} value={sess}>{sess}</SelectItem>
             ))}
           </SelectContent>
