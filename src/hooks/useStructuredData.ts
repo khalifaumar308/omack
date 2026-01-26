@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { useEffect } from 'react';
 
 interface SchemaOrgData {
@@ -14,14 +15,14 @@ interface SchemaOrgData {
 export const useStructuredData = (schemaData: SchemaOrgData) => {
   useEffect(() => {
     // Create or update the structured data script
-    let script = document.querySelector('script[type="application/ld+json"]');
-    
+    let script = document.querySelector('script[type="application/ld+json"]') as HTMLScriptElement | null;
+
     if (!script) {
-      script = document.createElement('script');
+      script = document.createElement('script') as HTMLScriptElement;
       script.type = 'application/ld+json';
       document.head.appendChild(script);
     }
-    
+
     script.textContent = JSON.stringify(schemaData);
 
     return () => {

@@ -11,6 +11,7 @@ import ProgrammeStep from '../components/admissions/ProgrammeStep';
 import { useSubmitApplication } from '@/lib/api/queries';
 import { toast } from 'sonner';
 import type { SubmitApplicationRequest } from '@/lib/api/types';
+import Navigation from '@/components/landing/Navigation';
 
 // Zod Schema
 const phoneRegex = /^(\+234|0)[789][01]\d{8}$/;
@@ -209,125 +210,128 @@ export default function AdmissionWizard() {
   }
 
   return (
-    <div className="min-h-screen  py-8 px-4">
-      <div className="max-w-5xl mx-auto">
-        {/* Header */}
-        <div className="bg-white rounded-t-2xl shadow-xl p-6 border-b border-gray-200">
-          <h1 className="text-3xl font-bold text-gray-900 text-center mb-2">Apex College OF Health</h1>
-          <p className="text-center text-gray-600">Complementary Admission Application Form</p>
-        </div>
-
-        <Stepper steps={steps} step={step} />
-
-        {/* Form Content */}
-        <form onSubmit={handleSubmit(onSubmit)} className="bg-white rounded-b-2xl shadow-xl p-8">
-          <FormProvider {...methods}>
-            <AnimatePresence initial={false} mode="wait">
-              {step === 1 && (
-                <motion.div key={1} custom={direction} variants={variants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.4 }} className="space-y-6">
-                  <BiodataStep />
-                </motion.div>
-              )}
-
-              {step === 2 && (
-                <motion.div key={2} custom={direction} variants={variants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.4 }} className="space-y-6">
-                  <ProgrammeStep />
-                </motion.div>
-              )}
-
-              {step === 3 && (
-                <motion.div key={3} custom={direction} variants={variants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.4 }} className="space-y-8">
-                  <OLevelStep />
-                </motion.div>
-              )}
-
-          {/* Step 4: Next of Kin */}
-          {step === 4 && (
-            <motion.div key={4} custom={direction} variants={variants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.4 }} className="space-y-6">
-              <h2 className="text-2xl font-bold text-gray-900 mb-6">Next of Kin Information</h2>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Full Name *</label>
-                <input
-                  {...register('nokFullName')}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                  placeholder="Enter full name"
-                />
-                {errors.nokFullName?.message && <p className="text-red-600 text-sm mt-1">{String(errors.nokFullName.message)}</p>}
-              </div>
-
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Relationship *</label>
-                  <input
-                    {...register('nokRelationship')}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                    placeholder="e.g., Father, Mother, Guardian"
-                  />
-                  {errors.nokRelationship?.message && <p className="text-red-600 text-sm mt-1">{String(errors.nokRelationship.message)}</p>}
-                </div>
-
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-2">Phone Number *</label>
-                  <input
-                    {...register('nokPhoneNumber')}
-                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                    placeholder="+234 or 0801234567"
-                  />
-                  {errors.nokPhoneNumber?.message && <p className="text-red-600 text-sm mt-1">{String(errors.nokPhoneNumber.message)}</p>}
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Address *</label>
-                <textarea
-                  {...register('nokAddress')}
-                  rows={3}
-                  className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
-                  placeholder="Enter full address"
-                />
-                {errors.nokAddress?.message && <p className="text-red-600 text-sm mt-1">{String(errors.nokAddress.message)}</p>}
-              </div>
-            </motion.div>
-          )}
-          </AnimatePresence>
-
-          {/* Navigation Buttons */}
-          <div className="flex justify-between mt-8 pt-6 border-t border-gray-200">
-            {step > 1 ? (
-              <button
-                type="button"
-                onClick={prevStep}
-                className="flex items-center px-6 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
-              >
-                <ChevronLeft className="w-5 h-5 mr-2" />
-                Previous
-              </button>
-            ) : (
-              <div />
-            )}
-
-            {step < 4 ? (
-              <button
-                type="button"
-                onClick={nextStep}
-                className="flex items-center px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors ml-auto"
-              >
-                Next
-                <ChevronRight className="w-5 h-5 ml-2" />
-              </button>
-            ) : (
-              <button
-                type="submit"
-                disabled={isPending}
-                className="flex items-center px-8 py-3 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed ml-auto"
-              >
-                {isPending ? 'Submitting...' : 'Submit Application'}
-              </button>
-            )}
+    <div>
+      <Navigation isScrolled={false} />
+      <div className="min-h-screen mt-16  py-8 px-4">
+        <div className="max-w-5xl mx-auto">
+          {/* Header */}
+          <div className="bg-white rounded-t-2xl shadow-xl p-6 border-b border-gray-200">
+            <h1 className="text-3xl font-bold text-gray-900 text-center mb-2">Apex College OF Health</h1>
+            <p className="text-center text-gray-600">Complementary Admission Application Form</p>
           </div>
-          </FormProvider>
-        </form>
+
+          <Stepper steps={steps} step={step} />
+
+          {/* Form Content */}
+          <form onSubmit={handleSubmit(onSubmit)} className="bg-white rounded-b-2xl shadow-xl p-8">
+            <FormProvider {...methods}>
+              <AnimatePresence initial={false} mode="wait">
+                {step === 1 && (
+                  <motion.div key={1} custom={direction} variants={variants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.4 }} className="space-y-6">
+                    <BiodataStep />
+                  </motion.div>
+                )}
+
+                {step === 2 && (
+                  <motion.div key={2} custom={direction} variants={variants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.4 }} className="space-y-6">
+                    <ProgrammeStep />
+                  </motion.div>
+                )}
+
+                {step === 3 && (
+                  <motion.div key={3} custom={direction} variants={variants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.4 }} className="space-y-8">
+                    <OLevelStep />
+                  </motion.div>
+                )}
+
+            {/* Step 4: Next of Kin */}
+            {step === 4 && (
+              <motion.div key={4} custom={direction} variants={variants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.4 }} className="space-y-6">
+                <h2 className="text-2xl font-bold text-gray-900 mb-6">Next of Kin Information</h2>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Full Name *</label>
+                  <input
+                    {...register('nokFullName')}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    placeholder="Enter full name"
+                  />
+                  {errors.nokFullName?.message && <p className="text-red-600 text-sm mt-1">{String(errors.nokFullName.message)}</p>}
+                </div>
+
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Relationship *</label>
+                    <input
+                      {...register('nokRelationship')}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                      placeholder="e.g., Father, Mother, Guardian"
+                    />
+                    {errors.nokRelationship?.message && <p className="text-red-600 text-sm mt-1">{String(errors.nokRelationship.message)}</p>}
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Phone Number *</label>
+                    <input
+                      {...register('nokPhoneNumber')}
+                      className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                      placeholder="+234 or 0801234567"
+                    />
+                    {errors.nokPhoneNumber?.message && <p className="text-red-600 text-sm mt-1">{String(errors.nokPhoneNumber.message)}</p>}
+                  </div>
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Address *</label>
+                  <textarea
+                    {...register('nokAddress')}
+                    rows={3}
+                    className="w-full px-4 py-3 border border-gray-300 rounded-lg focus:ring-2 focus:ring-indigo-500 focus:border-transparent"
+                    placeholder="Enter full address"
+                  />
+                  {errors.nokAddress?.message && <p className="text-red-600 text-sm mt-1">{String(errors.nokAddress.message)}</p>}
+                </div>
+              </motion.div>
+            )}
+            </AnimatePresence>
+
+            {/* Navigation Buttons */}
+            <div className="flex justify-between mt-8 pt-6 border-t border-gray-200">
+              {step > 1 ? (
+                <button
+                  type="button"
+                  onClick={prevStep}
+                  className="flex items-center px-6 py-3 border border-gray-300 rounded-lg hover:bg-gray-50 transition-colors"
+                >
+                  <ChevronLeft className="w-5 h-5 mr-2" />
+                  Previous
+                </button>
+              ) : (
+                <div />
+              )}
+
+              {step < 4 ? (
+                <button
+                  type="button"
+                  onClick={nextStep}
+                  className="flex items-center px-6 py-3 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors ml-auto"
+                >
+                  Next
+                  <ChevronRight className="w-5 h-5 ml-2" />
+                </button>
+              ) : (
+                <button
+                  type="submit"
+                  disabled={isPending}
+                  className="flex items-center px-8 py-3 bg-emerald-600 text-white rounded-lg hover:bg-emerald-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed ml-auto"
+                >
+                  {isPending ? 'Submitting...' : 'Submit Application'}
+                </button>
+              )}
+            </div>
+            </FormProvider>
+          </form>
+        </div>
       </div>
     </div>
   );
