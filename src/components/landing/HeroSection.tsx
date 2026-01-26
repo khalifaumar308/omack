@@ -5,9 +5,6 @@ import { Link } from 'react-router';
 const HeroSection: React.FC = () => {
   // Array of background images for carousel
   const backgroundImages = [
-    
-    '/assests/students1.jpg',
-    '/assests/students2.jpg',
     '/assests/1.jpeg',
     '/assests/2.jpeg',
     '/assests/3.jpeg',

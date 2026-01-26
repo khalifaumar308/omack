@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Menu, X } from 'lucide-react';
+import { Link } from 'react-router';
 
 interface NavigationProps {
   isScrolled: boolean;
@@ -47,7 +48,7 @@ const Navigation: React.FC<NavigationProps> = ({ isScrolled }) => {
             onClick={() => scrollToSection('#home')}
           >
             <div className="flex items-center justify-center w-10 h-10 rounded-full bg-gradient-to-br from-blue-600 to-teal-600">
-              <span className="text-white font-bold text-lg">AC</span>
+              <img src='/acohsatlogo.jpg' />
             </div>
             <div className="hidden sm:block">
               <p className={`font-bold text-lg ${isScrolled ? 'text-gray-900' : 'text-white'}`}>
@@ -86,9 +87,9 @@ const Navigation: React.FC<NavigationProps> = ({ isScrolled }) => {
             transition={{ duration: 0.5 }}
             className="hidden lg:block"
           >
-            <button className="px-6 py-2 rounded-lg bg-gradient-to-r from-blue-600 to-teal-600 text-white font-medium hover:shadow-lg transition-shadow">
+            <Link to="/apply" className="px-6 py-2 rounded-lg bg-gradient-to-r from-blue-600 to-teal-600 text-white font-medium hover:shadow-lg transition-shadow">
               Apply Now
-            </button>
+            </Link>
           </motion.div>
 
           {/* Mobile Menu Button */}
@@ -130,9 +131,9 @@ const Navigation: React.FC<NavigationProps> = ({ isScrolled }) => {
                     {link.label}
                   </motion.button>
                 ))}
-                <button className="w-full px-4 py-2 rounded-lg bg-gradient-to-r from-blue-600 to-teal-600 text-white font-medium">
+                <Link to="/apply" className="w-full px-4 py-2 rounded-lg bg-gradient-to-r from-blue-600 to-teal-600 text-white font-medium">
                   Apply Now
-                </button>
+                </Link>
               </div>
             </motion.div>
           )}
