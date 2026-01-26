@@ -1,0 +1,27 @@
+# Apex College of Health Science and Technology - Robots.txt
+# Allow all search engines to crawl the site
+
+User-agent: *
+Allow: /
+
+# Google-specific
+User-agent: Googlebot
+Allow: /
+Crawl-delay: 1
+
+# Bing-specific
+User-agent: Bingbot
+Allow: /
+Crawl-delay: 1
+
+# Disallow specific paths if needed (uncomment as needed)
+# Disallow: /admin/
+# Disallow: /api/
+# Disallow: /private/
+
+# Sitemap location
+Sitemap: https://apexcollege.edu.ng/sitemap.xml
+
+# Crawl-delay for all bots (in seconds)
+Crawl-delay: 1
+Request-rate: 1/1s

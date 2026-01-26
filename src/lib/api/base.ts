@@ -36,12 +36,18 @@ import type {
 } from './wallet.types';
 import type { PayableFilters } from '@/types/pagination';
 import type { PopulatedRegistrationSetting } from '@/types/index';
-import type { RegistrationSettingsResponse } from './types';
+import type {
+  RegistrationSettingsResponse, SubmitApplicationRequest,
+  SubmitApplicationResponse,
+  GetApplicationStatusResponse,
+  VerifyApplicantPaymentResponse,
+  GetApplicationsResponse
+} from './types';
 import type { IStudentSemesterResultResponce } from '@/types/semester-result';
 
 // Configure your API base URL
-const API_BASE_URL = 'https://hmsms-api.onrender.com/api';
-// const API_BASE_URL = 'http://localhost:5000/api';
+// const API_BASE_URL = 'https://hmsms-api.onrender.com/api';
+const API_BASE_URL = 'http://localhost:5000/api'
 
 
 // =============================================================================
@@ -132,6 +138,54 @@ api.interceptors.response.use(
     return Promise.reject(error);
   }
 );
+
+// ============================================================================
+// APLICANT MANAGEMENT APIs
+// ============================================================================
+export const ApplicantService = {
+  /**
+   * Submit a new application
+   * @param data Application form data
+   * @returns Application details and optional payment URL
+   */
+  submitApplication: async (data: SubmitApplicationRequest): Promise<SubmitApplicationResponse> => {
+    const response = await api.post<SubmitApplicationResponse>(`applicants/submit`, data);
+    return response.data;
+  },
+
+  /**
+   * Get application status by identifier (email, nin, or application number)
+   * @param identifier search identifier
+   * @returns Application status details
+   */
+  getApplicationStatus: async (identifier: string): Promise<GetApplicationStatusResponse> => {
+    const response = await api.get<GetApplicationStatusResponse>(`applicants/status/${identifier}`);
+    return response.data;
+  },
+
+  /**
+   * Verify applicant payment using transaction reference
+   * @param reference Paystack transaction reference
+   * @returns Transaction status and details
+   */
+  verifyPayment: async (reference: string): Promise<VerifyApplicantPaymentResponse> => {
+    const response = await api.get<VerifyApplicantPaymentResponse>(`applicants/verify-payment`, {
+      params: { reference },
+    });
+    return response.data;
+  },
+
+  /**
+   * Admin: Get all applications for the logged-in admin's school
+   * Requires authentication (school-admin role)
+   * @returns List of applications
+   */
+  getApplications: async (): Promise<GetApplicationsResponse> => {
+    const response = await api.get<GetApplicationsResponse>(`applicants`);
+    return response.data;
+  },
+};
+
 
 // =============================================================================
 // SECURE AUTHENTICATION MANAGEMENT
@@ -835,7 +889,7 @@ export const initiateWalletFunding = async (
 export const initiatePayablePayment = async (
   payableId: string, amount: number
 ) => {
-  const response = await api.post<{status: boolean,message: string, data: {authorization_url: string, reference: string, access_code: string}}>(`/payables/initiate-payment/${payableId}?amount=${amount}`);
+  const response = await api.post<{ status: boolean, message: string, data: { authorization_url: string, reference: string, access_code: string } }>(`/payables/initiate-payment/${payableId}?amount=${amount}`);
   return response.data;
 };
 export const getWalletBalance = async (): Promise<WalletBalance> => {

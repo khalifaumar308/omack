@@ -1,7 +1,8 @@
 import { useQuery, useInfiniteQuery, useMutation } from "@tanstack/react-query";
 import * as api from "./base";
+import {  ApplicantService} from "./base"; 
 import type { PaginatedResponse, CourseRegistrationInstructorItem } from '@/components/types';
-import type { PayableFilters, PayablesResponse } from "./types";
+import type { PayableFilters, PayablesResponse, SubmitApplicationRequest } from "./types";
 
 // export const useGetSchools = (page: number, limit: number = 10) => {
 //   return useQuery({
@@ -326,6 +327,13 @@ export const useGetGradingTemplateById = (id:string) => {
     enabled: !!id,
     refetchOnWindowFocus: false,
   })
+}
+// Applicant
+
+export const useSubmitApplication = () => {
+  return useMutation({
+    mutationFn: (data:SubmitApplicationRequest) => ApplicantService.submitApplication(data),
+  });
 }
 
 // End of queries
