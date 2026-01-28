@@ -58,7 +58,7 @@ const Counter: React.FC<CounterProps> = ({ value, label, suffix }) => {
 
 const AboutSection: React.FC = () => {
   const containerRef = useRef(null);
-//   const controls = useAnimation();
+  //   const controls = useAnimation();
 
   const stats: CounterProps[] = [
     { value: '20', label: 'Years of Excellence', suffix: '+' },
@@ -118,15 +118,21 @@ const AboutSection: React.FC = () => {
               <div className="bg-blue-50 border-l-4 border-blue-600 p-4 rounded">
                 <h4 className="font-bold text-blue-900 mb-2">Our Mission</h4>
                 <p className="text-blue-800">
-                  To develop skilled healthcare professionals who contribute
-                  meaningfully to Nigeria's healthcare system and beyond.
+                  To be a leading institution of excellence in health sciences and technology
+                  education, by producing highly skilled and compassionate professionals who
+                  can transform healthcare delivery and improve health outcomes in Nigeria and
+                  beyond.
                 </p>
               </div>
               <div className="bg-teal-50 border-l-4 border-teal-600 p-4 rounded">
                 <h4 className="font-bold text-teal-900 mb-2">Our Vision</h4>
                 <p className="text-teal-800">
-                  To be a recognized center of excellence in health sciences
-                  education, innovation, and community impact.
+                  Apex College of Health Sciences and Technology, Wukari is committed to
+                  providing high-quality education and training in health sciences and
+                  technology, fostering innovation and professionalism. We strive to produce
+                  graduates who are equipped to address the complex health needs of diverse
+                  populations, and also promote self-reliance and empowering a healthier
+                  community.
                 </p>
               </div>
             </div>

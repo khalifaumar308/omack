@@ -73,18 +73,9 @@ const ProgramCard: React.FC<ProgramCardProps> = ({
 const ProgramsSection: React.FC = () => {
   const programs: ProgramCardProps[] = [
     {
-      id: 'nursing',
-      icon: <Heart className="w-8 h-8" />,
-      title: 'Nursing',
-      description:
-        'Train to become a compassionate nurse with comprehensive clinical skills and patient care expertise.',
-      color: 'from-red-500 to-pink-500',
-      accreditation: 'NBTE Accredited',
-    },
-    {
-      id: 'mls',
+      id: 'mlt',
       icon: <Microscope className="w-8 h-8" />,
-      title: 'Medical Laboratory Science',
+      title: 'Medical Laboratory Technicians',
       description:
         'Master laboratory techniques and diagnostic procedures essential for disease detection and patient care.',
       color: 'from-blue-500 to-cyan-500',
@@ -97,15 +88,6 @@ const ProgramsSection: React.FC = () => {
       description:
         'Develop skills in public health management and community-based healthcare delivery programs.',
       color: 'from-green-500 to-emerald-500',
-      accreditation: 'NBTE Accredited',
-    },
-    {
-      id: 'pharmacy-tech',
-      icon: <Pill className="w-8 h-8" />,
-      title: 'Pharmacy Technician',
-      description:
-        'Specialize in pharmaceutical compounding, dispensing, and medication management.',
-      color: 'from-purple-500 to-indigo-500',
       accreditation: 'NBTE Accredited',
     },
     {
