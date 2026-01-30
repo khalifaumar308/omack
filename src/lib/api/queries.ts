@@ -1,6 +1,6 @@
 import { useQuery, useInfiniteQuery, useMutation } from "@tanstack/react-query";
 import * as api from "./base";
-import {  ApplicantService} from "./base"; 
+import { ApplicantService } from "./base";
 import type { PaginatedResponse, CourseRegistrationInstructorItem } from '@/components/types';
 import type { PayableFilters, PayablesResponse, SubmitApplicationRequest } from "./types";
 
@@ -83,9 +83,9 @@ export const useGetCourses = (page: number = 1, limit: number = 50, search: stri
   return useQuery({
     queryKey: ["courses", page, limit, search, department, semester, level],
     queryFn: () => api.getCourses(page, limit, search || undefined, department || undefined, semester || undefined, level || undefined),
-  //   placeholderData: undefined,
-  //   refetchOnWindowFocus: false,
-  // staleTime: 1000 * 60 * 0, // 2 minutes
+    //   placeholderData: undefined,
+    //   refetchOnWindowFocus: false,
+    // staleTime: 1000 * 60 * 0, // 2 minutes
     retry: 2,
   });
 };
@@ -99,7 +99,7 @@ export const useGetCoursesId = (codes: string[]) => {
   });
 };
 
-export const useGetSemesterCourseRegsStats = (courseCodes:string[], semester: string, session: string) => {
+export const useGetSemesterCourseRegsStats = (courseCodes: string[], semester: string, session: string) => {
   return useQuery({
     queryKey: ["semesterCourseRegsStats", courseCodes, semester, session],
     queryFn: () => api.getSemesterCourseRegsStats(courseCodes, semester, session),
@@ -211,15 +211,15 @@ export const useGetStudentsSemesterResults = (
 };
 
 export const useGetTranscript = () => {
-return useQuery({
-  queryKey: ["transcript"],
-  queryFn: () => api.getTranscript(),
-  refetchOnWindowFocus: false,
-});
+  return useQuery({
+    queryKey: ["transcript"],
+    queryFn: () => api.getTranscript(),
+    refetchOnWindowFocus: false,
+  });
 };
 
 // Payables queries
-export const useGetPayables = (filters= { page: 1, limit: 20 }) => {
+export const useGetPayables = (filters = { page: 1, limit: 20 }) => {
   return useQuery({
     queryKey: ["payables", filters],
     queryFn: () => api.getPayables(filters),
@@ -227,10 +227,10 @@ export const useGetPayables = (filters= { page: 1, limit: 20 }) => {
   });
 };
 
-export const useGetRegistrationSettings = (page:number, department?: string, level?: string, semester?: string, session?: string) => {
+export const useGetRegistrationSettings = (page: number, department?: string, level?: string, semester?: string, session?: string) => {
   return useQuery({
     queryKey: ["registrationSettings"],
-    queryFn: () => api.getRegistrationSettings({page, department, level, semester, session}),
+    queryFn: () => api.getRegistrationSettings({ page, department, level, semester, session }),
     refetchOnWindowFocus: false,
   });
 };
@@ -249,7 +249,7 @@ export const useGetStudentPayables = (filters: PayableFilters = { limit: 20 }) =
   });
 };
 
-export const useGetSemesterResult = (semester:string  = 'First', session:string = '2025/2026',) => {
+export const useGetSemesterResult = (semester: string = 'First', session: string = '2025/2026',) => {
   return useQuery({
     queryKey: ["semesterResult", semester, session],
     queryFn: () => api.getSemesterResult(semester, session),
@@ -319,10 +319,10 @@ export const useGetResultsPerCourse = (
   });
 };
 
-export const useGetGradingTemplateById = (id:string) => {
+export const useGetGradingTemplateById = (id: string) => {
   return useQuery({
     queryKey: ["gradingTemplate", id],
-    queryFn: ()=>api.getGradingTemplateById(id),
+    queryFn: () => api.getGradingTemplateById(id),
     placeholderData: undefined,
     enabled: !!id,
     refetchOnWindowFocus: false,
@@ -332,8 +332,26 @@ export const useGetGradingTemplateById = (id:string) => {
 
 export const useSubmitApplication = () => {
   return useMutation({
-    mutationFn: (data:SubmitApplicationRequest) => ApplicantService.submitApplication(data),
+    mutationFn: (data: SubmitApplicationRequest) => ApplicantService.submitApplication(data),
   });
 }
+
+export const useGetApplications = (page: number = 1, limit: number = 10, search: string = '') => {
+  return useQuery({
+    queryKey: ["applications", page, limit, search],
+    queryFn: () => ApplicantService.getApplications(page, limit, search),
+    placeholderData: undefined,
+    refetchOnWindowFocus: false,
+  });
+};
+
+export const useGetApplicant = (id: string | undefined) => {
+  return useQuery({
+    queryKey: ["applicant", id],
+    queryFn: () => ApplicantService.getApplicant(id as string),
+    enabled: !!id,
+    refetchOnWindowFocus: false,
+  });
+};
 
 // End of queries

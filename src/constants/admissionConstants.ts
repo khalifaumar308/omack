@@ -1,28 +1,9 @@
 
 export const PROGRAMMES = [
-  "B.Tech. Ed. Building Technology Education",
-  "B.Tech. Ed. Electrical/Electronic Technology Education",
-  "B.Tech. Ed. Construction (Metalwork) Technology Education",
-  "B.Tech. Ed. Automobile Technology Education",
-  "B.Tech. Ed. Woodwork Technology Education",
-  "B.Sc. Ed. Biology Education",
-  "B.Sc. Ed. Chemistry Education",
-  "B.Sc. Ed. Integrated Science",
-  "B.Sc. Ed. Mathematics Education",
-  "B.Sc. Ed. Physics Education",
-  "B.Sc. Ed. Computer Science",
-  "B.Sc. Ed. Health Education",
-  "B.Sc. Ed. Physical Education",
-  "B.Sc. Ed. Business Education (Accounting)",
-  "B.Sc. Ed. Business Education (OTME)",
-  "B.Sc. Ed. Agricultural Science Education",
-  "B.Sc. Ed. Home Economics Education",
-  "B.A. Ed. Creative Arts",
-  "B.A. Ed. English Language Education",
-  "B.A. Ed. Islamic Studies Education",
-  "B.Sc. Ed. Economics Education",
-  "B.Ed. Primary Education",
-  "B.Ed. Special Education"
+  "Public Health",
+  "Health Information Management",
+  "Nutrition and Dietetics",
+  "Biomedical Engineering"
 ];
 
 export const SUBJECTS = [

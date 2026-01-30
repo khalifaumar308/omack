@@ -41,7 +41,6 @@ import type {
   SubmitApplicationResponse,
   GetApplicationStatusResponse,
   VerifyApplicantPaymentResponse,
-  GetApplicationsResponse
 } from './types';
 import type { IStudentSemesterResultResponce } from '@/types/semester-result';
 
@@ -180,8 +179,23 @@ export const ApplicantService = {
    * Requires authentication (school-admin role)
    * @returns List of applications
    */
-  getApplications: async (): Promise<GetApplicationsResponse> => {
-    const response = await api.get<GetApplicationsResponse>(`applicants`);
+  getApplications: async (page: number = 1, limit: number = 10, search: string = ''): Promise<{ data: import('./types').Applicant[], pagination: { total: number, pages: number, page: number, limit: number } }> => {
+    const params = { page, limit, search };
+    const response = await api.get(`applicants`, { params });
+    // Handle both array response (if no pagination backend support yet) and paginated response
+    if (Array.isArray(response.data)) {
+      return { data: response.data, pagination: { total: response.data.length, pages: 1, page: 1, limit: response.data.length } };
+    }
+    return response.data;
+  },
+
+  /**
+   * Get single applicant by ID
+   * @param id Applicant ID
+   * @returns Applicant details
+   */
+  getApplicant: async (id: string): Promise<import('./types').Applicant> => {
+    const response = await api.get<import('./types').Applicant>(`applicants/${id}`);
     return response.data;
   },
 };
@@ -608,7 +622,7 @@ export const exportCourseRegistrationsCsv = async (courseId: string, semester?: 
 }
 // Upload file using multipart/form-data to server upload route
 export const uploadFile = async (formData: FormData) => {
-  const response = await api.post<{message: string, url?:string, key?:string}>('/uploads/file', formData, {
+  const response = await api.post<{ message: string, url?: string, key?: string }>('/uploads/file', formData, {
     headers: {
       // Let browser set the Content-Type with boundary
       'Content-Type': 'multipart/form-data',

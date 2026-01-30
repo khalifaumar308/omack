@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useForm, FormProvider } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
-import { ChevronRight, ChevronLeft, Check, User, GraduationCap, FileText, Users, Clipboard } from 'lucide-react';
+import { ChevronRight, ChevronLeft, Check, User, GraduationCap, FileText, Users } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import Stepper from '../components/admissions/Stepper';
 import BiodataStep from '../components/admissions/BiodataStep';
@@ -87,7 +87,6 @@ type FormData = z.infer<typeof admissionSchema>;
 export default function AdmissionWizard() {
   const [step, setStep] = useState(1);
   const [direction, setDirection] = useState(0);
-  const [applicationNumber, setApplicationNumber] = useState<string | null>(null);
   const [redirectUrl, setRedirectUrl] = useState<string | null>(null);
   const [redirectCountdown, setRedirectCountdown] = useState<number>(5);
   const [isRedirecting, setIsRedirecting] = useState<boolean>(false);
@@ -152,11 +151,10 @@ export default function AdmissionWizard() {
 
   const onSubmit = async (data: FormData) => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const submitData: SubmitApplicationRequest = { ...(data as any) };
+    const submitData: SubmitApplicationRequest = { ...(data as any), school: "69539d1badfedb6b7d51126c" };
     submitApplication(submitData, {
       onSuccess: (response) => {
         toast.success('Application submitted successfully!, Initializing Payment...');
-        setApplicationNumber(response.application._id);
         console.log('Payment Info:', response.payment);
         if (response.payment) {
           // Initialize redirect flow: show success UI with countdown, then redirect after 5s
@@ -212,24 +210,6 @@ export default function AdmissionWizard() {
             <div className="bg-gradient-to-r from-red-50 to-orange-50 border-l-4 border-red-500 p-4 rounded-lg mb-6">
               <p className="text-sm text-red-800 font-medium">Important: Your application will not be considered until payment is completed. You will be redirected to the payment gateway to complete payment.</p>
             </div>
-            {applicationNumber && (
-              <div className="mb-6 bg-gradient-to-br from-blue-50 to-cyan-50 p-6 rounded-2xl border border-blue-200">
-                <p className="text-lg font-semibold text-gray-800 mb-3">Your Application Number:</p>
-                <div className="flex items-center justify-center space-x-3">
-                  <span className="text-3xl font-bold bg-gradient-to-r from-blue-700 to-cyan-600 bg-clip-text text-transparent">{applicationNumber}</span>
-                  <button
-                    onClick={() => {
-                      navigator.clipboard.writeText(applicationNumber);
-                      toast.success('Application number copied!');
-                    }}
-                    className="p-3 rounded-full bg-white hover:bg-blue-50 transition-all duration-300 shadow-md hover:shadow-lg"
-                    aria-label="Copy application number"
-                  >
-                    <Clipboard className="w-5 h-5 text-blue-600" />
-                  </button>
-                </div>
-              </div>
-            )}
             {isRedirecting ? (
               <div>
                 <p className="text-gray-700 mb-4 text-lg">Redirecting to payment gateway in <span className="font-bold text-blue-600 text-xl">{redirectCountdown}</span>s...</p>

@@ -1,3 +1,5 @@
+import type { Applicant } from "./types";
+
 export interface WalletBalance {
   balance: number;
 }
@@ -41,4 +43,6 @@ export interface VerifyWalletFundingResponse {
   success: boolean;
   message: string;
   transaction?: WalletTransaction;
+  payabletype?: "Application" | "Results" | "Course Registration" | "ID Card" | "Others";
+  applicant?: Applicant;
 }

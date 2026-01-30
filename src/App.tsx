@@ -34,6 +34,9 @@ import RegistrationSettings from "./pages/admin/RegistrationSettings";
 import CourseDetails from "./pages/admin/CourseDetails";
 import AdmissionWizard from "./pages/AdmissionWizard";
 import ApexCollegeLanding from "./pages/ApexCollegeLanding";
+import AdminApplicants from "./pages/AdminApplicants";
+import ApplicantDetail from "./pages/ApplicantDetail";
+import VerifyApplicationPayment from "./pages/VerifyApplicationPayment";
 
 const queryClient = new QueryClient();
 function App() {
@@ -46,6 +49,7 @@ function App() {
             <Routes>
               <Route path="/" element={<ApexCollegeLanding />} />
               <Route path="/apply" element={<AdmissionWizard />} />
+              <Route path="/application/verify-payment" element={<VerifyApplicationPayment />} />
               <Route path="/super-admin" element={<DashboardLayout />}>
                 {/* Define your routes here */}
                 <Route index element={<div>Dashboard Page</div>} />
@@ -74,6 +78,8 @@ function App() {
                 <Route path="/admin/payables" element={<Payables />} />
                 <Route path="/admin/payables/:id" element={<Payable />} />
                 <Route path="/admin/courses/:id" element={<CourseDetails />} />
+                <Route path="/admin/applicants" element={<AdminApplicants />} />
+                <Route path="/admin/applicants/:id" element={<ApplicantDetail />} />
               </Route>
               {/* Student Routes */}
               <Route path="/student" element={
