@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Eye, EyeOff, Stethoscope } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -9,7 +9,18 @@ export default function Login() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const { mutate: login, isPending, error } = useLogin();
+
+  const backgroundImages = ['/bg1.jpeg', '/bg2.jpeg'];
+
+  // Rotate background images every 5 seconds
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentImageIndex((prev) => (prev + 1) % backgroundImages.length);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -38,19 +49,19 @@ export default function Login() {
         background: 'black'
       }}
     >
-      {/* Background Image Layer - ADD YOUR IMAGES HERE */}
+      {/* Background Image Layer - Carousel of images */}
       <div
-        className="absolute inset-0"
+        key={currentImageIndex}
+        className="absolute inset-0 bg-transition"
         style={{
           backgroundImage: `
             linear-gradient(135deg, rgba(22, 92, 75, 0.5) 0%, rgba(13, 61, 50, 0.5) 100%),
-            url('/bg1.jpeg'),
-            url('/bg2.jpeg')
+            url('${backgroundImages[currentImageIndex]}')
           `,
-          backgroundSize: 'cover, cover, cover',
-          backgroundPosition: 'center, top right, bottom left',
-          backgroundRepeat: 'no-repeat, no-repeat, no-repeat',
-          backgroundBlendMode: 'multiply, multiply, multiply'
+          backgroundSize: 'cover, cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat, no-repeat',
+          backgroundBlendMode: 'multiply'
         }}
       />
 
@@ -128,7 +139,7 @@ export default function Login() {
             className="h-14 w-14 rounded-full flex items-center justify-center text-white font-bold text-2xl shadow-lg"
             style={{ background: 'rgba(255, 255, 255, 0.15)', backdropFilter: 'blur(10px)', border: '1px solid rgba(255,255,255,0.2)' }}
           >
-            <img src="/logo.jpg" alt="O'Mark Logo" className="h-9 w-9" />
+            <img src="/logo.jpg" alt="O'Mark Logo" className="h-14 w-14" />
           </div>
           <div>
             <h1 style={{ fontSize: '1.75rem', fontWeight: 700, margin: 0, letterSpacing: '-0.5px' }}>
