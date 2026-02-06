@@ -93,137 +93,222 @@ const InstructorDashbaord: React.FC = () => {
   };
 
   return (
-    <div className="max-w-6xl mx-auto p-6">
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+    <div className="max-w-7xl mx-auto">
+      {/* Page Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
         <div>
-          <h1 className="text-2xl font-semibold">Welcome back, {instructorName}</h1>
-          <p className="text-sm text-muted-foreground">{semester} Semester {session ? `· ${session}` : ''}</p>
+          <h1 style={{ color: 'var(--omack-text-primary)', fontSize: '2.125rem', fontWeight: 700, margin: 0, letterSpacing: '-0.5px' }}>
+            Welcome, {instructorName}
+          </h1>
+          <p style={{ color: 'var(--omack-text-secondary)', fontSize: '0.95rem', margin: '0.5rem 0 0 0' }}>
+            {semester} Semester {session ? `· ${session}` : ''}
+          </p>
         </div>
 
         <div className="flex items-center gap-2">
-          <label htmlFor="upload-csv" className="inline-flex items-center gap-2 cursor-pointer rounded-md px-3 py-2 border bg-background">
-            <UploadCloud className="size-4" />
+          <label htmlFor="upload-csv" className="btn-secondary inline-flex">
+            <UploadCloud className="size-4 mr-2" />
             <span className="text-sm">Upload Results</span>
           </label>
           <input id="upload-csv" type="file" accept="text/csv,application/csv,.csv" className="hidden" />
 
-          <Button variant="outline" onClick={() => { window.scrollTo({ top: 9999, behavior: 'smooth' }); }}>
-            <FileText className="mr-2" /> View Courses
+          <Button 
+            onClick={() => { window.scrollTo({ top: 9999, behavior: 'smooth' }); }}
+            style={{
+              background: 'linear-gradient(135deg, #165c4b 0%, #1e9a6f 100%)',
+              color: 'white',
+              fontWeight: 600
+            }}
+          >
+            <FileText className="mr-2 h-4 w-4" /> View Courses
           </Button>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
-        <Card className="p-4">
-          <CardHeader>
-            <CardTitle className="text-sm">Courses assigned</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{totalCourses}</div>
-            <div className="text-sm text-muted-foreground">Courses you're teaching this semester</div>
-          </CardContent>
-        </Card>
+      {/* Stats Cards */}
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+        <div className="stat-card">
+          <div className="stat-card-value" style={{ color: 'var(--omack-primary)' }}>{totalCourses}</div>
+          <div className="stat-card-label">Courses Assigned</div>
+        </div>
 
-        <Card className="p-4">
-          <CardHeader>
-            <CardTitle className="text-sm">Total students</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{new Intl.NumberFormat().format(totalRegistrations)}</div>
-            <div className="text-sm text-muted-foreground">Students registered across your courses</div>
-          </CardContent>
-        </Card>
+        <div className="stat-card">
+          <div className="stat-card-value" style={{ color: 'var(--omack-primary)' }}>{new Intl.NumberFormat().format(totalRegistrations)}</div>
+          <div className="stat-card-label">Total Students</div>
+        </div>
 
-        <Card className="p-4">
-          <CardHeader>
-            <CardTitle className="text-sm">Average class size</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{avgClassSize}</div>
-            <div className="text-sm text-muted-foreground">Average students per course</div>
-          </CardContent>
-        </Card>
+        <div className="stat-card">
+          <div className="stat-card-value" style={{ color: 'var(--omack-primary)' }}>{avgClassSize}</div>
+          <div className="stat-card-label">Average Class Size</div>
+        </div>
       </div>
 
-      <div className="bg-white rounded-lg border p-4">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-lg font-medium">Your courses</h3>
+      {/* Courses Section */}
+      <div className="page-section">
+        <div className="flex items-center justify-between mb-6">
+          <h2 className="page-section-title" style={{ margin: 0 }}>Your Courses</h2>
           <div className="flex items-center gap-2">
-            <Button onClick={() => refetch()}>Refresh</Button>
-            <Button variant="ghost" onClick={async () => {
-              try {
-                // export all courses combined is not implemented server-side; export course-by-course in sequence
-                for (const c of courses) {
-                  await onExportCourse(c.id);
+            <Button 
+              onClick={() => refetch()}
+              style={{ 
+                background: 'linear-gradient(135deg, #165c4b 0%, #1e9a6f 100%)',
+                color: 'white',
+                fontWeight: 600
+              }}
+            >
+              Refresh
+            </Button>
+            <Button 
+              onClick={async () => {
+                try {
+                  for (const c of courses) {
+                    await onExportCourse(c.id);
+                  }
+                } catch (err) {
+                  console.error(err);
+                  toast('Export failed');
                 }
-              } catch (err) {
-                console.error(err);
-                toast('Export failed');
-              }
-            }}>Export All</Button>
+              }}
+              style={{ 
+                background: 'var(--omack-bg-lighter)',
+                color: 'var(--omack-primary)',
+                border: '1.5px solid var(--omack-primary)',
+                fontWeight: 600
+              }}
+            >
+              Export All
+            </Button>
           </div>
         </div>
 
         {courses.length === 0 ? (
-          <div className="text-center py-8">
-            <h3 className="text-lg font-medium">No assigned courses</h3>
-            <p className="text-sm text-muted-foreground">You currently have no courses assigned for this semester.</p>
+          <div style={{ textAlign: 'center', padding: '2rem 1rem', color: 'var(--omack-text-light)' }}>
+            <h3 style={{ fontSize: '1.125rem', fontWeight: 600, color: 'var(--omack-text-primary)', marginBottom: '0.5rem' }}>No assigned courses</h3>
+            <p>You currently have no courses assigned for this semester.</p>
           </div>
         ) : (
-          <div className="hidden md:block">
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <TableHead>Code</TableHead>
-                  <TableHead>Title</TableHead>
-                  <TableHead>Credit Units</TableHead>
-                  <TableHead>Registrations</TableHead>
-                  <TableHead className="text-right">Actions</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {courses.map((c) => (
-                  <TableRow key={c.id}>
-                    <TableCell><Link to={`/instructor/courses/${c.id}`}>{c.code || c.id}</Link></TableCell>
-                    <TableCell>{c.title}</TableCell>
-                    <TableCell>{c.creditUnits ?? '-'}</TableCell>
-                    <TableCell>{c.registrations}</TableCell>
-                    <TableCell className="text-right">
-                      <div className="flex items-center justify-end gap-2">
-                        <Button size="sm" variant="outline" onClick={() => onExportCourse(c.id)}><DownloadCloud className="mr-2"/>Export</Button>
-                        <Link to={`/instructor/courses/${c.id}`}><Button size="sm">View</Button></Link>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
-          </div>
-        )}
+          <>
+            {/* Desktop Table */}
+            <div className="hidden md:block overflow-x-auto">
+              <table className="omack-table w-full">
+                <thead>
+                  <tr style={{ background: 'linear-gradient(90deg, var(--omack-primary) 0%, var(--omack-primary-light) 100%)' }}>
+                    <th style={{ padding: 'var(--omack-spacing-lg)' }}>Course Code</th>
+                    <th style={{ padding: 'var(--omack-spacing-lg)' }}>Course Title</th>
+                    <th style={{ padding: 'var(--omack-spacing-lg)', textAlign: 'center' }}>Credit Units</th>
+                    <th style={{ padding: 'var(--omack-spacing-lg)', textAlign: 'center' }}>Registrations</th>
+                    <th style={{ padding: 'var(--omack-spacing-lg)', textAlign: 'right' }}>Actions</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {courses.map((c, idx) => (
+                    <tr key={c.id} style={{ backgroundColor: idx % 2 === 0 ? 'var(--omack-bg-white)' : 'var(--omack-bg-lighter)' }}>
+                      <td style={{ padding: 'var(--omack-spacing-lg)', borderBottom: '1px solid var(--omack-border-light)', fontWeight: 600, color: 'var(--omack-primary)' }}>
+                        <Link to={`/instructor/courses/${c.id}`} style={{ textDecoration: 'none', color: 'var(--omack-primary)' }}>
+                          {c.code || c.id}
+                        </Link>
+                      </td>
+                      <td style={{ padding: 'var(--omack-spacing-lg)', borderBottom: '1px solid var(--omack-border-light)', color: 'var(--omack-text-primary)' }}>
+                        {c.title}
+                      </td>
+                      <td style={{ padding: 'var(--omack-spacing-lg)', borderBottom: '1px solid var(--omack-border-light)', textAlign: 'center', color: 'var(--omack-text-secondary)' }}>
+                        {c.creditUnits ?? '-'}
+                      </td>
+                      <td style={{ padding: 'var(--omack-spacing-lg)', borderBottom: '1px solid var(--omack-border-light)', textAlign: 'center', fontWeight: 600, color: 'var(--omack-text-primary)' }}>
+                        {c.registrations}
+                      </td>
+                      <td style={{ padding: 'var(--omack-spacing-lg)', borderBottom: '1px solid var(--omack-border-light)', textAlign: 'right' }}>
+                        <div className="flex items-center justify-end gap-2">
+                          <Button 
+                            size="sm" 
+                            onClick={() => onExportCourse(c.id)}
+                            style={{ 
+                              background: 'var(--omack-bg-lighter)',
+                              color: 'var(--omack-primary)',
+                              border: '1.5px solid var(--omack-border)',
+                              fontWeight: 600,
+                              fontSize: '0.875rem'
+                            }}
+                          >
+                            <DownloadCloud className="mr-1 h-4 w-4" />Export
+                          </Button>
+                          <Link to={`/instructor/courses/${c.id}`}>
+                            <Button 
+                              size="sm"
+                              style={{ 
+                                background: 'linear-gradient(135deg, #165c4b 0%, #1e9a6f 100%)',
+                                color: 'white',
+                                fontWeight: 600,
+                                fontSize: '0.875rem'
+                              }}
+                            >
+                              View
+                            </Button>
+                          </Link>
+                        </div>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
 
-        {/* Mobile cards */}
-        <div className="md:hidden grid grid-cols-1 gap-4 mt-4">
-          {courses.map((c) => (
-            <Card key={c.id} className="p-3">
-              <CardContent>
-                <div className="flex items-start justify-between">
-                  <div>
-                    <div className="font-medium">{c.code || c.id}</div>
-                    <div className="text-sm text-muted-foreground">{c.title}</div>
+            {/* Mobile Cards */}
+            <div className="md:hidden grid grid-cols-1 gap-4 mt-4">
+              {courses.map((c) => (
+                <div key={c.id} className="omack-card-compact">
+                  <div className="flex items-start justify-between mb-4">
+                    <div>
+                      <Link 
+                        to={`/instructor/courses/${c.id}`}
+                        style={{ textDecoration: 'none', color: 'var(--omack-primary)', fontWeight: 600 }}
+                      >
+                        {c.code || c.id}
+                      </Link>
+                      <div style={{ fontSize: '0.9rem', color: 'var(--omack-text-secondary)', marginTop: '0.25rem' }}>
+                        {c.title}
+                      </div>
+                    </div>
+                    <div style={{ textAlign: 'right' }}>
+                      <div style={{ fontSize: '0.8rem', color: 'var(--omack-text-light)', textTransform: 'uppercase', letterSpacing: '0.3px', fontWeight: 600, marginBottom: '0.25rem' }}>
+                        Registrations
+                      </div>
+                      <div style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--omack-primary)' }}>
+                        {c.registrations}
+                      </div>
+                    </div>
                   </div>
-                  <div className="text-right">
-                    <div className="text-sm text-muted-foreground">Regs</div>
-                    <div className="font-semibold">{c.registrations}</div>
+                  <div className="flex gap-2 justify-end pt-4" style={{ borderTop: '1px solid var(--omack-border-light)' }}>
+                    <Button 
+                      size="sm" 
+                      onClick={() => onExportCourse(c.id)}
+                      style={{ 
+                        background: 'var(--omack-bg-lighter)',
+                        color: 'var(--omack-primary)',
+                        border: '1.5px solid var(--omack-border)',
+                        fontWeight: 600
+                      }}
+                    >
+                      <DownloadCloud className="mr-1 h-4 w-4" />Export
+                    </Button>
+                    <Link to={`/instructor/courses/${c.id}`}>
+                      <Button 
+                        size="sm"
+                        style={{ 
+                          background: 'linear-gradient(135deg, #165c4b 0%, #1e9a6f 100%)',
+                          color: 'white',
+                          fontWeight: 600
+                        }}
+                      >
+                        View
+                      </Button>
+                    </Link>
                   </div>
                 </div>
-                <div className="mt-3 flex gap-2 justify-end">
-                  <Button size="sm" variant="outline" onClick={() => onExportCourse(c.id)}><DownloadCloud className="mr-2"/>Export</Button>
-                  <Link to={`/instructor/courses/${c.id}`}><Button size="sm">View</Button></Link>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+              ))}
+            </div>
+          </>
+        )}
       </div>
     </div>
   );

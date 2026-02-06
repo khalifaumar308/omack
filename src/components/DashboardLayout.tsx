@@ -142,6 +142,7 @@ export function DashboardLayout() {
         { title: "Instructors", url: "/admin/instructors" },
         { title: "Course Registrations", url: "/admin/course-registrations" },
         { title: "Results", url: "/admin/results" },
+        { title: "Applicants", url: "/admin/applicants" },
       ]
     },
     {
@@ -191,14 +192,24 @@ export function DashboardLayout() {
 
   return (
     <SidebarProvider>
-      <div className="flex h-screen w-full">
-        <Sidebar className="border-r">
-          <SidebarHeader className="border-b p-4">
-            <div className="flex items-center gap-2">
-              <img src="/acohsatlogo.jpg" alt="ACOHSAT" className="h-10 w-10 rounded-full object-cover" />
-              <h2 className="text-lg font-semibold text-foreground">
-                ACOHSAT HMS
-              </h2>
+      <div className="flex h-screen w-full" style={{ backgroundColor: 'var(--omack-bg-lighter)' }}>
+        <Sidebar className="sidebar-container">
+          <SidebarHeader style={{ background: 'linear-gradient(135deg, #165c4b 0%, #1e9a6f 100%)', borderBottom: '2px solid rgba(0,0,0,0.1)' }} className="p-4">
+            <div className="flex items-center gap-3">
+              <div 
+                className="h-10 w-10 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-md"
+                style={{ background: 'rgba(0,0,0,0.2)' }}
+              >
+                O'
+              </div>
+              <div>
+                <h2 style={{ color: 'white', fontSize: '0.95rem', fontWeight: 700, margin: 0 }}>
+                  O'Mark Portal
+                </h2>
+                <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: '0.7rem', margin: 0, letterSpacing: '0.5px', textTransform: 'uppercase', fontWeight: 500 }}>
+                  School of Health
+                </p>
+              </div>
             </div>
           </SidebarHeader>
           <SidebarContent>
@@ -209,16 +220,26 @@ export function DashboardLayout() {
                     <SidebarMenuItem key={item.title}>
                       {item.items ? (
                         <>
-                          <SidebarGroupLabel className="px-2 text-xs font-medium text-muted-foreground">
-                            <item.icon className="mr-2 h-4 w-4" />
+                          <SidebarGroupLabel className="sidebar-group-label">
+                            <item.icon className="mr-2 h-3.5 w-3.5" />
                             {item.title}
                           </SidebarGroupLabel>
-                          <SidebarMenu className="ml-4">
+                          <SidebarMenu className="ml-2">
                             {item.items?.map((subItem) => (
                               <SidebarMenuItem key={subItem.url}>
                                 <SidebarMenuButton
                                   asChild
                                   isActive={location.pathname === subItem.url}
+                                  className={location.pathname === subItem.url ? 'active' : ''}
+                                  style={location.pathname === subItem.url ? { 
+                                    backgroundColor: 'var(--omack-primary-light)', 
+                                    color: 'white',
+                                    borderLeft: '4px solid var(--omack-accent)',
+                                    fontWeight: 600
+                                  } : {
+                                    color: 'var(--omack-text-primary)',
+                                    transition: 'all 0.3s ease'
+                                  }}
                                 >
                                   <Link to={subItem.url}>{subItem.title}</Link>
                                 </SidebarMenuButton>
@@ -230,6 +251,19 @@ export function DashboardLayout() {
                         <SidebarMenuButton
                           asChild
                           isActive={location.pathname === item.url}
+                          className={location.pathname === item.url ? 'active' : 'sidebar-menu-item'}
+                          style={location.pathname === item.url ? { 
+                            backgroundColor: 'var(--omack-primary-light)', 
+                            color: 'white',
+                            fontWeight: 600,
+                            borderLeft: '4px solid var(--omack-accent)'
+                          } : {
+                            color: 'var(--omack-text-primary)',
+                            margin: '0.25rem 0.5rem',
+                            borderRadius: '0.5rem',
+                            padding: '0.5rem 1rem',
+                            transition: 'all 0.3s ease'
+                          }}
                         >
                           <Link to={item.url!}>
                             <item.icon className="mr-2 h-4 w-4" />
@@ -245,27 +279,47 @@ export function DashboardLayout() {
           </SidebarContent>
           <SidebarRail />
         </Sidebar>
-        <SidebarInset className="flex-1">
-          <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-sm border-b border-slate-100 shadow-sm">
-            <div className="flex items-center h-16 px-3 md:px-6">
-              <div className="flex items-center gap-3 flex-shrink-0">
-                <SidebarTrigger className="-ml-1" />
-                <div className="flex items-center gap-2">
-                  <img src="/acohsatlogo.jpg" alt="ACOHSAT" className="h-8 w-8 rounded-full object-cover" />
-                  <div className="hidden sm:flex flex-col leading-tight">
-                    <div className="text-sm font-semibold text-slate-800">ACOHSAT HMS</div>
-                    <div className="text-xs text-muted-foreground truncate max-w-[200px]">{user?.school?.name}</div>
-                  </div>
+        <SidebarInset className="flex-1 flex flex-col">
+          <header 
+            className="sticky top-0 z-40 backdrop-blur-sm shadow-sm border-b"
+            style={{ 
+              background: 'var(--omack-bg-white)',
+              borderColor: 'var(--omack-border-light)'
+            }}
+          >
+            <div className="flex items-center h-16 px-3 md:px-6 gap-3">
+              <SidebarTrigger className="-ml-1" style={{ color: 'var(--omack-text-primary)' }} />
+              
+              <div className="flex items-center gap-2 flex-shrink-0">
+                <div 
+                  className="h-8 w-8 rounded-full flex items-center justify-center text-white font-bold text-sm shadow-sm"
+                  style={{ background: 'linear-gradient(135deg, #165c4b 0%, #1e9a6f 100%)' }}
+                >
+                  O'
+                </div>
+                <div className="hidden sm:flex flex-col leading-tight">
+                  <div style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--omack-text-primary)' }}>O'Mark</div>
+                  <div style={{ fontSize: '0.75rem', color: 'var(--omack-text-light)', textTransform: 'uppercase', letterSpacing: '0.3px' }}>Portal</div>
                 </div>
               </div>
 
-              {/* center - responsive search (min-w-0 allows truncation) */}
-              <div className="flex-1 px-2 min-w-0">
-                <div className="flex items-center bg-slate-50 border border-slate-100 rounded-lg px-2 py-1 w-full max-w-2xl mx-auto">
-                  <Search className="h-4 w-4 text-slate-400 mr-2 flex-shrink-0" />
+              {/* Separator */}
+              <div style={{ height: '24px', width: '1px', background: 'var(--omack-border-light)', margin: '0 0.5rem' }} />
+
+              {/* center - responsive search */}
+              <div className="flex-1 px-2 min-w-0 hidden md:block">
+                <div 
+                  className="flex items-center rounded-lg px-3 py-2 w-full max-w-2xl mx-auto border"
+                  style={{ 
+                    background: 'var(--omack-bg-lighter)',
+                    borderColor: 'var(--omack-border-light)'
+                  }}
+                >
+                  <Search className="h-4 w-4 flex-shrink-0" style={{ color: 'var(--omack-text-light)', marginRight: '0.5rem' }} />
                   <input
-                    className="w-full bg-transparent text-sm focus:outline-none min-w-0 truncate"
-                    placeholder="Search courses, students, pages..."
+                    className="flex-1 bg-transparent text-sm focus:outline-none min-w-0"
+                    placeholder="Search..."
+                    style={{ color: 'var(--omack-text-primary)' }}
                     aria-label="Global search"
                   />
                 </div>
@@ -273,20 +327,33 @@ export function DashboardLayout() {
 
               <div className="ml-3 flex items-center gap-3 flex-shrink-0">
                 <div className="hidden sm:flex flex-col text-right mr-2 max-w-[140px] min-w-0">
-                  <span className="text-sm font-medium text-slate-700 truncate">{user?.name}</span>
-                  <span className="text-xs text-muted-foreground truncate">{user?.role}</span>
+                  <span style={{ fontSize: '0.9rem', fontWeight: 500, color: 'var(--omack-text-primary)' }} className="truncate">{user?.name}</span>
+                  <span style={{ fontSize: '0.75rem', color: 'var(--omack-text-light)', textTransform: 'uppercase', letterSpacing: '0.3px' }} className="truncate">{user?.role}</span>
                 </div>
-                <div className="h-9 w-9 rounded-full bg-slate-100 flex items-center justify-center text-slate-700 font-medium flex-shrink-0">{((user?.name || '') as string).split(' ').map(n => n?.[0]).slice(0, 2).join('') || 'U'}</div>
-                <Button variant="ghost" size="sm" onClick={handleLogout} className="ml-1">
+                <div 
+                  className="h-9 w-9 rounded-full flex items-center justify-center text-white font-semibold text-sm flex-shrink-0 shadow-md"
+                  style={{ background: 'linear-gradient(135deg, #165c4b 0%, #1e9a6f 100%)' }}
+                >
+                  {((user?.name || '') as string).split(' ').map(n => n?.[0]).slice(0, 2).join('') || 'U'}
+                </div>
+                <Button 
+                  variant="ghost" 
+                  size="sm" 
+                  onClick={handleLogout} 
+                  className="ml-1"
+                  style={{ 
+                    color: 'var(--omack-primary)',
+                    fontWeight: 600,
+                    fontSize: '0.9rem'
+                  }}
+                >
                   Logout
                 </Button>
               </div>
             </div>
           </header>
-          <main className="flex-1 p-6">
-            {/* <UserProvider> */}
+          <main className="flex-1 overflow-auto p-6">
             <Outlet />
-            {/* </UserProvider> */}
           </main>
         </SidebarInset>
       </div>

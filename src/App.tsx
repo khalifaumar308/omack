@@ -4,8 +4,9 @@ import { DashboardLayout } from "./components/DashboardLayout";
 import { Toaster } from 'sonner';
 
 import './App.css'
-import Schools from "./pages/super-admin/Schools";
-import Faculties from "./pages/super-admin/Faculties";
+import './styles/omack-theme.css'
+// import Schools from "./pages/super-admin/Schools";
+// import Faculties from "./pages/super-admin/Faculties";
 import Login from "./pages/Login";
 import Dapartments from "./pages/admin/Dapartments";
 import Instructors from "./pages/admin/Instructors";
@@ -32,11 +33,11 @@ import Payables from "./pages/admin/Payables";
 import Payable from "./pages/admin/Payable";
 import RegistrationSettings from "./pages/admin/RegistrationSettings";
 import CourseDetails from "./pages/admin/CourseDetails";
-import AdmissionWizard from "./pages/AdmissionWizard";
-import ApexCollegeLanding from "./pages/ApexCollegeLanding";
+// import AdmissionWizard from "./pages/AdmissionWizard";
+// import ApexCollegeLanding from "./pages/ApexCollegeLanding";
 import AdminApplicants from "./pages/AdminApplicants";
 import ApplicantDetail from "./pages/ApplicantDetail";
-import VerifyApplicationPayment from "./pages/VerifyApplicationPayment";
+// import VerifyApplicationPayment from "./pages/VerifyApplicationPayment";
 
 const queryClient = new QueryClient();
 function App() {
@@ -47,15 +48,7 @@ function App() {
         <QueryClientProvider client={queryClient}>
           <BrowserRouter>
             <Routes>
-              <Route path="/" element={<ApexCollegeLanding />} />
-              <Route path="/apply" element={<AdmissionWizard />} />
-              <Route path="/application/verify-payment" element={<VerifyApplicationPayment />} />
-              <Route path="/super-admin" element={<DashboardLayout />}>
-                {/* Define your routes here */}
-                <Route index element={<div>Dashboard Page</div>} />
-                <Route path="/super-admin/schools" element={<Schools />} />
-                <Route path="/super-admin/faculties" element={<Faculties />} />
-              </Route>
+             
               {/* Admin Routes */}
               {/* <UserProvider> */}
               <Route path="/admin" element={
@@ -105,7 +98,7 @@ function App() {
                 <Route path="/instructor/courses/:id" element={<InstructorCourse />} />
               </Route>
               {/* </UserProvider> */}
-              <Route path="/login" element={<Login />} />
+              <Route path="/" element={<Login />} />
               <Route path="/wallet/verify" element={<WalletVerify />} />
               <Route path="*" element={<div>404 Not Found</div>} />
             </Routes>

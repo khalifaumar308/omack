@@ -16,14 +16,17 @@ type Stat = {
 
 const StatCard = memo(({ icon: Icon, label, value, color }: Stat) => {
   return (
-    <div className="bg-white p-5 rounded-lg shadow-sm border hover:shadow-md transition-shadow duration-150">
-      <div className="flex items-center">
-        <div className={`p-3 rounded-lg ${color} text-white`}>
+    <div className="stat-card">
+      <div className="flex items-center gap-4">
+        <div 
+          className="p-3 rounded-lg text-white flex-shrink-0"
+          style={{ background: color }}
+        >
           <Icon size={20} />
         </div>
-        <div className="ml-4">
-          <p className="text-sm font-medium text-gray-600">{label}</p>
-          <p className="text-xl sm:text-2xl font-bold text-gray-800">{value}</p>
+        <div>
+          <p style={{ fontSize: '0.9rem', fontWeight: 500, color: 'var(--omack-text-light)' }}>{label}</p>
+          <p style={{ fontSize: '1.75rem', fontWeight: 700, color: 'var(--omack-primary)', lineHeight: 1 }}>{value}</p>
         </div>
       </div>
     </div>
@@ -112,25 +115,19 @@ function StudentDashboard() {
       icon: BookOpen,
       label: 'Registered Courses',
       value: studentSummary?.coursesCount ?? 0,
-      color: 'bg-blue-500'
+      color: 'linear-gradient(135deg, #165c4b 0%, #1e9a6f 100%)'
     },
-    // {
-    //   icon: GraduationCap,
-    //   label: 'Current CGPA',
-    //   value: Math.round((studentSummary?.currentCgpa ?? 0) * 100) / 100 || 0,
-    //   color: 'bg-green-500'
-    // },
     {
       icon: Calendar,
       label: 'Current Semester',
       value: user?.school?.currentSemester || '',
-      color: 'bg-purple-500'
+      color: 'linear-gradient(135deg, #1e5a8e 0%, #3b7fb5 100%)'
     },
     {
       icon: Users,
       label: 'Total Credits',
       value: studentSummary?.totalCreditUnits ?? 0,
-      color: 'bg-orange-500'
+      color: 'linear-gradient(135deg, #00a86b 0%, #26d68a 100%)'
     }
   ], [studentSummary, user]);
 
@@ -161,101 +158,132 @@ function StudentDashboard() {
         />
       </div>
 
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
-        <h1 className="text-2xl sm:text-3xl font-extrabold text-gray-800">Dashboard</h1>
-        <span className="text-sm text-gray-500">Welcome back, <span className="font-medium text-gray-700">{student?.name}</span>!</span>
-        <div className="mt-3 sm:mt-0">
-          <button
-            className="inline-flex items-center px-3 py-2 bg-blue-600 text-white rounded-md text-sm"
-            onClick={() => idCardRef.current?.download({
-              name: student?.name || '',
-              id: student?.matricNo || '',
-              level: String(student?.level), qrUrl: window.location.href, photoUrl: student?.picture,
-              department: student?.department.name || ""
-            }, 'png')}
-          >
-            Download ID Card
-          </button>
+      {/* Page Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 style={{ color: 'var(--omack-text-primary)', fontSize: '2.125rem', fontWeight: 700, margin: 0, letterSpacing: '-0.5px' }}>
+            Welcome, {student?.name?.split(' ')[0]}
+          </h1>
+          <p style={{ color: 'var(--omack-text-secondary)', fontSize: '0.95rem', margin: '0.5rem 0 0 0' }}>
+            View your academic information and recent activities
+          </p>
         </div>
+        <button
+          className="btn-primary"
+          style={{ whiteSpace: 'nowrap', background: 'linear-gradient(135deg, #165c4b 0%, #1e9a6f 100%)' }}
+          onClick={() => idCardRef.current?.download({
+            name: student?.name || '',
+            id: student?.matricNo || '',
+            level: String(student?.level), qrUrl: window.location.href, photoUrl: student?.picture,
+            department: student?.department.name || ""
+          }, 'png')}
+        >
+          📥 Download ID Card
+        </button>
       </div>
 
       {/* Stats Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         {stats.map((stat, index) => (
-          <StatCard key={index} {...stat} />
+          <StatCard 
+            key={index} 
+            {...stat}
+          />
         ))}
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Student Information */}
-        <div className="bg-white p-6 rounded-lg shadow-sm border">
-          <h2 className="text-lg font-semibold text-gray-800 mb-4">Student Information</h2>
-          <div className="flex items-center mb-6">
+        <div className="omack-card">
+          <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--omack-text-primary)', marginBottom: '1.5rem', paddingBottom: '1rem', borderBottom: '2px solid var(--omack-border-light)' }}>
+            Student Information
+          </h2>
+          <div className="flex items-startgap-4 mb-6">
             {student?.picture ? (
               <img
                 src={student.picture}
                 alt={student?.name}
-                className="w-16 h-16 rounded-full object-cover mr-4"
+                className="w-16 h-16 rounded-full object-cover shadow-md flex-shrink-0"
               />
             ) : (
-              <div className="w-16 h-16 rounded-full bg-slate-100 flex items-center justify-center mr-4">
-                <span className="text-lg font-semibold text-gray-700">{(student?.name || '').split(' ').map((s: string) => s[0]).slice(0, 2).join('').toUpperCase()}</span>
+              <div 
+                className="w-16 h-16 rounded-full flex items-center justify-center flex-shrink-0 text-white font-semibold text-lg shadow-md"
+                style={{ background: 'linear-gradient(135deg, #165c4b 0%, #1e9a6f 100%)' }}
+              >
+                {(student?.name || '').split(' ').map((s: string) => s[0]).slice(0, 2).join('').toUpperCase()}
               </div>
             )}
 
             <div>
-              <h3 className="font-medium text-gray-800">{student?.name}</h3>
-              <p className="text-sm text-gray-600">{student?.email}</p>
-              <p className="text-sm text-gray-600">Matric Number: {student?.matricNo}</p>
+              <h3 style={{ color: 'var(--omack-text-primary)', fontWeight: 600, marginBottom: '0.25rem' }}>{student?.name}</h3>
+              <p style={{ color: 'var(--omack-text-secondary)', fontSize: '0.9rem', marginBottom: '0.25rem' }}>{student?.email}</p>
+              <p style={{ color: 'var(--omack-text-secondary)', fontSize: '0.9rem' }}>Matric: {student?.matricNo}</p>
             </div>
           </div>
 
-          <div className="space-y-3 text-sm text-gray-600">
-            <div className="flex items-center">
-              <GraduationCap size={16} className="text-gray-400 mr-3" />
-              <span>Department: <span className="text-gray-800 font-medium">{typeof student?.department === 'string' ? student?.department : student?.department?.name || ''}</span></span>
+          <div className="space-y-3">
+            <div className="flex items-center gap-3">
+              <GraduationCap size={16} style={{ color: 'var(--omack-primary)' }} />
+              <span style={{ color: 'var(--omack-text-secondary)', fontSize: '0.9rem' }}>
+                Department: <span style={{ color: 'var(--omack-text-primary)', fontWeight: 600 }}>{typeof student?.department === 'string' ? student?.department : student?.department?.name || ''}</span>
+              </span>
             </div>
-            <div className="flex items-center">
-              <Users size={16} className="text-gray-400 mr-3" />
-              <span>Level: <span className="text-gray-800 font-medium">{student?.level}</span></span>
+            <div className="flex items-center gap-3">
+              <Users size={16} style={{ color: 'var(--omack-primary)' }} />
+              <span style={{ color: 'var(--omack-text-secondary)', fontSize: '0.9rem' }}>
+                Level: <span style={{ color: 'var(--omack-text-primary)', fontWeight: 600 }}>{student?.level}</span>
+              </span>
             </div>
-            <div className="flex items-center">
-              <Calendar size={16} className="text-gray-400 mr-3" />
-              <span>Session: <span className="text-gray-800 font-medium">{studentSummary?.session}</span></span>
+            <div className="flex items-center gap-3">
+              <Calendar size={16} style={{ color: 'var(--omack-primary)' }} />
+              <span style={{ color: 'var(--omack-text-secondary)', fontSize: '0.9rem' }}>
+                Session: <span style={{ color: 'var(--omack-text-primary)', fontWeight: 600 }}>{studentSummary?.session}</span>
+              </span>
             </div>
           </div>
         </div>
 
         {/* Guardian Information */}
-        <div className="bg-white p-6 rounded-lg shadow-sm border">
-          <h2 className="text-lg font-semibold text-gray-800 mb-4">Guardian Information</h2>
-          <div className="space-y-3 text-sm text-gray-600">
-            <div className="flex items-center">
-              <User size={16} className="text-gray-400 mr-3" />
-              <span>Name: <span className="text-gray-800 font-medium">{student?.guardian?.name || 'N/A'}</span></span>
+        <div className="omack-card">
+          <h2 style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--omack-text-primary)', marginBottom: '1.5rem', paddingBottom: '1rem', borderBottom: '2px solid var(--omack-border-light)' }}>
+            Guardian Information
+          </h2>
+          <div className="space-y-4">
+            <div className="flex items-start gap-3">
+              <User size={16} style={{ color: 'var(--omack-primary)', marginTop: '0.25rem', flexShrink: 0 }} />
+              <div>
+                <p style={{ fontSize: '0.8rem', color: 'var(--omack-text-light)', textTransform: 'uppercase', letterSpacing: '0.3px', fontWeight: 600, marginBottom: '0.25rem' }}>Name</p>
+                <p style={{ color: 'var(--omack-text-primary)', fontWeight: 600 }}>{student?.guardian?.name || 'N/A'}</p>
+              </div>
             </div>
-            <div className="flex items-center">
-              <Mail size={16} className="text-gray-400 mr-3" />
-              <span>Email: <span className="text-gray-800 font-medium">{student?.guardian?.email || 'N/A'}</span></span>
+            <div className="flex items-start gap-3">
+              <Mail size={16} style={{ color: 'var(--omack-primary)', marginTop: '0.25rem', flexShrink: 0 }} />
+              <div>
+                <p style={{ fontSize: '0.8rem', color: 'var(--omack-text-light)', textTransform: 'uppercase', letterSpacing: '0.3px', fontWeight: 600, marginBottom: '0.25rem' }}>Email</p>
+                <p style={{ color: 'var(--omack-text-primary)', fontWeight: 600 }}>{student?.guardian?.email || 'N/A'}</p>
+              </div>
             </div>
-            <div className="flex items-center">
-              <BookOpen size={16} className="text-gray-400 mr-3" />
-              <span>Phone: <span className="text-gray-800 font-medium">{student?.guardian?.phone || 'N/A'}</span></span>
+            <div className="flex items-start gap-3">
+              <BookOpen size={16} style={{ color: 'var(--omack-primary)', marginTop: '0.25rem', flexShrink: 0 }} />
+              <div>
+                <p style={{ fontSize: '0.8rem', color: 'var(--omack-text-light)', textTransform: 'uppercase', letterSpacing: '0.3px', fontWeight: 600, marginBottom: '0.25rem' }}>Phone</p>
+                <p style={{ color: 'var(--omack-text-primary)', fontWeight: 600 }}>{student?.guardian?.phone || 'N/A'}</p>
+              </div>
             </div>
-          </div>
 
-          <div className="mt-6 pt-4 border-t">
-            <h3 className="font-medium text-gray-800 mb-2">Head of Department</h3>
-            <p className="text-sm text-gray-600">{student?.department?.name}</p>
+            <div style={{ marginTop: '1.5rem', paddingTop: '1.5rem', borderTop: '2px solid var(--omack-border-light)' }}>
+              <p style={{ fontSize: '0.8rem', color: 'var(--omack-text-light)', textTransform: 'uppercase', letterSpacing: '0.3px', fontWeight: 600, marginBottom: '0.5rem' }}>Head of Department</p>
+              <p style={{ color: 'var(--omack-text-primary)', fontWeight: 600 }}>{student?.department?.name}</p>
+            </div>
           </div>
         </div>
       </div>
 
       {/* Recent Activities */}
-      <div className="bg-white p-6 rounded-lg shadow-sm border">
-        <h2 className="text-lg font-semibold text-gray-800 mb-4">Recent Activities</h2>
-        <div className="space-y-4 text-sm text-gray-600">
-          <p className="text-gray-500">No recent activities yet.</p>
+      <div className="page-section">
+        <h2 className="page-section-title">Recent Activities</h2>
+        <div style={{ textAlign: 'center', padding: '2rem 1rem', color: 'var(--omack-text-light)' }}>
+          <p>No recent activities yet. Check back later for updates on your academic progress.</p>
         </div>
       </div>
     </div>

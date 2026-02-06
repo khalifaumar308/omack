@@ -1,11 +1,9 @@
 import { useState } from "react";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, Stethoscope } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { useLogin } from "@/lib/api/mutations";
-import Navigation from '@/components/landing/Navigation';
-import Footer from '@/components/landing/Footer';
+import '@/styles/omack-theme.css';
 
 export default function Login() {
   const [email, setEmail] = useState("");
@@ -17,8 +15,6 @@ export default function Login() {
     e.preventDefault();
     login({ email, password }, {
       onSuccess: (data) => {
-        // Save token to localStorage or context
-        // console.log(data, 'success')
         const role = data.user.role
         if (role === 'super-admin') {
           window.location.href = "/super-admin/schools";
@@ -31,47 +27,175 @@ export default function Login() {
         } else {
           window.location.href = "/";
         }
-        // Redirect to dashboard or home page
-        // window.location.href = "/";
       },
-      // onError is handled in the mutation itself
     });
   };
 
   return (
-    <div>
-      <Navigation isScrolled={false} />
+    <main
+      className="min-h-screen flex flex-col items-center justify-center p-4 relative overflow-hidden"
+      style={{
+        background: 'black'
+      }}
+    >
+      {/* Background Image Layer - ADD YOUR IMAGES HERE */}
+      <div
+        className="absolute inset-0"
+        style={{
+          backgroundImage: `
+            linear-gradient(135deg, rgba(22, 92, 75, 0.5) 0%, rgba(13, 61, 50, 0.5) 100%),
+            url('/bg1.jpeg'),
+            url('/bg2.jpeg')
+          `,
+          backgroundSize: 'cover, cover, cover',
+          backgroundPosition: 'center, top right, bottom left',
+          backgroundRepeat: 'no-repeat, no-repeat, no-repeat',
+          backgroundBlendMode: 'multiply, multiply, multiply'
+        }}
+      />
 
-      <main className="min-h-screen flex items-center justify-center bg-gradient-to-br from-blue-700 via-blue-600 to-cyan-500 p-6 mt-16">
-        <div className="w-full max-w-6xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-8 items-stretch min-h-[80vh]">
-        {/* Decorative panel */}
-        <div className="hidden md:flex flex-col items-start justify-center space-y-6 p-10 rounded-3xl bg-gradient-to-br from-blue-700 via-blue-600 to-cyan-500 text-white shadow-2xl h-full">
-          <img src="/acohsatlogo.jpg" alt="ACOHSAT Logo" className="w-32 h-32 rounded-full shadow-lg ring-4 ring-white/20 bg-white p-2" />
-          <div>
-            <h2 className="text-3xl font-extrabold tracking-tight">ACOHSAT Portal</h2>
-            <p className="mt-2 text-sm opacity-95 max-w-md">Apex College of Health Sciences and Technology - Securely manage students, courses and results.</p>
+      {/* Alternative: Add your own image here by replacing the URL above */}
+      {/* To use your own images:
+        1. Place your images in public/images/ folder
+        2. Replace the URL with: url('/images/your-image-name.jpg')
+        3. Or import the image and use it: backgroundImage: `url(${yourImage})`
+      */}
+      {/* Animated background elements */}
+      <div
+        className="absolute inset-0 opacity-10"
+        style={{
+          backgroundImage: `radial-gradient(circle at 20% 50%, rgba(255,255,255,0.1) 0%, transparent 50%),
+                            radial-gradient(circle at 80% 80%, rgba(255,255,255,0.1) 0%, transparent 50%)`,
+          animation: 'float 6s ease-in-out infinite'
+        }}
+      />
+
+      {/* Healthcare pattern background */}
+      <div
+        className="absolute inset-0 opacity-5"
+        style={{
+          backgroundImage: `
+            repeating-linear-gradient(45deg, transparent, transparent 35px, rgba(255,255,255,.05) 35px, rgba(255,255,255,.05) 70px)
+          `
+        }}
+      />
+
+      {/* Floating medical icons background */}
+      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+        {[...Array(5)].map((_, i) => (
+          <div
+            key={i}
+            className="absolute text-white opacity-5 text-6xl"
+            style={{
+              left: `${Math.random() * 100}%`,
+              top: `${Math.random() * 100}%`,
+              animation: `float-icon ${4 + i}s ease-in-out infinite`,
+              animationDelay: `${i * 0.5}s`
+            }}
+          >
+            <Stethoscope size={48} />
           </div>
-          <div className="mt-6 text-sm opacity-95">
-            <ul className="space-y-3 pl-3 list-disc">
-              <li>Fast, reliable result management</li>
-              <li>Bulk uploads and PDF exports</li>
-              <li>Role-based dashboards</li>
-            </ul>
+        ))}
+      </div>
+
+      <style>{`
+        @keyframes float {
+          0%, 100% { transform: translateY(0px); }
+          50% { transform: translateY(20px); }
+        }
+        
+        @keyframes float-icon {
+          0%, 100% { transform: translateY(0px) rotate(0deg); opacity: 0.05; }
+          50% { transform: translateY(-30px) rotate(10deg); opacity: 0.1; }
+        }
+
+        @keyframes slide-in {
+          from {
+            opacity: 0;
+            transform: translateY(20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+      `}</style>
+
+      {/* Top branding section */}
+      <div className="relative z-10 mb-12 text-center text-white">
+        <div className="flex items-center justify-center gap-3 mb-4">
+          <div
+            className="h-14 w-14 rounded-full flex items-center justify-center text-white font-bold text-2xl shadow-lg"
+            style={{ background: 'rgba(255, 255, 255, 0.15)', backdropFilter: 'blur(10px)', border: '1px solid rgba(255,255,255,0.2)' }}
+          >
+            <img src="/logo.jpg" alt="O'Mark Logo" className="h-9 w-9" />
+          </div>
+          <div>
+            <h1 style={{ fontSize: '1.75rem', fontWeight: 700, margin: 0, letterSpacing: '-0.5px' }}>
+              O'Mack Portal
+            </h1>
+            <p style={{ fontSize: '0.85rem', margin: '0.25rem 0 0 0', opacity: 0.9 }}>
+              School of Health Technology
+            </p>
           </div>
         </div>
+      </div>
 
-        {/* Login card */}
-        <Card className="w-full max-w-md mx-auto shadow-2xl rounded-3xl bg-white/95 h-full flex flex-col">
-          <CardHeader className="text-center pt-10">
-            <img src="/acohsatlogo.jpg" alt="ACOHSAT Logo" className="mx-auto mb-4 w-32 h-32 rounded-full shadow-md bg-white p-2" />
-            <CardTitle className="text-3xl font-extrabold text-slate-900">Welcome back</CardTitle>
-            <p className="text-sm text-slate-600 mt-1">Sign in to continue to the ACOHSAT portal</p>
-          </CardHeader>
-          <CardContent className="pt-6 pb-8 px-8 flex-1">
-            <form onSubmit={handleSubmit} className="space-y-6">
+      {/* Main Glass Morphism Card */}
+      <div
+        className="w-full max-w-md relative z-10"
+        style={{
+          animation: 'slide-in 0.6s ease-out'
+        }}
+      >
+        {/* Glass card container */}
+        <div
+          className="rounded-3xl shadow-2xl p-8 relative overflow-hidden"
+          style={{
+            background: 'rgba(255, 255, 255, 0.1)',
+            backdropFilter: 'blur(20px)',
+            WebkitBackdropFilter: 'blur(20px)',
+            border: '1px solid rgba(255, 255, 255, 0.2)',
+            boxShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.37)',
+          }}
+        >
+          {/* Glossy shine effect */}
+          <div
+            className="absolute inset-0 rounded-3xl opacity-20"
+            style={{
+              background: 'linear-gradient(135deg, rgba(255,255,255,0.5) 0%, rgba(255,255,255,0) 50%, rgba(255,255,255,0) 100%)',
+            }}
+          />
+
+          {/* Content */}
+          <div className="relative z-10">
+            {/* Header */}
+            <div className="text-center mb-8">
+              <h2 style={{ fontSize: '1.75rem', fontWeight: 700, color: 'white', margin: '0 0 0.5rem 0', letterSpacing: '-0.3px' }}>
+                Welcome Back
+              </h2>
+              <p style={{ fontSize: '0.9rem', color: 'rgba(255,255,255,0.8)', margin: 0 }}>
+                Sign in to access your portal
+              </p>
+            </div>
+
+            {/* Form */}
+            <form onSubmit={handleSubmit} className="space-y-5">
+              {/* Email Field */}
               <div>
-                <label htmlFor="email" className="block text-sm font-medium text-gray-700 mb-2">
-                  Email address
+                <label
+                  htmlFor="email"
+                  style={{
+                    display: 'block',
+                    fontSize: '0.85rem',
+                    fontWeight: 600,
+                    color: 'rgba(255,255,255,0.9)',
+                    marginBottom: '0.5rem',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.3px'
+                  }}
+                >
+                  Email Address
                 </label>
                 <Input
                   id="email"
@@ -80,14 +204,62 @@ export default function Login() {
                   required
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="bg-white border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500"
-                  placeholder="you@school.edu"
+                  placeholder="your.email@school.edu"
+                  style={{
+                    background: 'rgba(255, 255, 255, 0.15)',
+                    border: '1px solid rgba(255, 255, 255, 0.3)',
+                    color: 'white',
+                    borderRadius: '0.75rem',
+                    padding: '0.75rem 1rem',
+                    fontSize: '0.95rem',
+                    transition: 'all 0.3s ease',
+                    backdropFilter: 'blur(10px)',
+                  }}
+                  onFocus={(e) => {
+                    e.currentTarget.style.background = 'rgba(255, 255, 255, 0.25)';
+                    e.currentTarget.style.border = '1px solid rgba(255, 255, 255, 0.5)';
+                  }}
+                  onBlur={(e) => {
+                    e.currentTarget.style.background = 'rgba(255, 255, 255, 0.15)';
+                    e.currentTarget.style.border = '1px solid rgba(255, 255, 255, 0.3)';
+                  }}
                 />
+                <style>{`
+                  input::placeholder {
+                    color: rgba(255, 255, 255, 0.6);
+                  }
+                `}</style>
               </div>
+
+              {/* Password Field */}
               <div>
                 <div className="flex items-center justify-between mb-2">
-                  <label htmlFor="password" className="text-sm font-medium text-gray-700">Password</label>
-                  <a href="#" className="text-sm text-blue-600 hover:underline">Forgot?</a>
+                  <label
+                    htmlFor="password"
+                    style={{
+                      fontSize: '0.85rem',
+                      fontWeight: 600,
+                      color: 'rgba(255,255,255,0.9)',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.3px'
+                    }}
+                  >
+                    Password
+                  </label>
+                  <a
+                    href="#"
+                    style={{
+                      fontSize: '0.8rem',
+                      color: 'rgba(255,255,255,0.8)',
+                      textDecoration: 'none',
+                      fontWeight: 600,
+                      transition: 'color 0.3s ease'
+                    }}
+                    onMouseEnter={(e) => e.currentTarget.style.color = 'rgba(255,255,255,1)'}
+                    onMouseLeave={(e) => e.currentTarget.style.color = 'rgba(255,255,255,0.8)'}
+                  >
+                    Forgot?
+                  </a>
                 </div>
                 <div className="relative">
                   <Input
@@ -97,8 +269,26 @@ export default function Login() {
                     required
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="bg-white border-gray-200 focus:ring-2 focus:ring-blue-500 focus:border-blue-500 pr-10"
                     placeholder="Enter your password"
+                    style={{
+                      background: 'rgba(255, 255, 255, 0.15)',
+                      border: '1px solid rgba(255, 255, 255, 0.3)',
+                      color: 'white',
+                      borderRadius: '0.75rem',
+                      padding: '0.75rem 1rem 0.75rem 1rem',
+                      fontSize: '0.95rem',
+                      transition: 'all 0.3s ease',
+                      paddingRight: '2.5rem',
+                      backdropFilter: 'blur(10px)',
+                    }}
+                    onFocus={(e) => {
+                      e.currentTarget.style.background = 'rgba(255, 255, 255, 0.25)';
+                      e.currentTarget.style.border = '1px solid rgba(255, 255, 255, 0.5)';
+                    }}
+                    onBlur={(e) => {
+                      e.currentTarget.style.background = 'rgba(255, 255, 255, 0.15)';
+                      e.currentTarget.style.border = '1px solid rgba(255, 255, 255, 0.3)';
+                    }}
                   />
                   <Button
                     type="button"
@@ -107,43 +297,106 @@ export default function Login() {
                     className="absolute inset-y-0 right-0 h-full w-10 p-0"
                     onClick={() => setShowPassword(!showPassword)}
                     aria-label={showPassword ? 'Hide password' : 'Show password'}
+                    style={{ color: 'rgba(255,255,255,0.7)' }}
                   >
-                    {showPassword ? <EyeOff className="h-4 w-4 text-gray-600" /> : <Eye className="h-4 w-4 text-gray-600" />}
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </Button>
                 </div>
               </div>
-              {error && <div className="text-red-600 text-sm text-center p-2 bg-red-50 rounded-md border border-red-200">{error.message}</div>}
+
+              {/* Error Message */}
+              {error && (
+                <div
+                  style={{
+                    background: 'rgba(239, 68, 68, 0.2)',
+                    border: '1px solid rgba(239, 68, 68, 0.5)',
+                    borderRadius: '0.75rem',
+                    padding: '0.75rem',
+                    color: 'rgba(255,255,255,0.95)',
+                    fontSize: '0.9rem',
+                    textAlign: 'center',
+                    backdropFilter: 'blur(10px)'
+                  }}
+                >
+                  {error.message}
+                </div>
+              )}
+
+              {/* Sign In Button */}
               <Button
                 type="submit"
-                className="w-full bg-gradient-to-r from-blue-600 to-cyan-500 hover:from-blue-700 hover:to-cyan-600 text-white font-semibold rounded-lg transition-colors duration-200 shadow-lg py-3"
                 disabled={isPending}
+                className="w-full mt-8"
+                style={{
+                  background: 'linear-gradient(135deg, rgba(0, 168, 107, 0.9) 0%, rgba(38, 214, 138, 0.9) 100%)',
+                  color: 'white',
+                  padding: '0.875rem',
+                  fontSize: '1rem',
+                  fontWeight: 700,
+                  borderRadius: '0.75rem',
+                  border: '1px solid rgba(255,255,255,0.2)',
+                  cursor: isPending ? 'not-allowed' : 'pointer',
+                  opacity: isPending ? 0.7 : 1,
+                  transition: 'all 0.3s ease',
+                  boxShadow: '0 4px 15px 0 rgba(0, 168, 107, 0.4)',
+                  backdropFilter: 'blur(10px)',
+                  letterSpacing: '-0.3px'
+                }}
+                onMouseEnter={(e) => {
+                  if (!isPending) {
+                    (e.currentTarget as HTMLButtonElement).style.transform = 'translateY(-2px)';
+                    (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 8px 20px 0 rgba(0, 168, 107, 0.6)';
+                  }
+                }}
+                onMouseLeave={(e) => {
+                  if (!isPending) {
+                    (e.currentTarget as HTMLButtonElement).style.transform = 'translateY(0)';
+                    (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 4px 15px 0 rgba(0, 168, 107, 0.4)';
+                  }
+                }}
               >
-                {isPending ? "Signing in..." : "Sign In"}
+                {isPending ? (
+                  <span className="flex items-center justify-center gap-2">
+                    <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    Signing in...
+                  </span>
+                ) : (
+                  'Sign In'
+                )}
               </Button>
             </form>
-            <div className="mt-6">
-              <div className="relative">
-                <div className="absolute inset-0 flex items-center">
-                  <div className="w-full border-t border-gray-200" />
-                </div>
-                <div className="relative flex justify-center text-xs">
-                  <span className="bg-white px-2 text-gray-400">or continue with</span>
-                </div>
-              </div>
-              <div className="mt-4 flex justify-center space-x-3">
-                <Button variant="outline" size="sm">Google</Button>
-                <Button variant="outline" size="sm">Microsoft</Button>
-              </div>
-            </div>
-            <div className="mt-6 text-center text-xs text-gray-500">
-              &copy; {new Date().getFullYear()} ACOHSAT. All rights reserved.
-            </div>
-          </CardContent>
-        </Card>
-        </div>
-      </main>
 
-      <Footer />
-    </div>
+            {/* Footer */}
+            <div style={{ marginTop: '2rem', paddingTop: '1.5rem', borderTop: '1px solid rgba(255,255,255,0.1)', textAlign: 'center' }}>
+              <p style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.6)', margin: 0 }}>
+                &copy; {new Date().getFullYear()} O'Mark School of Health Technology<br />
+                <a
+                  href="https://omarkschoolofhealth.edu.ng"
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  style={{
+                    color: 'rgba(255,255,255,0.7)',
+                    textDecoration: 'none',
+                    transition: 'color 0.3s ease',
+                    cursor: 'pointer'
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.color = 'rgba(255,255,255,1)'}
+                  onMouseLeave={(e) => e.currentTarget.style.color = 'rgba(255,255,255,0.7)'}
+                >
+                  Visit Website
+                </a>
+              </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Bottom info text */}
+        <div className="text-center mt-8 relative z-10">
+          <p style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.7)', margin: '1rem 0 0 0' }}>
+            Egan-Igango, Lagos State, Nigeria
+          </p>
+        </div>
+      </div>
+    </main>
   );
 }
