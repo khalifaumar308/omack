@@ -18,7 +18,6 @@ import {
     X,
     CheckSquare,
     Square,
-    Printer,
     Loader2,
     RefreshCw
 } from 'lucide-react';
@@ -36,7 +35,7 @@ export default function AdminApplicants() {
     const itemsPerPage = 10;
 
     // Fetch data using React Query
-    const { data, isLoading, isError, error, refetch } = useGetApplications(currentPage, itemsPerPage, searchTerm);
+    const { data, isLoading, isError, refetch } = useGetApplications(currentPage, itemsPerPage, searchTerm);
 
     // Derived state from API response
     const applicants = data?.data || [];

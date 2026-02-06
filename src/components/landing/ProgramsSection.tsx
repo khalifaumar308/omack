@@ -1,10 +1,8 @@
 import React from 'react';
 import { motion } from 'framer-motion';
 import {
-  Heart,
   Microscope,
   Users,
-  Pill,
   Leaf,
   Database,
 } from 'lucide-react';

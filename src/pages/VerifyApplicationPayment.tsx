@@ -1,7 +1,6 @@
 import { useEffect, useState } from 'react';
 import { useSearchParams } from 'react-router';
 import { useVerifyWalletFunding } from '@/lib/api/wallet.mutations';
-import { useGetApplicant } from '@/lib/api/queries';
 import { toast } from 'sonner';
 import { motion } from 'framer-motion';
 import { Check, X, Clipboard, Download, ArrowRight } from 'lucide-react';
