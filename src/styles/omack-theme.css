@@ -567,6 +567,28 @@ h3 {
 /* ===== RESPONSIVE ===== */
 
 @media (max-width: 768px) {
+/* Background Image Carousel Animation */
+@keyframes backgroundFade {
+  0% {
+    opacity: 0;
+  }
+  50% {
+    opacity: 1;
+  }
+  100% {
+    opacity: 1;
+  }
+}
+
+.bg-carousel {
+  animation: backgroundFade 1s ease-in-out forwards;
+}
+
+/* Smooth transition for background changes */
+.bg-transition {
+  transition: background-image 1s ease-in-out;
+}
+
   h1 {
     font-size: 1.75rem;
   }

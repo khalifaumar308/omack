@@ -27,6 +27,16 @@ export type StudentIDCardGeneratorHandle = {
 	download: (student: Student, format: 'png' | 'pdf') => void;
 };
 
+// Helper function to calculate responsive font size based on character count
+const getResponsiveFontSize = (text: string, baseSize: number, minSize: number = 0.8): string => {
+	const charCount = text.length;
+	// Reduce font size as character count increases
+	// At 30 chars, reaches minSize; above 30 stays at minSize
+	const reductionFactor = Math.min(charCount / 30, 1);
+	const fontSize = Math.max(minSize, baseSize - (baseSize - minSize) * reductionFactor);
+	return `${fontSize}rem`;
+};
+
 const StudentIDCardGenerator = React.forwardRef<StudentIDCardGeneratorHandle, StudentIDCardGeneratorProps>(
 	({ students, school }, ref) => {
 	const cardRef = useRef<HTMLDivElement>(null);
@@ -258,7 +268,7 @@ const StudentIDCardGenerator = React.forwardRef<StudentIDCardGeneratorHandle, St
 								marginBottom: '1.5rem'
 							}}>
 								<h2 style={{
-									fontSize: '2.5rem',
+									fontSize: getResponsiveFontSize(currentStudent.name, 2.5),
 									fontWeight: 'bold',
 									color: '#0066cc',
 									marginBottom: '0.5rem',
@@ -266,14 +276,13 @@ const StudentIDCardGenerator = React.forwardRef<StudentIDCardGeneratorHandle, St
 								}}>{currentStudent.name}</h2>
 
 								<div style={{
-									fontSize: '1.5rem',
 									lineHeight: '2.5rem',
 									color: '#000',
 									textTransform: 'uppercase'
 								}}>
-									<p style={{ margin: '0.5rem 0' }}>MATRIC NO: {currentStudent.id}</p>
-									<p style={{ margin: '0.5rem 0' }}>LEVEL: {currentStudent.level}</p>
-									<p style={{ margin: '0.5rem 0' }}>DEPARTMENT: {currentStudent.department}</p>
+									<p style={{ margin: '0.5rem 0', fontSize: getResponsiveFontSize(`MATRIC NO: ${currentStudent.id}`, 1.5) }}>MATRIC NO: {currentStudent.id}</p>
+									<p style={{ margin: '0.5rem 0', fontSize: '1.5rem' }}>LEVEL: {currentStudent.level}</p>
+									<p style={{ margin: '0.5rem 0', fontSize: getResponsiveFontSize(currentStudent.department, 1.5) }}>DEPARTMENT: {currentStudent.department}</p>
 									{/* <p style={{ margin: '0.5rem 0' }}>YEAR OF ENTRY: 2024/2025</p> */}
 								</div>
 
@@ -292,7 +301,7 @@ const StudentIDCardGenerator = React.forwardRef<StudentIDCardGeneratorHandle, St
 								}}>
 									<QRCodeSVG
 										value={"https://portal.omarkschoolofhealth.ng/student/"}
-										size={120}
+										size={170}
 										level="H"
 										bgColor="#ffffff"
 										style={{ padding: '0.25rem' }}
