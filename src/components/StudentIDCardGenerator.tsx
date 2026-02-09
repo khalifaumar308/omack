@@ -301,7 +301,7 @@ const StudentIDCardGenerator = React.forwardRef<StudentIDCardGeneratorHandle, St
 								}}>
 									<QRCodeSVG
 										value={"https://portal.omarkschoolofhealth.ng/student/"}
-										size={170}
+										size={180}
 										level="H"
 										bgColor="#ffffff"
 										style={{ padding: '0.25rem' }}
