@@ -289,7 +289,7 @@ const StudentIDCardGenerator = React.forwardRef<StudentIDCardGeneratorHandle, St
 								}}>
 									<p style={{ margin: '0.5rem 0', fontSize: getResponsiveFontSize(`MATRIC NO: ${currentStudent.id}`, 3) }}>MATRIC NO: {currentStudent.id}</p>
 									<p style={{ margin: '0.5rem 0', fontSize: '1.5rem' }}>LEVEL: {currentStudent.level}</p>
-									<p style={{ margin: '0.5rem 0', fontSize: getResponsiveFontSize(currentStudent.department, 3.5) }}>DEPARTMENT: {currentStudent.department}</p>
+									<p style={{ margin: '0.5rem 0', fontSize: getResponsiveFontSize(currentStudent.department, 3.5), fontWeight:"bolder" }}>DEPARTMENT: {currentStudent.department}</p>
 									{/* <p style={{ margin: '0.5rem 0' }}>YEAR OF ENTRY: 2024/2025</p> */}
 								</div>
 
