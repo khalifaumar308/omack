@@ -209,8 +209,9 @@ const StudentIDCardGenerator = React.forwardRef<StudentIDCardGeneratorHandle, St
 					ref={cardRef}
 					style={{
 						width: '700px',
-						height: '1000px',
+						height: '1100px',
 						padding: '2rem',
+						paddingBottom: '3rem',
 						backgroundColor: '#e6f3ff',
 						display: 'flex',
 						flexDirection: 'column',
@@ -218,7 +219,8 @@ const StudentIDCardGenerator = React.forwardRef<StudentIDCardGeneratorHandle, St
 						color: '#222222',
 						transform: 'scale(0.5)',
 						transformOrigin: 'top left',
-						fontFamily: 'Arial, sans-serif'
+						fontFamily: 'Arial, sans-serif',
+						marginBottom: '2rem'
 					}}
 				>
 					{currentStudent && (
@@ -244,11 +246,15 @@ const StudentIDCardGenerator = React.forwardRef<StudentIDCardGeneratorHandle, St
 
 							{/* Student Photo */}
 							<div style={{
-								width: '300px',
-								height: '350px',
+								width: '280px',
+								height: '340px',
 								marginBottom: '2rem',
 								backgroundColor: '#fff',
-								padding: '0.5rem'
+								padding: '0.5rem',
+								display: 'flex',
+								justifyContent: 'center',
+								alignItems: 'center',
+								flexShrink: 0
 							}}>
 								<img
 									src={currentStudent.photoUrl || 'https://placehold.co/600x400'}
@@ -256,7 +262,8 @@ const StudentIDCardGenerator = React.forwardRef<StudentIDCardGeneratorHandle, St
 									style={{
 										width: '100%',
 										height: '100%',
-										objectFit: 'cover'
+										objectFit: 'cover',
+										display: 'block'
 									}}
 								/>
 							</div>
@@ -268,7 +275,7 @@ const StudentIDCardGenerator = React.forwardRef<StudentIDCardGeneratorHandle, St
 								marginBottom: '1.5rem'
 							}}>
 								<h2 style={{
-									fontSize: getResponsiveFontSize(currentStudent.name, 2.5),
+									fontSize: getResponsiveFontSize(currentStudent.name, 3.5),
 									fontWeight: 'bold',
 									color: '#0066cc',
 									marginBottom: '0.5rem',
@@ -280,9 +287,9 @@ const StudentIDCardGenerator = React.forwardRef<StudentIDCardGeneratorHandle, St
 									color: '#000',
 									textTransform: 'uppercase'
 								}}>
-									<p style={{ margin: '0.5rem 0', fontSize: getResponsiveFontSize(`MATRIC NO: ${currentStudent.id}`, 1.5) }}>MATRIC NO: {currentStudent.id}</p>
+									<p style={{ margin: '0.5rem 0', fontSize: getResponsiveFontSize(`MATRIC NO: ${currentStudent.id}`, 3) }}>MATRIC NO: {currentStudent.id}</p>
 									<p style={{ margin: '0.5rem 0', fontSize: '1.5rem' }}>LEVEL: {currentStudent.level}</p>
-									<p style={{ margin: '0.5rem 0', fontSize: getResponsiveFontSize(currentStudent.department, 1.5) }}>DEPARTMENT: {currentStudent.department}</p>
+									<p style={{ margin: '0.5rem 0', fontSize: getResponsiveFontSize(currentStudent.department, 3.5) }}>DEPARTMENT: {currentStudent.department}</p>
 									{/* <p style={{ margin: '0.5rem 0' }}>YEAR OF ENTRY: 2024/2025</p> */}
 								</div>
 
@@ -295,9 +302,11 @@ const StudentIDCardGenerator = React.forwardRef<StudentIDCardGeneratorHandle, St
 
 								{/* QR Code - Small and centered */}
 								<div style={{
-									marginTop: '1rem',
+									marginTop: '2rem',
+									marginBottom: '1rem',
 									display: 'flex',
-									justifyContent: 'center'
+									justifyContent: 'center',
+									flexShrink: 0
 								}}>
 									<QRCodeSVG
 										value={"https://portal.omarkschoolofhealth.ng/student/"}
