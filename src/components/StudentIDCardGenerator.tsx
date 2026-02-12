@@ -1,7 +1,7 @@
 import React, { useRef, useState, useEffect, useImperativeHandle } from 'react';
 import html2canvas from 'html2canvas-pro';
 import jsPDF from 'jspdf';
-import { QRCodeSVG } from 'qrcode.react';
+// import { QRCodeSVG } from 'qrcode.react';
 import './id-card.css';
 import { Download } from 'lucide-react';
 
@@ -308,13 +308,30 @@ const StudentIDCardGenerator = React.forwardRef<StudentIDCardGeneratorHandle, St
 									justifyContent: 'center',
 									flexShrink: 0
 								}}>
-									<QRCodeSVG
+									{/* <QRCodeSVG
 										value={"https://portal.omarkschoolofhealth.ng/student/"}
 										size={180}
 										level="H"
 										bgColor="#ffffff"
 										style={{ padding: '0.25rem' }}
-									/>
+									/> */}
+									<div style={{
+								width: '200px',
+								height: '200px',
+								marginBottom: '2rem',
+								display: 'flex',
+								justifyContent: 'center'
+							}}>
+								<img
+									src={'/omackqrcode.jpeg'}
+									alt="School Logo"
+									style={{
+										width: '100%',
+										height: '100%',
+										objectFit: 'contain'
+									}}
+								/>
+							</div>
 								</div>
 							</div>
 						</>
