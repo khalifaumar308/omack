@@ -267,8 +267,8 @@ const ResultTemplate: React.FC<PDFProps> = ({ studentData, courses, summary }) =
 					style={styles.headerLeft}
 				/>
 				<View style={styles.headerCenter}>
-					<Text style={styles.schoolName}>O'MACK SCHOOL OF HEALTH TECHNOLOGY</Text>
-					<Text style={styles.schoolAddress}>O'MACK BUS-STOP, ISHERI RD., EGBEDA, LAGOS</Text>
+					<Text style={styles.schoolName}>O’MARK SCHOOL OF HEALTH TECHNOLOGY</Text>
+					<Text style={styles.schoolAddress}>O’MARK BUS-STOP, ISHERI RD., EGBEDA, LAGOS</Text>
 					<Text style={styles.schoolAddress}>📱 Phone: 09153638063 📧 Email: Omarkhealthgmail.com</Text>
 				</View>
 				<Image 

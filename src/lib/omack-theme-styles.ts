@@ -1,5 +1,5 @@
 /**
- * O'MACK Healthcare Theme System - Utility Styles
+ * O’MARK Healthcare Theme System - Utility Styles
  * Provides consistent styling patterns for admin, student, and instructor pages
  */
 

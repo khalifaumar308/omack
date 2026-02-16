@@ -139,11 +139,11 @@ export default function Login() {
             className="h-14 w-14 rounded-full flex items-center justify-center text-white font-bold text-2xl shadow-lg"
             style={{ background: 'rgba(255, 255, 255, 0.15)', backdropFilter: 'blur(10px)', border: '1px solid rgba(255,255,255,0.2)' }}
           >
-            <img src="/logo.jpg" alt="O'MACK Logo" className="h-14 w-14" />
+            <img src="/logo.jpg" alt="O’MARK Logo" className="h-14 w-14" />
           </div>
           <div>
             <h1 style={{ fontSize: '1.75rem', fontWeight: 700, margin: 0, letterSpacing: '-0.5px', color: 'white' }}>
-              O'MACK Portal
+              O’MARK Portal
             </h1>
             <p style={{ fontSize: '0.85rem', margin: '0.25rem 0 0 0', opacity: 0.9 }}>
               School of Health Technology
@@ -380,7 +380,7 @@ export default function Login() {
             {/* Footer */}
             <div style={{ marginTop: '2rem', paddingTop: '1.5rem', borderTop: '1px solid rgba(255,255,255,0.1)', textAlign: 'center' }}>
               <p style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.6)', margin: 0 }}>
-                &copy; {new Date().getFullYear()} O'MACK School of Health Technology<br />
+                &copy; {new Date().getFullYear()} O’MARK School of Health Technology<br />
                 <a
                   href="https://omarkschoolofhealth.edu.ng"
                   target="_blank"
