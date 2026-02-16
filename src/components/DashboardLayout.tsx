@@ -204,7 +204,7 @@ export function DashboardLayout() {
               </div>
               <div>
                 <h2 style={{ color: 'white', fontSize: '0.95rem', fontWeight: 700, margin: 0 }}>
-                  O'Mark Portal
+                  O'MACK Portal
                 </h2>
                 <p style={{ color: 'rgba(255,255,255,0.7)', fontSize: '0.7rem', margin: 0, letterSpacing: '0.5px', textTransform: 'uppercase', fontWeight: 500 }}>
                   School of Health
@@ -298,7 +298,7 @@ export function DashboardLayout() {
                   O'
                 </div>
                 <div className="hidden sm:flex flex-col leading-tight">
-                  <div style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--omack-text-primary)' }}>O'Mark</div>
+                  <div style={{ fontSize: '0.9rem', fontWeight: 600, color: 'var(--omack-text-primary)' }}>O'MACK</div>
                   <div style={{ fontSize: '0.75rem', color: 'var(--omack-text-light)', textTransform: 'uppercase', letterSpacing: '0.3px' }}>Portal</div>
                 </div>
               </div>

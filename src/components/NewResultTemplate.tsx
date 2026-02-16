@@ -620,7 +620,7 @@ const NewResultTemplate = (data: PDFProps) => {
 // 		}
 // 	},
 // 	"schoolInfo": {
-// 		"name": "O'MARK SCHOOL OF HEALTH TECHNOLOGY",
+// 		"name": "O'MACK SCHOOL OF HEALTH TECHNOLOGY",
 // 		"address": "OMARKBUS-STOP,ISHERIRD,EGAN-IGANDO,LAGOS",
 // 		"phone": "08012345678",
 // 		"email": "info@omarkschool.edu.ng",
