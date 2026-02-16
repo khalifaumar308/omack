@@ -143,7 +143,7 @@ export default function Login() {
           </div>
           <div>
             <h1 style={{ fontSize: '1.75rem', fontWeight: 700, margin: 0, letterSpacing: '-0.5px' }}>
-              O'Mack Portal
+              O'MACK Portal
             </h1>
             <p style={{ fontSize: '0.85rem', margin: '0.25rem 0 0 0', opacity: 0.9 }}>
               School of Health Technology
