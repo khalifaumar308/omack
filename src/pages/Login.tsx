@@ -1,5 +1,5 @@
 import { useState, useEffect } from "react";
-import { Eye, EyeOff, Stethoscope } from "lucide-react";
+import { Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useLogin } from "@/lib/api/mutations";
@@ -92,7 +92,7 @@ export default function Login() {
       />
 
       {/* Floating medical icons background */}
-      <div className="absolute inset-0 overflow-hidden pointer-events-none">
+      {/* <div className="absolute inset-0 overflow-hidden pointer-events-none">
         {[...Array(5)].map((_, i) => (
           <div
             key={i}
@@ -107,7 +107,7 @@ export default function Login() {
             <Stethoscope size={48} />
           </div>
         ))}
-      </div>
+      </div> */}
 
       <style>{`
         @keyframes float {
