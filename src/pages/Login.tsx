@@ -12,7 +12,7 @@ export default function Login() {
   const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const { mutate: login, isPending, error } = useLogin();
 
-  const backgroundImages = ['/bg1.jpeg', '/bg2.jpeg', '/bg3.jpeg', '/bg4.jpeg',];
+  const backgroundImages = ['/bg5.jpeg', '/bg6.jpeg', '/bg3.jpeg', '/bg4.jpeg',];
 
   // Rotate background images every 5 seconds
   useEffect(() => {
