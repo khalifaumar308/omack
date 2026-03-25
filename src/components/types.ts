@@ -91,6 +91,7 @@ export interface Student extends User {
   department: string; // ObjectId as string
   school: string; // ObjectId as string
   phone?: string;
+  yearOfEntry?: string;
   homeAddress?: string;
   dateOfBirth?: Date;
   picture?: string;

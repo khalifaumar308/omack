@@ -500,7 +500,8 @@ export default function Students() {
               level: String(s.level),
               qrUrl: `${s.matricNo}-ID CARD`,
               photoUrl: s.picture,
-              department: s.department?.name || "N/A"
+              department: s.department?.name || "N/A",
+              yearOfEntry: s.yearOfEntry || "N/A"
             }))} school={{ name: user?.school?.name || "School", logoUrl: user?.school?.logo || "default-logo.png" }} />
           </div>
         </div>
@@ -588,7 +589,8 @@ export default function Students() {
                                 level: String(student.level),
                                 qrUrl: `${student.matricNo}-ID CARD`, 
                                 photoUrl: student.picture,
-                                department: student.department?.name || "N/A"
+                                department: student.department?.name || "N/A",
+                                yearOfEntry: student.yearOfEntry || "N/A"
                               }]}
                               school={{ name: user?.school?.name || "School", logoUrl: user?.school?.logo || "default-logo.png" }}
                             />
