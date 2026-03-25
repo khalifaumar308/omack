@@ -205,135 +205,116 @@ const StudentIDCardGenerator = React.forwardRef<StudentIDCardGeneratorHandle, St
 				)}
 
 			{/* Hidden Card Template for Export */}
+			{/* Hidden Card Template for Export */}
 			<div style={{ position: 'absolute', left: '-9999px', top: '-9999px' }}>
 				<div
 					ref={cardRef}
 					style={{
 						width: '700px',
 						height: '1100px',
-						padding: '2rem',
-						paddingBottom: '3rem',
-						backgroundColor: '#e6f3ff',
+						backgroundColor: '#ffffff',
 						display: 'flex',
 						flexDirection: 'column',
-						alignItems: 'center',
-						color: '#222222',
 						transform: 'scale(0.5)',
 						transformOrigin: 'top left',
 						fontFamily: 'Arial, sans-serif',
-						marginBottom: '2rem'
+						marginBottom: '2rem',
+						boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
 					}}
 				>
 					{currentStudent && (
 						<>
-							{/* School Logo */}
+							{/* Top Section - Logo and Photo */}
 							<div style={{
-								width: '200px',
-								height: '200px',
-								marginBottom: '2rem',
+								padding: '2rem',
+								paddingBottom: '1rem',
 								display: 'flex',
-								justifyContent: 'center'
-							}}>
-								<img
-									src={school.logoUrl || 'https://placehold.co/600x400'}
-									alt="School Logo"
-									style={{
-										width: '100%',
-										height: '100%',
-										objectFit: 'contain'
-									}}
-								/>
-							</div>
-
-							{/* Student Photo */}
-							<div style={{
-								width: '280px',
-								height: '340px',
-								marginBottom: '2rem',
-								backgroundColor: '#fff',
-								padding: '0.5rem',
-								display: 'flex',
-								justifyContent: 'center',
+								flexDirection: 'column',
 								alignItems: 'center',
-								flexShrink: 0
+								backgroundColor: '#ffffff'
 							}}>
-								<img
-									src={currentStudent.photoUrl || 'https://placehold.co/600x400'}
-									alt="Student Photo"
-									style={{
-										width: '100%',
-										height: '100%',
-										objectFit: 'cover',
-										display: 'block'
-									}}
-								/>
-							</div>
-
-							{/* Student Details */}
-							<div style={{
-								width: '100%',
-								textAlign: 'center',
-								marginBottom: '1.5rem'
-							}}>
-								<h2 style={{
-									fontSize: getResponsiveFontSize(currentStudent.name, 3.5),
-									fontWeight: 'bold',
-									color: '#0066cc',
-									marginBottom: '0.5rem',
-									textTransform: 'uppercase'
-								}}>{currentStudent.name}</h2>
-
+								{/* School Logo */}
 								<div style={{
-									lineHeight: '2.5rem',
-									color: '#000',
-									textTransform: 'uppercase'
-								}}>
-									<p style={{ margin: '0.5rem 0', fontSize: getResponsiveFontSize(`MATRIC NO: ${currentStudent.id}`, 3) }}>MATRIC NO: {currentStudent.id}</p>
-									<p style={{ margin: '0.5rem 0', fontSize: '1.5rem' }}>LEVEL: {currentStudent.level}</p>
-									<p style={{ margin: '0.5rem 0', fontSize: getResponsiveFontSize(currentStudent.department, 3.5), fontWeight:"bolder" }}>DEPARTMENT: {currentStudent.department}</p>
-									<p style={{ margin: '0.5rem 0' }}>YEAR OF ENTRY: {currentStudent.yearOfEntry}</p>
-								</div>
-
-								{/* Expiry Date */}
-								<p style={{
-                  color: '#0066cc',
-                  fontSize: '1.25rem',
-									fontWeight: 'bold',
-                  marginTop: '1.5rem'
-                }}>Expiry Date: -----</p>
-
-								{/* QR Code - Small and centered */}
-								<div style={{
-									marginTop: '2rem',
-									marginBottom: '1rem',
+									width: '180px',
+									height: '180px',
+									marginBottom: '1.5rem',
 									display: 'flex',
 									justifyContent: 'center',
-									flexShrink: 0
+									alignItems: 'center'
 								}}>
-									{/* <QRCodeSVG
-										value={"https://portal.omarkschoolofhealth.ng/student/"}
-										size={180}
-										level="H"
-										bgColor="#ffffff"
-										style={{ padding: '0.25rem' }}
-									/> */}
-									<div style={{
-								width: '200px',
-								height: '200px',
-								marginBottom: '2rem',
-								display: 'flex',
-								justifyContent: 'center'
-							}}>
-								<img
-									src={'/omackqrcode.jpeg'}
-									alt="School Logo"
-									style={{
-										width: '100%',
-										height: '100%',
-										objectFit: 'contain'
-									}}
-								/>
+									<img
+										src={school.logoUrl || 'https://placehold.co/600x400'}
+										alt="School Logo"
+										style={{
+											width: '100%',
+											height: '100%',
+											objectFit: 'contain'
+										}}
+									/>
+								</div>
+
+								{/* Student Photo - Light background */}
+								<div style={{
+									width: '250px',
+									height: '300px',
+									backgroundColor: '#f5f5f5',
+									padding: '0.75rem',
+									display: 'flex',
+									justifyContent: 'center',
+									alignItems: 'center',
+									flexShrink: 0,
+									borderRadius: '4px'
+								}}>
+									<img
+										src={currentStudent.photoUrl || 'https://placehold.co/600x400'}
+										alt="Student Photo"
+										style={{
+											width: '100%',
+											height: '100%',
+											objectFit: 'cover',
+											display: 'block'
+										}}
+									/>
+								</div>
 							</div>
+
+							{/* Bottom Section - Blue Background with Student Info */}
+							<div style={{
+								flex: 1,
+								backgroundColor: '#0052cc',
+								padding: '2rem',
+								display: 'flex',
+								flexDirection: 'column',
+								justifyContent: 'flex-start',
+								color: '#ffffff',
+								textAlign: 'center',
+								position: 'relative'
+							}}>
+								{/* Student Name */}
+								<h2 style={{
+									fontSize: getResponsiveFontSize(currentStudent.name, 5),
+									fontWeight: 'bold',
+									margin: '0 0 1.5rem 0',
+									textTransform: 'uppercase',
+									letterSpacing: '1px'
+								}}>
+									{currentStudent.name}
+								</h2>
+
+								{/* Student Details - Left Aligned */}
+								<div style={{
+									textAlign: 'left',
+									fontSize: '1.8rem',
+									lineHeight: '2.2rem',
+									fontWeight: '500',
+									textTransform: 'uppercase',
+									letterSpacing: '0.5px'
+								}}>
+									<p style={{ margin: '0.75rem 0' }}>MATRIC NO: {currentStudent.id}</p>
+									<p style={{ margin: '0.75rem 0' }}>DEPARTMENT: {currentStudent.department}</p>
+									{/* <p style={{ margin: '0.75rem 0' }}>FACULTY: {currentStudent.faculty}</p> */}
+									<p style={{ margin: '0.75rem 0' }}>YEAR OF ENTRY: {currentStudent.yearOfEntry}</p>
+									<p style={{ margin: '1.25rem 0 0 0', fontSize: '1.6rem', position:"absolute", bottom: '2rem', right: '2rem' }}>Expiry Date: N/A</p>
 								</div>
 							</div>
 						</>

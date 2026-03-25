@@ -223,7 +223,7 @@ export default function Students() {
                 </DialogHeader>
                 <form onSubmit={handleSubmit} className="space-y-4">
                   <div className="grid grid-cols-2 gap-4">
-                    <div>
+                    <div className="">
                       <Label htmlFor="name">Name</Label>
                       <Input
                         id="name"
@@ -292,6 +292,19 @@ export default function Students() {
                         </SelectContent>
                       </Select>
                     </div>
+                    <div>
+                    <Label htmlFor="yearOfEntry">Year of Entry</Label>
+                    <Input
+                      id="yearOfEntry"
+                      type="text"
+                      value={formData.yearOfEntry}
+                      onChange={(e) =>
+                        setFormData({ ...formData, yearOfEntry: e.target.value })
+                      }
+                      placeholder="Year of Entry"
+                      required={!editingStudent}
+                    />
+                  </div>
                   </div>
                   <div>
                     <Label htmlFor="password">Password</Label>

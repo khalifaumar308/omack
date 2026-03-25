@@ -18,14 +18,14 @@
 
 .batch-button-png {
   padding: 0.5rem 1rem;
-  background-color: #2563eb; /* blue-600 */
+  background-color: #0052cc; /* Updated blue */
   color: #ffffff;
   border-radius: 0.375rem;
   transition: background-color 0.2s;
 }
 
 .batch-button-png:hover:not(:disabled) {
-  background-color: #1d4ed8; /* blue-700 */
+  background-color: #003da6; /* darker blue */
 }
 
 .batch-button-pdf {
@@ -63,7 +63,7 @@
 
 .download-button-png {
   padding: 0.25rem 0.75rem;
-  background-color: #2563eb; /* blue-600 */
+  background-color: #0052cc; /* Updated blue */
   color: #ffffff;
   border-radius: 0.375rem;
   font-size: 0.875rem;
@@ -71,7 +71,7 @@
 }
 
 .download-button-png:hover:not(:disabled) {
-  background-color: #1d4ed8; /* blue-700 */
+  background-color: #003da6; /* darker blue */
 }
 
 .download-button-pdf {
@@ -92,35 +92,90 @@
 }
 
 .id-card {
-  width: 350px;
-  height: 220px;
+  width: 100%;
+  max-width: 700px;
   background-color: #ffffff;
-  border: 2px solid #1f2937; /* gray-800 */
+  border: 1px solid #e5e7eb;
   border-radius: 0.5rem;
-  padding: 1rem;
+  padding: 0;
   box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
+  overflow: hidden;
+}
+
+.id-card-top {
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: #ffffff;
+}
+
+.id-card-logo {
+  width: 180px;
+  height: 180px;
+  margin-bottom: 1.5rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .id-card-photo {
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
-  margin-right: 1rem;
-  border: 2px solid #d1d5db; /* gray-300 */
+  width: 250px;
+  height: 300px;
+  border-radius: 4px;
+  margin-bottom: 0;
+  border: none;
+  background-color: #f5f5f5;
+  overflow: hidden;
+}
+
+.id-card-photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.id-card-bottom {
+  flex: 1;
+  background-color: #0052cc;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-start;
+  color: #ffffff;
+  text-align: center;
 }
 
 .id-card-text {
-  font-size: 1.125rem;
+  font-size: 2.5rem;
   font-weight: 600;
-  color: #1f2937; /* gray-800 */
+  color: #ffffff;
+  margin: 0 0 1.5rem 0;
+  text-transform: uppercase;
+  letter-spacing: 1px;
 }
 
 .id-card-info {
-  font-size: 0.875rem;
-  color: #4b5563; /* gray-600 */
+  font-size: 1.8rem;
+  color: #ffffff;
+  text-align: left;
+  line-height: 2.2rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  margin: 0;
+}
+
+.id-card-info p {
+  margin: 0.75rem 0;
+}
+
+.id-card-info .expiry {
+  margin-top: 1.25rem;
+  font-size: 1.6rem;
 }
 
 .qr-code {

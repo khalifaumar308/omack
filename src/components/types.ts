@@ -367,6 +367,7 @@ export interface CreateStudentForm extends CreateUserForm {
   matricNo: string;
   department: string;
   school: string;
+  yearOfEntry?: string;
 }
 
 export interface CreateInstructorForm extends CreateUserForm {

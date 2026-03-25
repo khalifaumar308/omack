@@ -122,7 +122,7 @@ export default function StudentDetail() {
             </div>
             <div className="flex flex-col space-y-1">
               <span className="text-sm font-medium text-muted-foreground">Admission Year</span>
-              {/* <span className="text-lg font-semibold">{student.admissionYear}</span> */}
+              <span className="text-lg font-semibold">{student.yearOfEntry || "Not provided"}</span>
             </div>
           </div>
         </CardContent>
