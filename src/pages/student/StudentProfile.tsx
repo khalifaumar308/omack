@@ -27,6 +27,7 @@ const StudentProfile: React.FC = () => {
     guardianName: "",
     guardianEmail: "",
     guardianPhone: "",
+    yearOfEntry: "",
   });
 
   const [imageFile, setImageFile] = useState<File | null>(null);
@@ -55,6 +56,7 @@ const StudentProfile: React.FC = () => {
         guardianName: (student.guardian?.name as string) || '',
         guardianEmail: (student.guardian?.email as string) || '',
         guardianPhone: (student.guardian?.phone as string) || '',
+        yearOfEntry: student.yearOfEntry || '',
       });
       setImagePreview((student.picture as string) || null);
     }
@@ -94,7 +96,8 @@ const StudentProfile: React.FC = () => {
         // optionally include folder or filename
         fd.append('folder', `students/${student.id}`);
         const res = await uploadMutation.mutateAsync(fd);
-        const resAny = res as any;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const resAny = res as any; // adjust based on your actual response type
         photoUrl = (resAny.url || resAny.secure_url || photoUrl) as string;
         setUploadingImage(false);
       }
@@ -106,6 +109,7 @@ const StudentProfile: React.FC = () => {
         phone: formState.phone,
         homeAddress: formState.homeAddress,
         dateOfBirth: formState.dateOfBirth || undefined,
+        yearOfEntry: formState.yearOfEntry || undefined,
         guardian: {
           name: formState.guardianName,
           email: formState.guardianEmail,
@@ -225,6 +229,16 @@ const StudentProfile: React.FC = () => {
                   <Input type="date" value={formState.dateOfBirth} onChange={(e) => handleChange('dateOfBirth', e.target.value)} />
                 </div>
 
+                {/* <div>
+                  <Label className="mb-1">Name</Label>
+                  <Input value={formState.name} onChange={(e) => handleChange('name', e.target.value)} />
+                </div> */}
+
+                <div>
+                  <Label className="mb-1">Year of Entry</Label>
+                  <Input value={formState.yearOfEntry} onChange={(e) => handleChange('yearOfEntry', e.target.value)} />
+                </div>
+
                 {/* Guardian Info */}
                 <div>
                   <Label className="mb-1">Guardian Name</Label>
@@ -257,7 +271,8 @@ const StudentProfile: React.FC = () => {
                       dateOfBirth: student.dateOfBirth ? new Date(student.dateOfBirth).toISOString().slice(0,10) : '',
                       guardianName: (student.guardian?.name as string) || '',
                       guardianEmail: (student.guardian?.email as string) || '',
-                      guardianPhone: (student.guardian?.phone as string) || ''
+                      guardianPhone: (student.guardian?.phone as string) || '',
+                      yearOfEntry: student.yearOfEntry || '',
                     });
                     setImagePreview((student.picture as string) || null);
                     setImageFile(null);
