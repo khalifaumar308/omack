@@ -292,7 +292,7 @@ const StudentIDCardGenerator = React.forwardRef<StudentIDCardGeneratorHandle, St
 							}}>
 								{/* Student Name */}
 								<h2 style={{
-									fontSize: getResponsiveFontSize(currentStudent.name, 5),
+									fontSize: getResponsiveFontSize(currentStudent.name, 6),
 									fontWeight: 'bold',
 									margin: '0 0 1.5rem 0',
 									textTransform: 'uppercase',
