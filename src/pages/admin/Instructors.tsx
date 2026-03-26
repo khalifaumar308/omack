@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useMemo, useState, useEffect } from 'react';
 import { useGetInstructors, useGetDepartments, useGetCourses } from '@/lib/api/queries';
 import { useUser } from '@/contexts/useUser';
@@ -17,6 +18,18 @@ import type { PopulatedDepartment, PopulatedInstructor, Course, Instructor } fro
 const Instructors: React.FC = () => {
   const getDeptName = (department: unknown) => {
     if (!department) return '—';
+    if (Array.isArray(department)) {
+      const names = department.map((d) => {
+        if (!d) return '';
+        if (typeof d === 'string') return d;
+        if (typeof d === 'object' && d !== null) {
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          return (d as any).name || '';
+        }
+        return '';
+      }).filter(Boolean);
+      return names.length > 0 ? names.join(', ') : '—';
+    }
     if (typeof department === 'string') return department;
     if (typeof department === 'object' && department !== null) {
       // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -54,15 +67,16 @@ const Instructors: React.FC = () => {
   const { user } = useUser();
   const { data: departmentsRaw = [] } = useGetDepartments();
   const departments = (departmentsRaw as unknown as PopulatedDepartment[]) || [];
-  const [form, setForm] = useState({ name: '', email: '', password: '', rank: '', specialization: '', department: '' });
+  const [form, setForm] = useState({ name: '', email: '', password: '', rank: '', specialization: '', departments: [] as string[] });
   const [isCreating, setIsCreating] = useState(false);
+  const [selectAll, setSelectAll] = useState(false);
   const createMutation = useMutation({
     mutationFn: (payload: Record<string, unknown>) => api.createInstructor(payload as unknown as import('@/components/types').CreateInstructorForm),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['instructors'] });
       toast.success('Instructor created');
       setOpenCreate(false);
-      setForm({ name: '', email: '', password: '', rank: '', specialization: '', department: '' });
+      setForm({ name: '', email: '', password: '', rank: '', specialization: '', departments: [] });
     },
     onError: (err: unknown) => {
       toast.error(getErrorMessage(err));
@@ -77,13 +91,13 @@ const Instructors: React.FC = () => {
   // --- Edit / Assign courses dialog state ---
   const [openEdit, setOpenEdit] = useState(false);
   const [editingInstructor, setEditingInstructor] = useState<Instructor | PopulatedInstructor | null>(null);
-  const [selectedCourses, setSelectedCourses] = useState<{code:string; id:string}[]>([]);
+  const [selectedCourses, setSelectedCourses] = useState<{ code: string; id: string }[]>([]);
   const [coursePage, setCoursePage] = useState(1);
   const courseLimit = 20;
   const [courseSearch, setCourseSearch] = useState('');
-  const deptVal = editingInstructor?.department;
-  const departmentParam = typeof deptVal === 'string' ? deptVal : (deptVal ? (deptVal as unknown as { id?: string }).id ?? '' : '');
-  const { data: coursesData, isLoading: isLoadingCourses } = useGetCourses(coursePage, courseLimit, courseSearch, departmentParam);
+  const [instructorDepartments, setInstructorDepartments] = useState<string[]>([]);
+
+  const { data: coursesData, isLoading: isLoadingCourses } = useGetCourses(coursePage, courseLimit, courseSearch, instructorDepartments);
   // Parse coursesData into a stable Course[] for reuse (supports several server shapes)
   const parsedCourses: Course[] = (() => {
     const payload = coursesData as unknown;
@@ -102,12 +116,24 @@ const Instructors: React.FC = () => {
   // };
 
   useEffect(() => {
+    if (editingInstructor) {
+      // extract department ids for course filtering
+      const depts = (editingInstructor.departments as unknown as (string | { id?: string; _id?: string })[]).map(d => {
+        if (typeof d === 'string') return d;
+        return d.id || d._id || '';
+      }).filter(Boolean);
+      setInstructorDepartments(depts);
+    }
+  }, [editingInstructor]);
+
+  useEffect(() => {
     if (!openEdit) {
       // reset when dialog closed
       setEditingInstructor(null);
       setSelectedCourses([]);
       setCoursePage(1);
       setCourseSearch('');
+      setSelectAll(false);
     }
   }, [openEdit]);
 
@@ -143,7 +169,7 @@ const Instructors: React.FC = () => {
       <div className="max-w-6xl mx-auto p-6">
         <Card>
           <CardContent>
-            <p className="text-red-600">Failed to load instructors. Please refresh.</p>
+            <p className="text-red-600">Failed to load Lecturers. Please refresh.</p>
           </CardContent>
         </Card>
       </div>
@@ -154,8 +180,8 @@ const Instructors: React.FC = () => {
     <div className="max-w-6xl mx-auto p-6 space-y-6">
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold text-gray-800">Instructors</h1>
-          <p className="text-sm text-gray-500">Manage instructors — add, edit or remove instructors.</p>
+          <h1 className="text-2xl font-semibold text-gray-800">Lecturers</h1>
+          <p className="text-sm text-gray-500">Manage Lecturers — add, edit or remove Lecturers.</p>
         </div>
         <div className="flex items-center gap-2">
           <div className="text-sm text-gray-600 mr-4">Total: <span className="font-medium">{stats.total}</span></div>
@@ -184,25 +210,47 @@ const Instructors: React.FC = () => {
                     <Input value={form.specialization} onChange={(e) => setForm({ ...form, specialization: e.target.value })} placeholder="Field of specialization" />
                   </div>
                 </div>
-                <Label>Department</Label>
+                <Label>Departments <span className="text-red-600">*</span></Label>
                 {departments.length > 0 ? (
-                  <select value={form.department} onChange={(e) => setForm({ ...form, department: e.target.value })} className="w-full rounded-md border px-3 py-2">
-                    <option value="">Select department</option>
-                      {departments.map((d: PopulatedDepartment) => (
-                        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                        <option key={(d as any).id ?? (d as any)._id} value={(d as any).id ?? (d as any)._id}>{(d as any).name}</option>
-                      ))}
-                  </select>
+                  <div className="border rounded-md p-3 space-y-2 max-h-48 overflow-y-auto">
+                    {departments.map((d: PopulatedDepartment) => {
+                      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                      const value = (d as any).id ?? (d as any)._id;
+                      // eslint-disable-next-line @typescript-eslint/no-explicit-any
+                      const name = (d as any).name;
+                      const isChecked = form.departments.includes(value);
+                      return (
+                        <div key={value} className="flex items-center gap-2">
+                          <input
+                            type="checkbox"
+                            id={`dept-${value}`}
+                            checked={isChecked}
+                            onChange={(e) => {
+                              if (e.target.checked) {
+                                setForm({ ...form, departments: [...form.departments, value] });
+                              } else {
+                                setForm({ ...form, departments: form.departments.filter((d) => d !== value) });
+                              }
+                            }}
+                            className="h-4 w-4 rounded border-gray-300"
+                          />
+                          <label htmlFor={`dept-${value}`} className="text-sm cursor-pointer">
+                            {name}
+                          </label>
+                        </div>
+                      );
+                    })}
+                  </div>
                 ) : (
-                  <Input value={form.department} onChange={(e) => setForm({ ...form, department: e.target.value })} placeholder="Department id" />
+                  <Input value={form.departments.join(', ')} onChange={(e) => setForm({ ...form, departments: e.target.value.split(',').map((v) => v.trim()) })} placeholder="Comma-separated department ids" />
                 )}
 
                 <div className="flex justify-end gap-2 mt-4">
                   <Button variant="outline" onClick={() => setOpenCreate(false)}>Cancel</Button>
                   <Button disabled={isCreating} onClick={() => {
                     // basic validation
-                    if (!form.name || !form.email || !form.password || !form.department) {
-                      toast.error('Please fill all required fields (name, email, password, department)');
+                    if (!form.name || !form.email || !form.password || form.departments.length === 0) {
+                      toast.error('Please fill all required fields (name, email, password, departments)');
                       return;
                     }
                     const payload = {
@@ -211,7 +259,7 @@ const Instructors: React.FC = () => {
                       password: form.password,
                       rank: form.rank,
                       specialization: form.specialization,
-                      department: form.department,
+                      departments: form.departments,
                       school: typeof user?.school === 'string' ? user?.school : ((user?.school as unknown as { id?: string; _id?: string })?.id || (user?.school as unknown as { id?: string; _id?: string })?._id)
                     };
                     setIsCreating(true);
@@ -240,18 +288,18 @@ const Instructors: React.FC = () => {
             </TableHeader>
             <TableBody>
               {list.map((i) => (
-                <TableRow key={i.id}>
+                <TableRow key={i.id || (i as any)._id}>
                   <TableCell>{i.name}</TableCell>
                   <TableCell>{i.email}</TableCell>
-                  <TableCell>{getDeptName(i.department)}</TableCell>
-                  <TableCell>{i.courses?.map(c=>c.code).join(", ")}</TableCell>
+                  <TableCell>{i.departments.map((d) => d.code).join(", ")}</TableCell>
+                  <TableCell>{i.courses?.length}</TableCell>
                   <TableCell>
                     <div className="flex items-center gap-2">
                       <Button variant="ghost" onClick={() => {
                         // open edit / assign courses dialog
                         setEditingInstructor(i);
                         // preselect existing courses (accept array of ids or Course objects)
-                        const existing = i.courses?.map((c) => ({code:c.code, id:c.id})) || [];
+                        const existing = i.courses?.map((c) => ({ code: c.code, id: c.id })) || [];
                         setSelectedCourses(existing.filter(Boolean));
                         setOpenEdit(true);
                       }}><Edit /></Button>
@@ -272,11 +320,11 @@ const Instructors: React.FC = () => {
                   <div>
                     <div className="font-medium text-gray-800">{i.name}</div>
                     <div className="text-sm text-gray-600">{i.email}</div>
-                    <div className="text-sm text-gray-600">{getDeptName(i.department)}</div>
+                    <div className="text-sm text-gray-600">{getDeptName((i as unknown as { departments?: unknown }).departments ?? (i as unknown as { department?: unknown }).department)}</div>
                   </div>
                   <div className="flex flex-col items-end gap-2">
-                    <Button variant="ghost" onClick={() => {/* edit handler */}}><Edit /></Button>
-                      <Button variant="ghost" onClick={() => { setDeleteTarget(i); setConfirmDeleteOpen(true); }}><Trash className="text-red-600" /></Button>
+                    <Button variant="ghost" onClick={() => {/* edit handler */ }}><Edit /></Button>
+                    <Button variant="ghost" onClick={() => { setDeleteTarget(i); setConfirmDeleteOpen(true); }}><Trash className="text-red-600" /></Button>
                   </div>
                 </div>
               </CardContent>
@@ -308,23 +356,41 @@ const Instructors: React.FC = () => {
                     parsedCourses.length === 0 ? (
                       <div className="text-sm text-muted-foreground">No courses found.</div>
                     ) : (
-                      parsedCourses.map((c: Course, idx) => {
-                        const rawId = ((c as unknown) as Record<string, unknown>)['_id'] as string | undefined;
-                        const cid = c.id ?? rawId ?? `__unknown_${coursePage}_${idx}`;
-                        const label = c.code ? `${c.code} — ${c.title}` : (c.title || cid);
-                        const checked = selectedCourses.map(cc=>cc.id).includes(cid);
-                        return (
-                          <div key={cid} className="flex items-center justify-between gap-2">
-                            <label className="flex items-center gap-2 w-full">
-                              <input type="checkbox" checked={checked} onChange={(e) => {
-                                if (e.target.checked) setSelectedCourses(prev => Array.from(new Set([...prev, {code:c.code, id:cid}])));
-                                else setSelectedCourses(prev => prev.filter(x => x.id !== cid));
-                              }} />
-                              <span className="text-sm">{label}</span>
-                            </label>
-                          </div>
-                        );
-                      })
+                      <>
+                        <div className="flex items-center justify-between gap-2">
+                          <label className="flex items-center gap-2 w-full">
+                            <input type="checkbox" checked={selectAll} onChange={(e) => {
+                              setSelectAll(e.target.checked);
+                              if (e.target.checked) {
+                                setSelectedCourses(parsedCourses.map(c => ({ code: c.code, id: c.id })));
+                              } else {
+                                setSelectedCourses([]);
+                              }
+                            }} />
+                            <span className="text-sm">Select All</span>
+                          </label>
+                        </div>
+                        {
+                          parsedCourses.map((c: Course, idx) => {
+                            const rawId = ((c as unknown) as Record<string, unknown>)['_id'] as string | undefined;
+                            const cid = c.id ?? rawId ?? `__unknown_${coursePage}_${idx}`;
+                            const label = c.code ? `${c.code} — ${c.title}` : (c.title || cid);
+                            const checked = selectedCourses.map(cc => cc.id).includes(cid);
+                            return (
+                              <div key={cid} className="flex items-center justify-between gap-2">
+                                <label className="flex items-center gap-2 w-full">
+                                  <input type="checkbox" checked={checked} onChange={(e) => {
+                                    if (e.target.checked) setSelectedCourses(prev => Array.from(new Set([...prev, { code: c.code, id: cid }])));
+                                    else setSelectedCourses(prev => prev.filter(x => x.id !== cid));
+                                  }} />
+                                  <span className="text-sm">{label}</span>
+                                </label>
+                              </div>
+                            );
+                          })
+                        }
+                      </>
+
                     )
                   }
                 </div>
@@ -341,7 +407,7 @@ const Instructors: React.FC = () => {
                   selectedCourses.map((course) => (
                     // add ability to remove course from selection
                     <div key={course.id} className="flex items-center gap-1">
-                      <span className="px-2 py-1 rounded-md bg-gray-100 text-sm text-gray-800 border">{course.code}</span>
+                      <span className="px-1 py-1 rounded-md bg-gray-100 text-xs text-gray-800 border">{course.code}</span>
                       <Button className='text-red-600' variant="outline" size="icon" onClick={() => {
                         setSelectedCourses(prev => prev.filter(c => c.id !== course.id));
                       }}>
@@ -364,17 +430,17 @@ const Instructors: React.FC = () => {
 
             <div className="flex justify-end gap-2 mt-2">
               <Button variant="outline" onClick={() => setOpenEdit(false)}>Cancel</Button>
-                  <Button onClick={async () => {
+              <Button onClick={async () => {
                 if (!editingInstructor) return;
                 try {
                   // Both Instructor and PopulatedInstructor extend BaseEntity so `id` should exist
                   console.log(selectedCourses, editingInstructor)
                   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                  await api.updateInstructor((editingInstructor as any)._id || (editingInstructor as any).id, { courses: [...(editingInstructor.courses as any),...selectedCourses.map(c => c.id)] });
+                  await api.updateInstructor((editingInstructor as any)._id || (editingInstructor as any).id, { courses: [...(editingInstructor.courses as any), ...selectedCourses.map(c => c.id)] });
                   queryClient.invalidateQueries({ queryKey: ['instructors'] });
                   toast.success('Courses assigned successfully');
                   setOpenEdit(false);
-                } catch (err) { 
+                } catch (err) {
                   toast.error(getErrorMessage(err));
                 }
               }}>{'Save assignments'}</Button>
@@ -396,14 +462,14 @@ const Instructors: React.FC = () => {
                 if (!deleteTarget) return;
                 try {
                   // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                  await deleteMutation.mutateAsync((deleteTarget as any)._id);
+                  await deleteMutation.mutateAsync((deleteTarget as any)._id || deleteTarget.id);
                 } catch (error) {
                   toast.error(getErrorMessage(error));
                 } finally {
                   setConfirmDeleteOpen(false);
                   setDeleteTarget(null);
                 }
-              }}>{deleteMutation.isPending?"Deleting...":"Delete"}</Button>
+              }}>{deleteMutation.isPending ? "Deleting..." : "Delete"}</Button>
             </div>
           </div>
         </DialogContent>

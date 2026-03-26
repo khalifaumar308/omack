@@ -79,10 +79,12 @@ export const useGetUser = () => {
 }
 
 //courses
-export const useGetCourses = (page: number = 1, limit: number = 50, search: string = '', department: string = '', semester: string = 'all', level: string = 'all') => {
+export const useGetCourses = (page: number = 1, limit: number = 50, search: string = '', department: string|string[] = [], semester: string = 'all', level: string = 'all') => {
+  const dpt = Array.isArray(department) ? department : (department ? [department] : []);
+  const params = { page, limit, search, department: dpt, semester, level };
   return useQuery({
-    queryKey: ["courses", page, limit, search, department, semester, level],
-    queryFn: () => api.getCourses(page, limit, search || undefined, department || undefined, semester || undefined, level || undefined),
+    queryKey: ["courses", page, limit, search, dpt, semester, level],
+    queryFn: () => api.getCourses(params),
     //   placeholderData: undefined,
     //   refetchOnWindowFocus: false,
     // staleTime: 1000 * 60 * 0, // 2 minutes

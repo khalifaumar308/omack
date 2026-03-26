@@ -104,13 +104,13 @@ export interface Student extends User {
 
 export interface Instructor extends User {
   rank?: string;
-  department: string; // ObjectId as string
+  departments: string[]; // Array of ObjectIds as strings
   school: string; // ObjectId as string
   courses?: string[]; // Array of ObjectIds as strings
 }
 
-export interface PopulatedInstructor extends Omit<Instructor, 'department' | 'school' | 'courses'> {
-  department: Department;
+export interface PopulatedInstructor extends Omit<Instructor, 'departments' | 'school' | 'courses'> {
+  departments: Department[];
   school: School;
   courses?: Course[];
 }
@@ -220,11 +220,11 @@ export interface PopulatedStudent extends Omit<Student, 'department' | 'school'>
   school: School;
 }
 
-export interface PopulatedInstructor extends Omit<Instructor, 'department' | 'school' | 'courses'> {
-  department: Department;
-  school: School;
-  courses?: Course[];
-}
+// export interface PopulatedInstructor extends Omit<Instructor, 'department' | 'school' | 'courses'> {
+//   department: Department[];
+//   school: School;
+//   courses?: Course[];
+// }
 
 export interface PopulatedDepartment extends Omit<Department, 'faculty' | 'school' | 'hod'> {
   faculty: Faculty;

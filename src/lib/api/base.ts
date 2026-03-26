@@ -45,8 +45,8 @@ import type {
 import type { IStudentSemesterResultResponce } from '@/types/semester-result';
 
 // Configure your API base URL
-const API_BASE_URL = 'https://hmsms-api.onrender.com/api';
-// const API_BASE_URL = 'http://localhost:5000/api'
+// const API_BASE_URL = 'https://hmsms-api.onrender.com/api';
+const API_BASE_URL = 'http://localhost:5000/api'
 
 
 // =============================================================================
@@ -964,15 +964,28 @@ export const getadmindashBoardData = async () => {
   return response.data;
 };
 
-export const getCourses = async (page?: number, limit?: number, search?: string, department?: string, semester?: string, level?: string) => {
-  const params: Record<string, string> = {};
-  if (page) params.page = String(page);
-  if (limit) params.limit = String(limit);
-  if (search) params.search = search;
-  if (department) params.department = department;
-  if (semester && semester !== 'all') params.semester = semester;
-  if (level && level !== 'all') params.level = level;
+interface CourseQueryParams {
+  page?: number;
+  limit?: number;
+  search?: string;
+  department?: string[];
+  semester?: string;
+  level?: string;
+}
 
+export const getCourses = async (params: CourseQueryParams) => {
+  // const { page, limit, search, department, semester, level } = params;
+  // const paramsObj: Record<string, any> = {};
+  // if (page) paramsObj.page = String(page);
+  // if (limit) paramsObj.limit = String(limit);
+  // if (search) paramsObj.search = search;
+  // if (department) paramsObj.department = department;
+
+  // if (semester && semester !== 'all') paramsObj.semester = semester;
+  // if (level && level !== 'all') paramsObj.level = level;
+  // console.log(department, "depart")
+  console.log(params.department, 'depart in api')
+  // const queryString = new URLSearchParams();
   const response = await api.get<{
     data: PopulatedCourse[]; pagination: {
       page: number;

@@ -139,7 +139,7 @@ export function DashboardLayout() {
       icon: Users,
       items: [
         { title: "Students", url: "/admin/students" },
-        { title: "Instructors", url: "/admin/instructors" },
+        { title: "Lecturers", url: "/admin/instructors" },
         { title: "Course Registrations", url: "/admin/course-registrations" },
         { title: "Results", url: "/admin/results" },
         { title: "Applicants", url: "/admin/applicants" },
