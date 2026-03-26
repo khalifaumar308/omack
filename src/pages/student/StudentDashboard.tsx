@@ -150,7 +150,8 @@ function StudentDashboard() {
             name: student.name || '',
             id: student.matricNo || '',
             level: String(student.level), qrUrl: window.location.href, photoUrl: student.picture,
-            department: student.department.name
+            department: student.department.name,
+            yearOfEntry: student.yearOfEntry || 'N/A'
           }]
             :
             []}
@@ -175,7 +176,9 @@ function StudentDashboard() {
             name: student?.name || '',
             id: student?.matricNo || '',
             level: String(student?.level), qrUrl: window.location.href, photoUrl: student?.picture,
-            department: student?.department.name || ""
+            department: student?.department.name || "",
+            yearOfEntry: student?.yearOfEntry || 'N/A'
+
           }, 'png')}
         >
           📥 Download ID Card
