@@ -377,6 +377,42 @@ export default function Login() {
               </Button>
             </form>
 
+            {/* Apply Link for Applicants */}
+            <div style={{ marginTop: '1.5rem', paddingTop: '1.5rem', borderTop: '1px solid rgba(255,255,255,0.1)', textAlign: 'center' }}>
+              <p style={{ fontSize: '0.9rem', color: 'rgba(255,255,255,0.8)', margin: '0 0 0.5rem 0' }}>
+                New applicant?
+              </p>
+              <a
+                href="/apply"
+                style={{
+                  display: 'inline-block',
+                  background: 'linear-gradient(135deg, rgba(59, 130, 246, 0.9) 0%, rgba(96, 165, 250, 0.9) 100%)',
+                  color: 'white',
+                  padding: '0.625rem 1.5rem',
+                  fontSize: '0.95rem',
+                  fontWeight: 600,
+                  borderRadius: '0.5rem',
+                  textDecoration: 'none',
+                  border: '1px solid rgba(255, 255, 255, 0.2)',
+                  transition: 'all 0.3s ease',
+                  cursor: 'pointer',
+                  backdropFilter: 'blur(10px)',
+                  boxShadow: '0 4px 15px 0 rgba(59, 130, 246, 0.3)',
+                  letterSpacing: '-0.3px'
+                }}
+                onMouseEnter={(e) => {
+                  (e.currentTarget as HTMLAnchorElement).style.transform = 'translateY(-2px)';
+                  (e.currentTarget as HTMLAnchorElement).style.boxShadow = '0 8px 20px 0 rgba(59, 130, 246, 0.5)';
+                }}
+                onMouseLeave={(e) => {
+                  (e.currentTarget as HTMLAnchorElement).style.transform = 'translateY(0)';
+                  (e.currentTarget as HTMLAnchorElement).style.boxShadow = '0 4px 15px 0 rgba(59, 130, 246, 0.3)';
+                }}
+              >
+                Start Application
+              </a>
+            </div>
+
             {/* Footer */}
             <div style={{ marginTop: '2rem', paddingTop: '1.5rem', borderTop: '1px solid rgba(255,255,255,0.1)', textAlign: 'center' }}>
               <p style={{ fontSize: '0.75rem', color: 'rgba(255,255,255,0.6)', margin: 0 }}>

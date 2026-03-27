@@ -10,14 +10,15 @@ interface NavigationProps {
 const Navigation: React.FC<NavigationProps> = ({ isScrolled }) => {
   const [isOpen, setIsOpen] = useState(false);
 
-  const navLinks = [
-    { label: 'Home', href: '/' },
-    { label: 'About', href: '/#about' },
-    { label: 'Programs', href: '/#programs' },
-    { label: 'Why Choose Us', href: '/#why-choose' },
-    { label: 'Events', href: '/#events' },
-    { label: 'Admissions', href: '/#admissions' },
-    { label: 'Contact', href: '/#footer' },
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
+  const navLinks: any[] = [
+    // { label: 'Home', href: '/' },
+    // { label: 'About', href: '/#about' },
+    // { label: 'Programs', href: '/#programs' },
+    // { label: 'Why Choose Us', href: '/#why-choose' },
+    // { label: 'Events', href: '/#events' },
+    // { label: 'Admissions', href: '/#admissions' },
+    // { label: 'Contact', href: '/#footer' },
   ];
 
   const scrollToSection = (href: string) => {
@@ -47,11 +48,11 @@ const Navigation: React.FC<NavigationProps> = ({ isScrolled }) => {
             onClick={() => scrollToSection('#home')}
           >
             <div className="flex items-center justify-center w-10 h-10 rounded-full bg-gradient-to-br from-blue-600 to-teal-600">
-              <img src='/acohsatlogo.jpg' />
+              <img src='/logo.jpg' />
             </div>
             <div className="hidden sm:block">
               <p className={`font-bold text-lg ${isScrolled ? 'text-gray-900' : 'text-white'}`}>
-                Apex College
+                OMark College
               </p>
               <p className={`text-xs ${isScrolled ? 'text-gray-600' : 'text-gray-200'}`}>
                 Health Sciences
@@ -86,7 +87,7 @@ const Navigation: React.FC<NavigationProps> = ({ isScrolled }) => {
             className="hidden lg:block"
           >
             <div className="flex items-center gap-3">
-              <Link to="/login" className={`px-4 py-2 rounded-lg font-medium ${isScrolled ? 'text-gray-700 hover:text-blue-600' : 'text-white hover:text-blue-200'}`}>
+              <Link to="/" className={`px-4 py-2 rounded-lg font-medium ${isScrolled ? 'text-gray-700 hover:text-blue-600' : 'text-white hover:text-blue-200'}`}>
                 Login
               </Link>
               <Link to="/apply" className="px-6 py-2 rounded-lg bg-gradient-to-r from-blue-600 to-teal-600 text-white font-medium hover:shadow-lg transition-shadow">

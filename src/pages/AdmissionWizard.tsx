@@ -264,13 +264,13 @@ export default function AdmissionWizard() {
 
             <div className="relative z-10 flex flex-col md:flex-row items-center justify-center gap-6">
               <img
-                src="/acohsatlogo.jpg"
-                alt="ACOHSAT Logo"
+                src="/logo.jpg"
+                alt="OMARK Logo"
                 className="w-24 h-24 md:w-28 md:h-28 object-contain drop-shadow-lg"
               />
               <div className="text-center md:text-left">
                 <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-blue-700 via-cyan-600 to-blue-800 bg-clip-text text-transparent mb-2">
-                  Apex College of Health Sciences and Technology
+                  OMARK College of Health Sciences and Technology
                 </h1>
                 <p className="text-lg text-gray-700 font-medium">Complementary Admission Application Form</p>
                 <p className="text-sm text-gray-600 mt-1 italic">Self Reliance and Empowering a Healthier Community</p>

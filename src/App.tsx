@@ -33,7 +33,7 @@ import Payables from "./pages/admin/Payables";
 import Payable from "./pages/admin/Payable";
 import RegistrationSettings from "./pages/admin/RegistrationSettings";
 import CourseDetails from "./pages/admin/CourseDetails";
-// import AdmissionWizard from "./pages/AdmissionWizard";
+import AdmissionWizard from "./pages/AdmissionWizard";
 // import ApexCollegeLanding from "./pages/ApexCollegeLanding";
 import AdminApplicants from "./pages/AdminApplicants";
 import ApplicantDetail from "./pages/ApplicantDetail";
@@ -99,6 +99,7 @@ function App() {
               </Route>
               {/* </UserProvider> */}
               <Route path="/" element={<Login />} />
+              <Route path="/apply" element={<AdmissionWizard />} />
               <Route path="/wallet/verify" element={<WalletVerify />} />
               <Route path="*" element={<div>404 Not Found</div>} />
             </Routes>
