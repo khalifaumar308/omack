@@ -1,7 +1,7 @@
 import React, { useRef, useState, useEffect, useImperativeHandle } from 'react';
 import html2canvas from 'html2canvas-pro';
 import jsPDF from 'jspdf';
-// import { QRCodeSVG } from 'qrcode.react';
+// import QRCode from 'qrcode.react';
 import './id-card.css';
 import { Download } from 'lucide-react';
 
@@ -205,39 +205,41 @@ const StudentIDCardGenerator = React.forwardRef<StudentIDCardGeneratorHandle, St
 				)}
 
 			{/* Hidden Card Template for Export */}
-			{/* Hidden Card Template for Export */}
 			<div style={{ position: 'absolute', left: '-9999px', top: '-9999px' }}>
 				<div
 					ref={cardRef}
 					style={{
-						width: '700px',
-						height: '1100px',
+						width: '1050px',
+						height: '680px',
 						backgroundColor: '#ffffff',
 						display: 'flex',
-						flexDirection: 'column',
+						flexDirection: 'row',
 						transform: 'scale(0.5)',
 						transformOrigin: 'top left',
-						fontFamily: 'Arial, sans-serif',
-						marginBottom: '2rem',
-						boxShadow: '0 4px 6px rgba(0, 0, 0, 0.1)'
+						fontFamily: '"Segoe UI", Tahoma, Geneva, Verdana, sans-serif',
+						boxShadow: '0 8px 16px rgba(0, 0, 0, 0.12)',
+						border: '1px solid #e5e7eb',
+						overflow: 'hidden'
 					}}
 				>
 					{currentStudent && (
 						<>
-							{/* Top Section - Logo and Photo */}
+							{/* LEFT SECTION - Photo and Logo */}
 							<div style={{
+								width: '380px',
+								backgroundColor: '#f8fafc',
 								padding: '2rem',
-								paddingBottom: '1rem',
 								display: 'flex',
 								flexDirection: 'column',
 								alignItems: 'center',
-								backgroundColor: '#ffffff'
+								justifyContent: 'center',
+								borderRight: '2px solid #e5e7eb'
 							}}>
 								{/* School Logo */}
 								<div style={{
-									width: '180px',
-									height: '180px',
-									marginBottom: '1.5rem',
+									width: '120px',
+									height: '120px',
+									marginBottom: '2rem',
 									display: 'flex',
 									justifyContent: 'center',
 									alignItems: 'center'
@@ -253,17 +255,19 @@ const StudentIDCardGenerator = React.forwardRef<StudentIDCardGeneratorHandle, St
 									/>
 								</div>
 
-								{/* Student Photo - Light background */}
+								{/* Student Photo */}
 								<div style={{
-									width: '250px',
-									height: '300px',
-									backgroundColor: '#f5f5f5',
-									padding: '0.75rem',
+									width: '280px',
+									height: '340px',
+									backgroundColor: '#ffffff',
+									padding: '8px',
 									display: 'flex',
 									justifyContent: 'center',
 									alignItems: 'center',
 									flexShrink: 0,
-									borderRadius: '4px'
+									borderRadius: '6px',
+									border: '2px solid #d1d5db',
+									boxShadow: '0 2px 4px rgba(0, 0, 0, 0.08)'
 								}}>
 									<img
 										src={currentStudent.photoUrl || 'https://placehold.co/600x400'}
@@ -272,49 +276,125 @@ const StudentIDCardGenerator = React.forwardRef<StudentIDCardGeneratorHandle, St
 											width: '100%',
 											height: '100%',
 											objectFit: 'cover',
-											display: 'block'
+											display: 'block',
+											borderRadius: '4px'
 										}}
 									/>
 								</div>
 							</div>
 
-							{/* Bottom Section - Blue Background with Student Info */}
+							{/* RIGHT SECTION - Student Info and QR Code */}
 							<div style={{
 								flex: 1,
-								backgroundColor: '#0052cc',
-								padding: '2rem',
+								backgroundColor: '#ffffff',
+								padding: '1.5rem 2rem',
 								display: 'flex',
 								flexDirection: 'column',
-								justifyContent: 'flex-start',
-								color: '#ffffff',
-								textAlign: 'center',
-								position: 'relative'
+								justifyContent: 'space-between',
+								color: '#1f2937',
+								minHeight: '680px',
+								boxSizing: 'border-box'
 							}}>
-								{/* Student Name */}
-								<h2 style={{
-									fontSize: getResponsiveFontSize(currentStudent.name, 6),
-									fontWeight: 'bold',
-									margin: '0 0 1.5rem 0',
-									textTransform: 'uppercase',
-									letterSpacing: '1px'
-								}}>
-									{currentStudent.name}
-								</h2>
+								{/* Top Section - Student Name */}
+								<div>
+									{/* Header Line */}
+									<div style={{
+										height: '3px',
+										backgroundColor: '#0052cc',
+										marginBottom: '1rem',
+										borderRadius: '2px'
+									}}></div>
 
-								{/* Student Details - Left Aligned */}
+									{/* Student Name - Prominent */}
+									<h2 style={{
+										fontSize: getResponsiveFontSize(currentStudent.name, 3.5),
+										fontWeight: '900',
+										margin: '0 0 1.5rem 0',
+										textTransform: 'uppercase',
+										letterSpacing: '2px',
+										color: '#0052cc',
+										lineHeight: '1.2'
+									}}>
+										{currentStudent.name}
+									</h2>
+
+									{/* Student Details */}
+									<div style={{
+										fontSize: '1.2rem',
+										lineHeight: '1.6rem',
+										fontWeight: '600',
+										textTransform: 'uppercase',
+										letterSpacing: '0.5px',
+										color: '#374151'
+									}}>
+										<div style={{ 
+											marginBottom: '0.6rem',
+											paddingBottom: '0.6rem',
+											borderBottom: '1px solid #e5e7eb'
+										}}>
+											<p style={{ margin: '0.3rem 0', fontSize: '0.95rem', color: '#666' }}>MATRIC NO</p>
+											<p style={{ margin: '0', fontWeight: '700', fontSize: '1.2rem' }}>{currentStudent.id}</p>
+										</div>
+										<div style={{ 
+											marginBottom: '0.6rem',
+											paddingBottom: '0.6rem',
+											borderBottom: '1px solid #e5e7eb'
+										}}>
+											<p style={{ margin: '0.3rem 0', fontSize: '0.95rem', color: '#666' }}>DEPARTMENT</p>
+											<p style={{ margin: '0', fontWeight: '700', fontSize: '1.1rem' }}>{currentStudent.department}</p>
+										</div>
+										<div style={{ 
+											marginBottom: '0.6rem',
+											paddingBottom: '0.6rem',
+											borderBottom: '1px solid #e5e7eb'
+										}}>
+											<p style={{ margin: '0.3rem 0', fontSize: '0.95rem', color: '#666' }}>YEAR OF ENTRY</p>
+											<p style={{ margin: '0', fontWeight: '700', fontSize: '1.1rem' }}>{currentStudent.yearOfEntry}</p>
+										</div>
+										<div>
+											<p style={{ margin: '0.3rem 0', fontSize: '0.95rem', color: '#666' }}>EXPIRY DATE</p>
+											<p style={{ margin: '0', fontWeight: '700', fontSize: '1.1rem' }}>N/A</p>
+										</div>
+									</div>
+								</div>
+
+								{/* Bottom Section - QR Code and Label */}
 								<div style={{
-									textAlign: 'left',
-									fontSize: '1.8rem',
-									lineHeight: '2.2rem',
-									fontWeight: '500',
-									textTransform: 'uppercase',
-									letterSpacing: '0.5px'
+									display: 'flex',
+									flexDirection: 'column',
+									alignItems: 'center',
+									justifyContent: 'center',
+									paddingTop: '1rem',
+									borderTop: '2px solid #e5e7eb'
 								}}>
-									<p style={{ margin: '0.75rem 0' }}>MATRIC NO: {currentStudent.id}</p>
-									<p style={{ margin: '0.75rem 0' }}>DEPARTMENT: {currentStudent.department}</p>
-									{/* <p style={{ margin: '0.75rem 0' }}>FACULTY: {currentStudent.faculty}</p> */}
-									<p style={{ margin: '0.75rem 0' }}>YEAR OF ENTRY: {currentStudent.yearOfEntry}</p>
-									<p style={{ margin: '1.25rem 0 0 0', fontSize: '1.6rem', position:"absolute", bottom: '2rem', right: '2rem' }}>Expiry Date: N/A</p>
+									{/* Larger QR Code */}
+									<div style={{
+										backgroundColor: '#ffffff',
+										padding: '10px',
+										borderRadius: '8px',
+										border: '2px solid #0052cc',
+										display: 'flex',
+										alignItems: 'center',
+										justifyContent: 'center',
+										marginBottom: '0.5rem'
+									}}>
+										<img
+											src={'/omackqrcode.jpeg'}
+											alt="QR Code"
+											style={{
+												width: '200px',
+												height: '200px',
+												display: 'block'
+											}}
+										/>
+									</div>
+									<p style={{
+										fontSize: '1.2rem',
+										fontWeight: '900',
+										color: '#0052cc',
+										margin: '0',
+										letterSpacing: '1px'
+									}}>SCAN ID</p>
 								</div>
 							</div>
 						</>
