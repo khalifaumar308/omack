@@ -632,7 +632,7 @@ export default function Students() {
                   </TableBody>
                 </Table>
                 {pagesAfterFilter > 1 && (
-                  <div className="flex items-center justify-between mt-4">
+                  <div className="flex items-center justify-center gap-2 mt-4">
                     <Button
                       variant="outline"
                       size="sm"
@@ -641,17 +641,71 @@ export default function Students() {
                     >
                       Previous
                     </Button>
-                    <div className="space-x-1">
-                      {Array.from({ length: pagesAfterFilter }, (_, i) => i + 1).map((page) => (
-                        <Button
-                          key={page}
-                          variant={currentPage === page ? "default" : "outline"}
-                          size="sm"
-                          onClick={() => setCurrentPage(page)}
-                        >
-                          {page}
-                        </Button>
-                      ))}
+                    <div className="space-x-1 flex">
+                      {(() => {
+                        const range = 2; // show 2 pages before and after current page
+                        const start = Math.max(1, currentPage - range);
+                        const end = Math.min(pagesAfterFilter, currentPage + range);
+                        const pages = [];
+
+                        // Show first page if not in range
+                        if (start > 1) {
+                          pages.push(
+                            <Button
+                              key={1}
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setCurrentPage(1)}
+                            >
+                              1
+                            </Button>
+                          );
+                          if (start > 2) {
+                            pages.push(
+                              <span key="dots-start" className="px-2 py-1">
+                                ...
+                              </span>
+                            );
+                          }
+                        }
+
+                        // Show range of pages
+                        for (let i = start; i <= end; i++) {
+                          pages.push(
+                            <Button
+                              key={i}
+                              variant={currentPage === i ? "default" : "outline"}
+                              size="sm"
+                              onClick={() => setCurrentPage(i)}
+                            >
+                              {i}
+                            </Button>
+                          );
+                        }
+
+                        // Show last page if not in range
+                        if (end < pagesAfterFilter) {
+                          if (end < pagesAfterFilter - 1) {
+                            pages.push(
+                              <span key="dots-end" className="px-2 py-1">
+                                ...
+                              </span>
+                            );
+                          }
+                          pages.push(
+                            <Button
+                              key={pagesAfterFilter}
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setCurrentPage(pagesAfterFilter)}
+                            >
+                              {pagesAfterFilter}
+                            </Button>
+                          );
+                        }
+
+                        return pages;
+                      })()}
                     </div>
                     <Button
                       variant="outline"

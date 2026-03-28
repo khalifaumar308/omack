@@ -209,11 +209,11 @@ const StudentIDCardGenerator = React.forwardRef<StudentIDCardGeneratorHandle, St
 				<div
 					ref={cardRef}
 					style={{
-						width: '1050px',
-						height: '680px',
+						width: '680px',
+						height: '1050px',
 						backgroundColor: '#ffffff',
 						display: 'flex',
-						flexDirection: 'row',
+						flexDirection: 'column',
 						transform: 'scale(0.5)',
 						transformOrigin: 'top left',
 						fontFamily: '"Segoe UI", Tahoma, Geneva, Verdana, sans-serif',
@@ -224,22 +224,21 @@ const StudentIDCardGenerator = React.forwardRef<StudentIDCardGeneratorHandle, St
 				>
 					{currentStudent && (
 						<>
-							{/* LEFT SECTION - Photo and Logo */}
+							{/* TOP SECTION - Photo and Logo */}
 							<div style={{
-								width: '380px',
 								backgroundColor: '#f8fafc',
-								padding: '2rem',
+								padding: '1.5rem',
 								display: 'flex',
 								flexDirection: 'column',
 								alignItems: 'center',
 								justifyContent: 'center',
-								borderRight: '2px solid #e5e7eb'
+								borderBottom: '2px solid #e5e7eb'
 							}}>
 								{/* School Logo */}
 								<div style={{
-									width: '120px',
-									height: '120px',
-									marginBottom: '2rem',
+									width: '100px',
+									height: '100px',
+									marginBottom: '1.5rem',
 									display: 'flex',
 									justifyContent: 'center',
 									alignItems: 'center'
@@ -257,8 +256,8 @@ const StudentIDCardGenerator = React.forwardRef<StudentIDCardGeneratorHandle, St
 
 								{/* Student Photo */}
 								<div style={{
-									width: '280px',
-									height: '340px',
+									width: '220px',
+									height: '280px',
 									backgroundColor: '#ffffff',
 									padding: '8px',
 									display: 'flex',
@@ -283,77 +282,77 @@ const StudentIDCardGenerator = React.forwardRef<StudentIDCardGeneratorHandle, St
 								</div>
 							</div>
 
-							{/* RIGHT SECTION - Student Info and QR Code */}
+							{/* BOTTOM SECTION - Student Info and QR Code */}
 							<div style={{
 								flex: 1,
 								backgroundColor: '#ffffff',
-								padding: '1.5rem 2rem',
+								padding: '1.5rem',
 								display: 'flex',
 								flexDirection: 'column',
 								justifyContent: 'space-between',
 								color: '#1f2937',
-								minHeight: '680px',
 								boxSizing: 'border-box'
 							}}>
-								{/* Top Section - Student Name */}
+								{/* Top Section - Student Name and Details */}
 								<div>
 									{/* Header Line */}
 									<div style={{
 										height: '3px',
 										backgroundColor: '#0052cc',
-										marginBottom: '1rem',
+										marginBottom: '0.8rem',
 										borderRadius: '2px'
 									}}></div>
 
 									{/* Student Name - Prominent */}
 									<h2 style={{
-										fontSize: getResponsiveFontSize(currentStudent.name, 3.5),
+										fontSize: getResponsiveFontSize(currentStudent.name, 2.8),
 										fontWeight: '900',
-										margin: '0 0 1.5rem 0',
+										margin: '0 0 1.2rem 0',
 										textTransform: 'uppercase',
-										letterSpacing: '2px',
+										letterSpacing: '1.5px',
 										color: '#0052cc',
-										lineHeight: '1.2'
+										lineHeight: '1.2',
+										textAlign: 'center'
 									}}>
 										{currentStudent.name}
 									</h2>
 
 									{/* Student Details */}
 									<div style={{
-										fontSize: '1.2rem',
-										lineHeight: '1.6rem',
+										fontSize: '1rem',
+										lineHeight: '1.4rem',
 										fontWeight: '600',
 										textTransform: 'uppercase',
 										letterSpacing: '0.5px',
 										color: '#374151'
 									}}>
 										<div style={{ 
-											marginBottom: '0.6rem',
-											paddingBottom: '0.6rem',
+											marginBottom: '0.5rem',
+											paddingBottom: '0.5rem',
 											borderBottom: '1px solid #e5e7eb'
 										}}>
-											<p style={{ margin: '0.3rem 0', fontSize: '0.95rem', color: '#666' }}>MATRIC NO</p>
-											<p style={{ margin: '0', fontWeight: '700', fontSize: '1.2rem' }}>{currentStudent.id}</p>
+											<p style={{ margin: '0.2rem 0', fontSize: '0.85rem', color: '#666' }}>MATRIC NO</p>
+											<p style={{ margin: '0', fontWeight: '700', fontSize: '1.05rem' }}>{currentStudent.id}</p>
 										</div>
 										<div style={{ 
-											marginBottom: '0.6rem',
-											paddingBottom: '0.6rem',
+											marginBottom: '0.5rem',
+											paddingBottom: '0.5rem',
 											borderBottom: '1px solid #e5e7eb'
 										}}>
-											<p style={{ margin: '0.3rem 0', fontSize: '0.95rem', color: '#666' }}>DEPARTMENT</p>
-											<p style={{ margin: '0', fontWeight: '700', fontSize: '1.1rem' }}>{currentStudent.department}</p>
+											<p style={{ margin: '0.2rem 0', fontSize: '0.85rem', color: '#666' }}>DEPARTMENT</p>
+											<p style={{ margin: '0', fontWeight: '700', fontSize: '0.95rem' }}>{currentStudent.department}</p>
 										</div>
 										<div style={{ 
-											marginBottom: '0.6rem',
-											paddingBottom: '0.6rem',
+											marginBottom: '0.5rem',
+											paddingBottom: '0.5rem',
 											borderBottom: '1px solid #e5e7eb'
 										}}>
-											<p style={{ margin: '0.3rem 0', fontSize: '0.95rem', color: '#666' }}>YEAR OF ENTRY</p>
-											<p style={{ margin: '0', fontWeight: '700', fontSize: '1.1rem' }}>{currentStudent.yearOfEntry}</p>
+											<p style={{ margin: '0.2rem 0', fontSize: '0.85rem', color: '#666' }}>YEAR OF ENTRY</p>
+											<p style={{ margin: '0', fontWeight: '700', fontSize: '0.95rem' }}>{currentStudent.yearOfEntry}</p>
 										</div>
 										<div>
-											<p style={{ margin: '0.3rem 0', fontSize: '0.95rem', color: '#666' }}>EXPIRY DATE</p>
-											<p style={{ margin: '0', fontWeight: '700', fontSize: '1.1rem' }}>N/A</p>
+											<p style={{ margin: '0.2rem 0', fontSize: '0.85rem', color: '#666' }}>EXPIRY DATE</p>
+											<p style={{ margin: '0', fontWeight: '700', fontSize: '0.95rem' }}>N/A</p>
 										</div>
 									</div>
 								</div>
@@ -367,10 +366,10 @@ const StudentIDCardGenerator = React.forwardRef<StudentIDCardGeneratorHandle, St
 									paddingTop: '1rem',
 									borderTop: '2px solid #e5e7eb'
 								}}>
-									{/* Larger QR Code */}
+									{/* QR Code */}
 									<div style={{
 										backgroundColor: '#ffffff',
-										padding: '10px',
+										padding: '8px',
 										borderRadius: '8px',
 										border: '2px solid #0052cc',
 										display: 'flex',
@@ -382,14 +381,14 @@ const StudentIDCardGenerator = React.forwardRef<StudentIDCardGeneratorHandle, St
 											src={'/omackqrcode.jpeg'}
 											alt="QR Code"
 											style={{
-												width: '200px',
-												height: '200px',
+												width: '160px',
+												height: '160px',
 												display: 'block'
 											}}
 										/>
 									</div>
 									<p style={{
-										fontSize: '1.2rem',
+										fontSize: '1rem',
 										fontWeight: '900',
 										color: '#0052cc',
 										margin: '0',
