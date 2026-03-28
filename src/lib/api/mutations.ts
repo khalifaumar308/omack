@@ -665,3 +665,22 @@ export const useAddMarksToStudents = () => {
     },
   });
 };
+
+//  await api.updateInstructor((editingInstructor as any)._id || (editingInstructor as any).id, { courses: [...(editingInstructor.courses as any), ...selectedCourses.map(c => c.id)] });
+//                   queryClient.invalidateQueries({ queryKey: ['instructors'] });
+//                   toast.success('Courses assigned successfully');
+
+export const useUpdateInstructorCourses = () => {
+  const queryClient = useQueryClient();
+  return useMutation({
+    mutationFn: (data: { instructorId: string; courseIds: string[] }) => api.updateInstructor(data.instructorId, { courses: data.courseIds }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['instructors'] });
+      toast.success('Instructor courses updated successfully');
+    },
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    onError: (error: any) => {
+      toast.error(error?.response?.data?.message || 'Failed to update instructor courses. Please try again.');
+    },
+  });
+}

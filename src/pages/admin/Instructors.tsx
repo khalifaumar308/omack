@@ -1,6 +1,7 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import React, { useMemo, useState, useEffect } from 'react';
 import { useGetInstructors, useGetDepartments, useGetCourses } from '@/lib/api/queries';
+import {useUpdateInstructorCourses} from '@/lib/api/mutations';
 import { useUser } from '@/contexts/useUser';
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import * as api from '@/lib/api/base';
@@ -70,6 +71,9 @@ const Instructors: React.FC = () => {
   const [form, setForm] = useState({ name: '', email: '', password: '', rank: '', specialization: '', departments: [] as string[] });
   const [isCreating, setIsCreating] = useState(false);
   const [selectAll, setSelectAll] = useState(false);
+
+  const updateInstructorCoursesMutation = useUpdateInstructorCourses();
+
   const createMutation = useMutation({
     mutationFn: (payload: Record<string, unknown>) => api.createInstructor(payload as unknown as import('@/components/types').CreateInstructorForm),
     onSuccess: () => {
@@ -109,11 +113,6 @@ const Instructors: React.FC = () => {
     return [];
   })();
 
-  // const getCourseLabel = (id: string) => {
-  //   const found = parsedCourses.find((x) => x.id === id || ((x as unknown as Record<string, unknown>)['_id'] as string) === id);
-  //   if (!found) return id;
-  //   return found.code ? `${found.code} — ${found.title}` : found.title || id;
-  // };
 
   useEffect(() => {
     if (editingInstructor) {
@@ -123,6 +122,14 @@ const Instructors: React.FC = () => {
         return d.id || d._id || '';
       }).filter(Boolean);
       setInstructorDepartments(depts);
+      // add instructor courses to selected courses
+      const existing = editingInstructor.courses?.map((c)=> {
+        const courses = c as { code: string; id?: string; _id?: string };
+        return { code: courses.code,
+          id: courses.id || courses._id || `__unknown_${courses.code}`
+        };
+      }) || [];
+      setSelectedCourses(existing.filter(Boolean));
     }
   }, [editingInstructor]);
 
@@ -362,7 +369,7 @@ const Instructors: React.FC = () => {
                             <input type="checkbox" checked={selectAll} onChange={(e) => {
                               setSelectAll(e.target.checked);
                               if (e.target.checked) {
-                                setSelectedCourses(parsedCourses.map(c => ({ code: c.code, id: c.id })));
+                                setSelectedCourses([...parsedCourses.map(c => ({ code: c.code, id: c.id || (c as any)._id })), ...selectedCourses]);
                               } else {
                                 setSelectedCourses([]);
                               }
@@ -407,11 +414,11 @@ const Instructors: React.FC = () => {
                   selectedCourses.map((course) => (
                     // add ability to remove course from selection
                     <div key={course.id} className="flex items-center gap-1">
-                      <span className="px-1 py-1 rounded-md bg-gray-100 text-xs text-gray-800 border">{course.code}</span>
+                      <span className="px-1 py-1 rounded-md bg-gray-100 text-[10px] text-gray-800 border">{course.code}</span>
                       <Button className='text-red-600' variant="outline" size="icon" onClick={() => {
                         setSelectedCourses(prev => prev.filter(c => c.id !== course.id));
                       }}>
-                        <X className="h-4 w-4" />
+                        <X className="h-1 w-1" />
                       </Button>
                     </div>
                   ))
@@ -430,20 +437,23 @@ const Instructors: React.FC = () => {
 
             <div className="flex justify-end gap-2 mt-2">
               <Button variant="outline" onClick={() => setOpenEdit(false)}>Cancel</Button>
-              <Button onClick={async () => {
+              <Button className='cursor-pointer' onClick={async () => {
+               
                 if (!editingInstructor) return;
-                try {
-                  // Both Instructor and PopulatedInstructor extend BaseEntity so `id` should exist
-                  console.log(selectedCourses, editingInstructor)
-                  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-                  await api.updateInstructor((editingInstructor as any)._id || (editingInstructor as any).id, { courses: [...(editingInstructor.courses as any), ...selectedCourses.map(c => c.id)] });
-                  queryClient.invalidateQueries({ queryKey: ['instructors'] });
-                  toast.success('Courses assigned successfully');
-                  setOpenEdit(false);
-                } catch (err) {
-                  toast.error(getErrorMessage(err));
-                }
-              }}>{'Save assignments'}</Button>
+                updateInstructorCoursesMutation.mutate({
+                  instructorId: (editingInstructor as any)._id || (editingInstructor as any).id,
+                  courseIds: selectedCourses.map(c => c.id || (c as any)._id)
+                }, {
+                  onSuccess: () => {
+                    // toast.success('Instructor courses updated');
+                    setOpenEdit(false);
+                  },
+                  onError: (err: unknown) => {
+                    toast.error(getErrorMessage(err) || 'Failed to update instructor courses');
+                  }
+                });
+                
+              }}>{updateInstructorCoursesMutation.isPending ? "Saving..." : "Save assignments"}</Button>
             </div>
           </div>
         </DialogContent>
