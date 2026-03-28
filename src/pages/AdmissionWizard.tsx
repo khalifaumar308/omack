@@ -514,7 +514,7 @@ export default function AdmissionWizard() {
               />
               <div className="text-center md:text-left">
                 <h1 style={{ fontSize: '1.5rem', fontWeight: 700, color: 'white', margin: '0 0 0.5rem 0', letterSpacing: '-0.3px' }} className="md:text-xl md:leading-tight">
-                  OMARK College of Health Sciences and Technology
+                   O’MARK SCHOOL OF HEALTH TECHNOLOGY
                 </h1>
                 <p style={{ fontSize: '0.95rem', color: 'rgba(255,255,255,0.9)', margin: '0 0 0.25rem 0', fontWeight: 500 }}>
                   Complementary Admission Application Form
