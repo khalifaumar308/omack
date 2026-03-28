@@ -11,7 +11,7 @@ import ProgrammeStep from '@/components/admissions/ProgrammeStep';
 import { useSubmitApplication } from '@/lib/api/queries';
 import { toast } from 'sonner';
 import type { SubmitApplicationRequest } from '@/lib/api/types';
-import Navigation from '@/components/landing/Navigation';
+// import Navigation from '@/components/landing/Navigation';
 
 // Zod Schema
 const phoneRegex = /^(\+234|0)[789][01]\d{8}$/;
@@ -90,7 +90,18 @@ export default function AdmissionWizard() {
   const [redirectUrl, setRedirectUrl] = useState<string | null>(null);
   const [redirectCountdown, setRedirectCountdown] = useState<number>(5);
   const [isRedirecting, setIsRedirecting] = useState<boolean>(false);
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
   const { mutate: submitApplication, isPending, isSuccess } = useSubmitApplication();
+
+  const backgroundImages = ['/bg5.jpeg', '/bg6.jpeg', '/bg3.jpeg', '/bg4.jpeg'];
+
+  // Rotate background images every 5 seconds
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setCurrentImageIndex((prev) => (prev + 1) % backgroundImages.length);
+    }, 5000);
+    return () => clearInterval(interval);
+  }, []);
 
   const methods = useForm<FormData>({
     resolver: zodResolver(admissionSchema),
@@ -151,7 +162,7 @@ export default function AdmissionWizard() {
 
   const onSubmit = async (data: FormData) => {
     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    const submitData: SubmitApplicationRequest = { ...(data as any), school: "69539d1badfedb6b7d51126c" };
+    const submitData: SubmitApplicationRequest = { ...(data as any), school: "68bedd3118ba258795f458c6" };
     submitApplication(submitData, {
       onSuccess: (response) => {
         toast.success('Application submitted successfully!, Initializing Payment...');
@@ -191,76 +202,309 @@ export default function AdmissionWizard() {
 
   if (isSuccess) {
     return (
-      <motion.div
-        initial={{ opacity: 0, y: 50 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.5 }}
-        className="min-h-screen bg-gradient-to-br from-blue-50 via-cyan-50 to-indigo-100 flex items-center justify-center p-4"
+      <main
+        className="min-h-screen flex flex-col items-center justify-center p-4 relative overflow-hidden"
+        style={{
+          background: 'black'
+        }}
       >
-        <div className="bg-white/90 backdrop-blur-xl rounded-3xl shadow-2xl p-10 max-w-md w-full text-center border border-white/20 relative overflow-hidden">
-          {/* Decorative gradient overlay */}
-          <div className="absolute inset-0 bg-gradient-to-br from-blue-500/5 via-cyan-500/5 to-transparent pointer-events-none" />
+        {/* Background Image Layer */}
+        <div
+          key={currentImageIndex}
+          className="absolute inset-0 bg-transition"
+          style={{
+            backgroundImage: `
+              linear-gradient(135deg, rgba(22, 92, 75, 0.5) 0%, rgba(13, 61, 50, 0.5) 100%),
+              url('${backgroundImages[currentImageIndex]}')
+            `,
+            backgroundSize: 'cover, cover',
+            backgroundPosition: 'center',
+            backgroundRepeat: 'no-repeat, no-repeat',
+            backgroundBlendMode: 'multiply'
+          }}
+        />
 
-          <div className="relative z-10">
-            <div className="w-24 h-24 bg-gradient-to-br from-cyan-400 to-blue-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
-              <Check className="w-14 h-14 text-white" strokeWidth={3} />
-            </div>
-            <h2 className="text-4xl font-bold bg-gradient-to-r from-blue-700 via-cyan-600 to-blue-800 bg-clip-text text-transparent mb-4">Application Submitted!</h2>
-            <p className="text-gray-700 mb-6 text-lg">Your complementary admission application has been received. You will be notified via email about the next steps.</p>
-            <div className="bg-gradient-to-r from-red-50 to-orange-50 border-l-4 border-red-500 p-4 rounded-lg mb-6">
-              <p className="text-sm text-red-800 font-medium">Important: Your application will not be considered until payment is completed. You will be redirected to the payment gateway to complete payment.</p>
-            </div>
-            {isRedirecting ? (
-              <div>
-                <p className="text-gray-700 mb-4 text-lg">Redirecting to payment gateway in <span className="font-bold text-blue-600 text-xl">{redirectCountdown}</span>s...</p>
-                <div className="flex items-center justify-center gap-3">
-                  <button
-                    className="bg-gradient-to-r from-blue-400 to-blue-500 text-white px-6 py-3 rounded-xl opacity-80 cursor-not-allowed shadow-lg"
-                    disabled
-                  >
-                    Redirecting…
-                  </button>
+        {/* Animated background elements */}
+        <div
+          className="absolute inset-0 opacity-10"
+          style={{
+            backgroundImage: `radial-gradient(circle at 20% 50%, rgba(255,255,255,0.1) 0%, transparent 50%),
+                              radial-gradient(circle at 80% 80%, rgba(255,255,255,0.1) 0%, transparent 50%)`,
+            animation: 'float 6s ease-in-out infinite'
+          }}
+        />
 
-                  {/* Optional immediate proceed button */}
-                  {redirectUrl && (
-                    <button
-                      onClick={() => { window.location.href = redirectUrl; }}
-                      className="bg-gradient-to-r from-cyan-500 to-blue-600 text-white px-6 py-3 rounded-xl hover:from-cyan-600 hover:to-blue-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
-                      aria-label="Proceed to payment now"
-                    >
-                      Proceed Now
-                    </button>
-                  )}
-                </div>
+        {/* Healthcare pattern background */}
+        <div
+          className="absolute inset-0 opacity-5"
+          style={{
+            backgroundImage: `
+              repeating-linear-gradient(45deg, transparent, transparent 35px, rgba(255,255,255,.05) 35px, rgba(255,255,255,.05) 70px)
+            `
+          }}
+        />
+
+        <style>{`
+          @keyframes float {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(20px); }
+          }
+          
+          @keyframes slide-in {
+            from {
+              opacity: 0;
+              transform: translateY(20px);
+            }
+            to {
+              opacity: 1;
+              transform: translateY(0);
+            }
+          }
+        `}</style>
+
+        {/* Success Card */}
+        <motion.div
+          initial={{ opacity: 0, y: 50 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.5 }}
+          className="w-full max-w-md relative z-10"
+          style={{
+            animation: 'slide-in 0.6s ease-out'
+          }}
+        >
+          <div
+            className="rounded-3xl shadow-2xl p-8 relative overflow-hidden"
+            style={{
+              background: 'rgba(255, 255, 255, 0.1)',
+              backdropFilter: 'blur(20px)',
+              WebkitBackdropFilter: 'blur(20px)',
+              border: '1px solid rgba(255, 255, 255, 0.2)',
+              boxShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.37)',
+            }}
+          >
+            {/* Glossy shine effect */}
+            <div
+              className="absolute inset-0 rounded-3xl opacity-20"
+              style={{
+                background: 'linear-gradient(135deg, rgba(255,255,255,0.5) 0%, rgba(255,255,255,0) 50%, rgba(255,255,255,0) 100%)',
+              }}
+            />
+
+            {/* Content */}
+            <div className="relative z-10 text-center">
+              <div className="w-20 h-20 bg-gradient-to-br from-green-400 to-green-600 rounded-full flex items-center justify-center mx-auto mb-6 shadow-lg">
+                <Check className="w-12 h-12 text-white" strokeWidth={3} />
               </div>
-            ) : (
-              <button
-                onClick={() => window.location.reload()}
-                className="bg-gradient-to-r from-cyan-500 to-blue-600 text-white px-8 py-3 rounded-xl hover:from-cyan-600 hover:to-blue-700 transition-all duration-300 shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+
+              <h2 style={{ fontSize: '1.75rem', fontWeight: 700, color: 'white', margin: '0 0 1rem 0', letterSpacing: '-0.3px' }}>
+                Application Submitted!
+              </h2>
+
+              <p style={{ fontSize: '0.95rem', color: 'rgba(255,255,255,0.9)', margin: '0 0 1.5rem 0', lineHeight: '1.6' }}>
+                Your complementary admission application has been received. You will be notified via email about the next steps.
+              </p>
+
+              <div
+                style={{
+                  background: 'rgba(239, 68, 68, 0.2)',
+                  border: '1px solid rgba(239, 68, 68, 0.5)',
+                  borderRadius: '0.75rem',
+                  padding: '0.75rem',
+                  fontSize: '0.85rem',
+                  color: 'rgba(255,255,255,0.95)',
+                  marginBottom: '1.5rem',
+                  backdropFilter: 'blur(10px)'
+                }}
               >
-                Submit Another Application
-              </button>
-            )}
+                <p style={{ margin: 0, fontWeight: 600 }}>
+                  Important: Your application will not be considered until payment is completed. You will be redirected to the payment gateway to complete payment.
+                </p>
+              </div>
+
+              {isRedirecting ? (
+                <div>
+                  <p style={{ fontSize: '0.95rem', color: 'rgba(255,255,255,0.9)', margin: '0 0 1.5rem 0' }}>
+                    Redirecting to payment gateway in <span style={{ fontWeight: 'bold', color: '#10b981', fontSize: '1.1rem' }}>{redirectCountdown}</span>s...
+                  </p>
+                  <div className="flex flex-col gap-3">
+                    <button
+                      style={{
+                        background: 'linear-gradient(135deg, rgba(0, 168, 107, 0.6) 0%, rgba(38, 214, 138, 0.6) 100%)',
+                        color: 'white',
+                        padding: '0.875rem 1.5rem',
+                        fontSize: '0.95rem',
+                        fontWeight: 700,
+                        borderRadius: '0.75rem',
+                        border: '1px solid rgba(255, 255, 255, 0.2)',
+                        cursor: 'not-allowed',
+                        opacity: 0.7,
+                        backdropFilter: 'blur(10px)'
+                      }}
+                      disabled
+                    >
+                      Redirecting…
+                    </button>
+
+                    {/* Optional immediate proceed button */}
+                    {redirectUrl && (
+                      <button
+                        onClick={() => { window.location.href = redirectUrl; }}
+                        style={{
+                          background: 'linear-gradient(135deg, rgba(34, 197, 94, 0.9) 0%, rgba(74, 222, 128, 0.9) 100%)',
+                          color: 'white',
+                          padding: '0.875rem 1.5rem',
+                          fontSize: '0.95rem',
+                          fontWeight: 700,
+                          borderRadius: '0.75rem',
+                          border: '1px solid rgba(255, 255, 255, 0.2)',
+                          cursor: 'pointer',
+                          transition: 'all 0.3s ease',
+                          boxShadow: '0 4px 15px 0 rgba(34, 197, 94, 0.4)',
+                          backdropFilter: 'blur(10px)',
+                          letterSpacing: '-0.3px'
+                        }}
+                        onMouseEnter={(e) => {
+                          (e.currentTarget as HTMLButtonElement).style.transform = 'translateY(-2px)';
+                          (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 8px 20px 0 rgba(34, 197, 94, 0.6)';
+                        }}
+                        onMouseLeave={(e) => {
+                          (e.currentTarget as HTMLButtonElement).style.transform = 'translateY(0)';
+                          (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 4px 15px 0 rgba(34, 197, 94, 0.4)';
+                        }}
+                        aria-label="Proceed to payment now"
+                      >
+                        Proceed Now
+                      </button>
+                    )}
+                  </div>
+                </div>
+              ) : (
+                <button
+                  onClick={() => window.location.reload()}
+                  style={{
+                    background: 'linear-gradient(135deg, rgba(34, 197, 94, 0.9) 0%, rgba(74, 222, 128, 0.9) 100%)',
+                    color: 'white',
+                    padding: '0.875rem 2rem',
+                    fontSize: '0.95rem',
+                    fontWeight: 700,
+                    borderRadius: '0.75rem',
+                    border: '1px solid rgba(255, 255, 255, 0.2)',
+                    cursor: 'pointer',
+                    transition: 'all 0.3s ease',
+                    boxShadow: '0 4px 15px 0 rgba(34, 197, 94, 0.4)',
+                    backdropFilter: 'blur(10px)',
+                    letterSpacing: '-0.3px',
+                    width: '100%'
+                  }}
+                  onMouseEnter={(e) => {
+                    (e.currentTarget as HTMLButtonElement).style.transform = 'translateY(-2px)';
+                    (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 8px 20px 0 rgba(34, 197, 94, 0.6)';
+                  }}
+                  onMouseLeave={(e) => {
+                    (e.currentTarget as HTMLButtonElement).style.transform = 'translateY(0)';
+                    (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 4px 15px 0 rgba(34, 197, 94, 0.4)';
+                  }}
+                >
+                  Submit Another Application
+                </button>
+              )}
+            </div>
           </div>
-        </div>
-      </motion.div>
+        </motion.div>
+      </main>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-cyan-50">
-      <Navigation isScrolled={false} />
-      <div className="min-h-screen pt-20 pb-12 px-4">
-        <div className="max-w-5xl mx-auto">
+    <main
+      className="min-h-screen flex flex-col relative overflow-hidden"
+      style={{
+        background: 'black'
+      }}
+    >
+      {/* Background Image Layer - Carousel of images */}
+      <div
+        key={currentImageIndex}
+        className="absolute inset-0 bg-transition"
+        style={{
+          backgroundImage: `
+            linear-gradient(135deg, rgba(22, 92, 75, 0.5) 0%, rgba(13, 61, 50, 0.5) 100%),
+            url('${backgroundImages[currentImageIndex]}')
+          `,
+          backgroundSize: 'cover, cover',
+          backgroundPosition: 'center',
+          backgroundRepeat: 'no-repeat, no-repeat',
+          backgroundBlendMode: 'multiply'
+        }}
+      />
+
+      {/* Animated background elements */}
+      <div
+        className="absolute inset-0 opacity-10"
+        style={{
+          backgroundImage: `radial-gradient(circle at 20% 50%, rgba(255,255,255,0.1) 0%, transparent 50%),
+                            radial-gradient(circle at 80% 80%, rgba(255,255,255,0.1) 0%, transparent 50%)`,
+          animation: 'float 6s ease-in-out infinite'
+        }}
+      />
+
+      {/* Healthcare pattern background */}
+      <div
+        className="absolute inset-0 opacity-5"
+        style={{
+          backgroundImage: `
+            repeating-linear-gradient(45deg, transparent, transparent 35px, rgba(255,255,255,.05) 35px, rgba(255,255,255,.05) 70px)
+          `
+        }}
+      />
+
+      <style>{`
+        @keyframes float {
+          0%, 100% { transform: translateY(0px); }
+          50% { transform: translateY(20px); }
+        }
+        
+        @keyframes slide-in {
+          from {
+            opacity: 0;
+            transform: translateY(20px);
+          }
+          to {
+            opacity: 1;
+            transform: translateY(0);
+          }
+        }
+
+        input::placeholder,
+        textarea::placeholder {
+          color: rgba(255, 255, 255, 0.6) !important;
+        }
+      `}</style>
+
+      {/* Content Container */}
+      <div className="relative z-10 min-h-screen pt-20 pb-12 px-4 flex flex-col items-center">
+        <div className="w-full max-w-5xl">
           {/* Header with Logo */}
           <motion.div
             initial={{ opacity: 0, y: -20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6 }}
-            className="bg-white/80 backdrop-blur-xl rounded-3xl shadow-2xl p-8 mb-6 border border-white/20 relative overflow-hidden"
+            className="rounded-3xl shadow-2xl p-8 mb-6 relative overflow-hidden"
+            style={{
+              background: 'rgba(255, 255, 255, 0.1)',
+              backdropFilter: 'blur(20px)',
+              WebkitBackdropFilter: 'blur(20px)',
+              border: '1px solid rgba(255, 255, 255, 0.2)',
+              boxShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.37)',
+            }}
           >
-            {/* Decorative gradient background */}
-            <div className="absolute inset-0 bg-gradient-to-br from-blue-600/10 via-cyan-500/5 to-transparent pointer-events-none" />
+            {/* Glossy shine effect */}
+            <div
+              className="absolute inset-0 rounded-3xl opacity-20"
+              style={{
+                background: 'linear-gradient(135deg, rgba(255,255,255,0.5) 0%, rgba(255,255,255,0) 50%, rgba(255,255,255,0) 100%)',
+              }}
+            />
 
             <div className="relative z-10 flex flex-col md:flex-row items-center justify-center gap-6">
               <img
@@ -269,11 +513,15 @@ export default function AdmissionWizard() {
                 className="w-24 h-24 md:w-28 md:h-28 object-contain drop-shadow-lg"
               />
               <div className="text-center md:text-left">
-                <h1 className="text-3xl md:text-4xl font-bold bg-gradient-to-r from-blue-700 via-cyan-600 to-blue-800 bg-clip-text text-transparent mb-2">
+                <h1 style={{ fontSize: '1.5rem', fontWeight: 700, color: 'white', margin: '0 0 0.5rem 0', letterSpacing: '-0.3px' }} className="md:text-xl md:leading-tight">
                   OMARK College of Health Sciences and Technology
                 </h1>
-                <p className="text-lg text-gray-700 font-medium">Complementary Admission Application Form</p>
-                <p className="text-sm text-gray-600 mt-1 italic">Self Reliance and Empowering a Healthier Community</p>
+                <p style={{ fontSize: '0.95rem', color: 'rgba(255,255,255,0.9)', margin: '0 0 0.25rem 0', fontWeight: 500 }}>
+                  Complementary Admission Application Form
+                </p>
+                <p style={{ fontSize: '0.85rem', color: 'rgba(255,255,255,0.7)', margin: '0.25rem 0 0 0', fontStyle: 'italic' }}>
+                  Self Reliance and Empowering a Healthier Community
+                </p>
               </div>
             </div>
           </motion.div>
@@ -286,10 +534,22 @@ export default function AdmissionWizard() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.6, delay: 0.2 }}
             onSubmit={handleSubmit(onSubmit)}
-            className="bg-white/80 backdrop-blur-xl rounded-3xl shadow-2xl p-8 md:p-10 border border-white/20 relative overflow-hidden"
+            className="rounded-3xl shadow-2xl p-8 md:p-10 relative overflow-hidden"
+            style={{
+              background: 'rgba(255, 255, 255, 0.1)',
+              backdropFilter: 'blur(20px)',
+              WebkitBackdropFilter: 'blur(20px)',
+              border: '1px solid rgba(255, 255, 255, 0.2)',
+              boxShadow: '0 8px 32px 0 rgba(31, 38, 135, 0.37)',
+            }}
           >
-            {/* Decorative gradient background */}
-            <div className="absolute inset-0 bg-gradient-to-br from-cyan-500/5 via-blue-500/5 to-transparent pointer-events-none" />
+            {/* Glossy shine effect */}
+            <div
+              className="absolute inset-0 rounded-3xl opacity-20"
+              style={{
+                background: 'linear-gradient(135deg, rgba(255,255,255,0.5) 0%, rgba(255,255,255,0) 50%, rgba(255,255,255,0) 100%)',
+              }}
+            />
 
             <div className="relative z-10">
               <FormProvider {...methods}>
@@ -316,65 +576,170 @@ export default function AdmissionWizard() {
                   {step === 4 && (
                     <motion.div key={4} custom={direction} variants={variants} initial="enter" animate="center" exit="exit" transition={{ duration: 0.4 }} className="space-y-6">
                       <div className="flex items-center gap-3 mb-8">
-                        <div className="w-12 h-12 rounded-xl bg-gradient-to-br from-blue-500 to-cyan-600 flex items-center justify-center shadow-lg">
+                        <div className="w-12 h-12 rounded-xl flex items-center justify-center shadow-lg" style={{ background: 'linear-gradient(135deg, rgba(34, 197, 94, 0.9) 0%, rgba(74, 222, 128, 0.9) 100%)' }}>
                           <Users className="w-6 h-6 text-white" />
                         </div>
-                        <h2 className="text-3xl font-bold bg-gradient-to-r from-blue-700 to-cyan-600 bg-clip-text text-transparent">Next of Kin Information</h2>
+                        <h2 style={{ fontSize: '1.75rem', fontWeight: 700, color: 'white', margin: 0, letterSpacing: '-0.3px' }}>
+                          Next of Kin Information
+                        </h2>
                       </div>
 
                       <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">Full Name *</label>
+                        <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'rgba(255,255,255,0.9)', marginBottom: '0.5rem', textTransform: 'uppercase', letterSpacing: '0.3px' }}>
+                          Full Name *
+                        </label>
                         <input
                           {...register('nokFullName')}
-                          className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 bg-white/50 backdrop-blur-sm"
+                          style={{
+                            width: '100%',
+                            padding: '0.75rem 1rem',
+                            borderRadius: '0.75rem',
+                            background: 'rgba(255, 255, 255, 0.15)',
+                            border: '1px solid rgba(255, 255, 255, 0.3)',
+                            color: 'white',
+                            fontSize: '0.95rem',
+                            transition: 'all 0.3s ease',
+                            backdropFilter: 'blur(10px)',
+                          }}
                           placeholder="Enter full name"
+                          onFocus={(e) => {
+                            e.currentTarget.style.background = 'rgba(255, 255, 255, 0.25)';
+                            e.currentTarget.style.border = '1px solid rgba(255, 255, 255, 0.5)';
+                          }}
+                          onBlur={(e) => {
+                            e.currentTarget.style.background = 'rgba(255, 255, 255, 0.15)';
+                            e.currentTarget.style.border = '1px solid rgba(255, 255, 255, 0.3)';
+                          }}
                         />
-                        {errors.nokFullName?.message && <p className="text-red-600 text-sm mt-2 font-medium">{String(errors.nokFullName.message)}</p>}
+                        {errors.nokFullName?.message && <p style={{ color: 'rgba(255,100,100,0.9)', fontSize: '0.85rem', marginTop: '0.5rem', fontWeight: 600 }}>{String(errors.nokFullName.message)}</p>}
                       </div>
 
                       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                         <div>
-                          <label className="block text-sm font-semibold text-gray-700 mb-2">Relationship *</label>
+                          <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'rgba(255,255,255,0.9)', marginBottom: '0.5rem', textTransform: 'uppercase', letterSpacing: '0.3px' }}>
+                            Relationship *
+                          </label>
                           <input
                             {...register('nokRelationship')}
-                            className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 bg-white/50 backdrop-blur-sm"
+                            style={{
+                              width: '100%',
+                              padding: '0.75rem 1rem',
+                              borderRadius: '0.75rem',
+                              background: 'rgba(255, 255, 255, 0.15)',
+                              border: '1px solid rgba(255, 255, 255, 0.3)',
+                              color: 'white',
+                              fontSize: '0.95rem',
+                              transition: 'all 0.3s ease',
+                              backdropFilter: 'blur(10px)',
+                            }}
                             placeholder="e.g., Father, Mother, Guardian"
+                            onFocus={(e) => {
+                              e.currentTarget.style.background = 'rgba(255, 255, 255, 0.25)';
+                              e.currentTarget.style.border = '1px solid rgba(255, 255, 255, 0.5)';
+                            }}
+                            onBlur={(e) => {
+                              e.currentTarget.style.background = 'rgba(255, 255, 255, 0.15)';
+                              e.currentTarget.style.border = '1px solid rgba(255, 255, 255, 0.3)';
+                            }}
                           />
-                          {errors.nokRelationship?.message && <p className="text-red-600 text-sm mt-2 font-medium">{String(errors.nokRelationship.message)}</p>}
+                          {errors.nokRelationship?.message && <p style={{ color: 'rgba(255,100,100,0.9)', fontSize: '0.85rem', marginTop: '0.5rem', fontWeight: 600 }}>{String(errors.nokRelationship.message)}</p>}
                         </div>
 
                         <div>
-                          <label className="block text-sm font-semibold text-gray-700 mb-2">Phone Number *</label>
+                          <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'rgba(255,255,255,0.9)', marginBottom: '0.5rem', textTransform: 'uppercase', letterSpacing: '0.3px' }}>
+                            Phone Number *
+                          </label>
                           <input
                             {...register('nokPhoneNumber')}
-                            className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 bg-white/50 backdrop-blur-sm"
+                            style={{
+                              width: '100%',
+                              padding: '0.75rem 1rem',
+                              borderRadius: '0.75rem',
+                              background: 'rgba(255, 255, 255, 0.15)',
+                              border: '1px solid rgba(255, 255, 255, 0.3)',
+                              color: 'white',
+                              fontSize: '0.95rem',
+                              transition: 'all 0.3s ease',
+                              backdropFilter: 'blur(10px)',
+                            }}
                             placeholder="+234 or 0801234567"
+                            onFocus={(e) => {
+                              e.currentTarget.style.background = 'rgba(255, 255, 255, 0.25)';
+                              e.currentTarget.style.border = '1px solid rgba(255, 255, 255, 0.5)';
+                            }}
+                            onBlur={(e) => {
+                              e.currentTarget.style.background = 'rgba(255, 255, 255, 0.15)';
+                              e.currentTarget.style.border = '1px solid rgba(255, 255, 255, 0.3)';
+                            }}
                           />
-                          {errors.nokPhoneNumber?.message && <p className="text-red-600 text-sm mt-2 font-medium">{String(errors.nokPhoneNumber.message)}</p>}
+                          {errors.nokPhoneNumber?.message && <p style={{ color: 'rgba(255,100,100,0.9)', fontSize: '0.85rem', marginTop: '0.5rem', fontWeight: 600 }}>{String(errors.nokPhoneNumber.message)}</p>}
                         </div>
                       </div>
 
                       <div>
-                        <label className="block text-sm font-semibold text-gray-700 mb-2">Address *</label>
+                        <label style={{ display: 'block', fontSize: '0.85rem', fontWeight: 600, color: 'rgba(255,255,255,0.9)', marginBottom: '0.5rem', textTransform: 'uppercase', letterSpacing: '0.3px' }}>
+                          Address *
+                        </label>
                         <textarea
                           {...register('nokAddress')}
                           rows={3}
-                          className="w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 bg-white/50 backdrop-blur-sm resize-none"
+                          style={{
+                            width: '100%',
+                            padding: '0.75rem 1rem',
+                            borderRadius: '0.75rem',
+                            background: 'rgba(255, 255, 255, 0.15)',
+                            border: '1px solid rgba(255, 255, 255, 0.3)',
+                            color: 'white',
+                            fontSize: '0.95rem',
+                            transition: 'all 0.3s ease',
+                            backdropFilter: 'blur(10px)',
+                            resize: 'none',
+                          }}
                           placeholder="Enter full address"
+                          onFocus={(e) => {
+                            e.currentTarget.style.background = 'rgba(255, 255, 255, 0.25)';
+                            e.currentTarget.style.border = '1px solid rgba(255, 255, 255, 0.5)';
+                          }}
+                          onBlur={(e) => {
+                            e.currentTarget.style.background = 'rgba(255, 255, 255, 0.15)';
+                            e.currentTarget.style.border = '1px solid rgba(255, 255, 255, 0.3)';
+                          }}
                         />
-                        {errors.nokAddress?.message && <p className="text-red-600 text-sm mt-2 font-medium">{String(errors.nokAddress.message)}</p>}
+                        {errors.nokAddress?.message && <p style={{ color: 'rgba(255,100,100,0.9)', fontSize: '0.85rem', marginTop: '0.5rem', fontWeight: 600 }}>{String(errors.nokAddress.message)}</p>}
                       </div>
                     </motion.div>
                   )}
                 </AnimatePresence>
 
                 {/* Navigation Buttons */}
-                <div className="flex justify-between mt-10 pt-8 border-t-2 border-gray-200">
+                <div className="flex justify-between mt-10 pt-8" style={{ borderTop: '1px solid rgba(255,255,255,0.1)' }}>
                   {step > 1 ? (
                     <button
                       type="button"
                       onClick={prevStep}
-                      className="flex items-center px-6 py-3 border-2 border-blue-300 text-blue-700 rounded-xl hover:bg-blue-50 transition-all duration-300 font-semibold shadow-md hover:shadow-lg transform hover:-translate-y-0.5"
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        padding: '0.75rem 1.5rem',
+                        border: '1px solid rgba(255, 255, 255, 0.3)',
+                        color: 'rgba(255,255,255,0.9)',
+                        borderRadius: '0.75rem',
+                        fontSize: '0.95rem',
+                        fontWeight: 600,
+                        transition: 'all 0.3s ease',
+                        background: 'rgba(255, 255, 255, 0.1)',
+                        backdropFilter: 'blur(10px)',
+                        cursor: 'pointer',
+                        boxShadow: '0 4px 15px 0 rgba(255, 255, 255, 0.2)',
+                      }}
+                      onMouseEnter={(e) => {
+                        (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255, 255, 255, 0.2)';
+                        (e.currentTarget as HTMLButtonElement).style.transform = 'translateY(-2px)';
+                      }}
+                      onMouseLeave={(e) => {
+                        (e.currentTarget as HTMLButtonElement).style.background = 'rgba(255, 255, 255, 0.1)';
+                        (e.currentTarget as HTMLButtonElement).style.transform = 'translateY(0)';
+                      }}
                     >
                       <ChevronLeft className="w-5 h-5 mr-2" />
                       Previous
@@ -387,7 +752,31 @@ export default function AdmissionWizard() {
                     <button
                       type="button"
                       onClick={nextStep}
-                      className="flex items-center px-8 py-3 bg-gradient-to-r from-blue-600 to-cyan-600 text-white rounded-xl hover:from-blue-700 hover:to-cyan-700 transition-all duration-300 ml-auto font-semibold shadow-lg hover:shadow-xl transform hover:-translate-y-0.5"
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        padding: '0.75rem 2rem',
+                        background: 'linear-gradient(135deg, rgba(34, 197, 94, 0.9) 0%, rgba(74, 222, 128, 0.9) 100%)',
+                        color: 'white',
+                        borderRadius: '0.75rem',
+                        fontSize: '0.95rem',
+                        fontWeight: 700,
+                        transition: 'all 0.3s ease',
+                        border: '1px solid rgba(255, 255, 255, 0.2)',
+                        cursor: 'pointer',
+                        marginLeft: 'auto',
+                        boxShadow: '0 4px 15px 0 rgba(34, 197, 94, 0.4)',
+                        backdropFilter: 'blur(10px)',
+                        letterSpacing: '-0.3px'
+                      }}
+                      onMouseEnter={(e) => {
+                        (e.currentTarget as HTMLButtonElement).style.transform = 'translateY(-2px)';
+                        (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 8px 20px 0 rgba(34, 197, 94, 0.6)';
+                      }}
+                      onMouseLeave={(e) => {
+                        (e.currentTarget as HTMLButtonElement).style.transform = 'translateY(0)';
+                        (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 4px 15px 0 rgba(34, 197, 94, 0.4)';
+                      }}
                     >
                       Next
                       <ChevronRight className="w-5 h-5 ml-2" />
@@ -396,9 +785,45 @@ export default function AdmissionWizard() {
                     <button
                       type="submit"
                       disabled={isPending}
-                      className="flex items-center px-10 py-3 bg-gradient-to-r from-cyan-500 to-blue-600 text-white rounded-xl hover:from-cyan-600 hover:to-blue-700 transition-all duration-300 disabled:opacity-50 disabled:cursor-not-allowed ml-auto font-bold shadow-lg hover:shadow-xl transform hover:-translate-y-0.5 disabled:transform-none"
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        padding: '0.875rem 2.5rem',
+                        background: isPending ? 'rgba(34, 197, 94, 0.5)' : 'linear-gradient(135deg, rgba(34, 197, 94, 0.9) 0%, rgba(74, 222, 128, 0.9) 100%)',
+                        color: 'white',
+                        borderRadius: '0.75rem',
+                        fontSize: '0.95rem',
+                        fontWeight: 700,
+                        transition: 'all 0.3s ease',
+                        border: '1px solid rgba(255, 255, 255, 0.2)',
+                        cursor: isPending ? 'not-allowed' : 'pointer',
+                        marginLeft: 'auto',
+                        boxShadow: isPending ? '0 4px 15px 0 rgba(34, 197, 94, 0.2)' : '0 4px 15px 0 rgba(34, 197, 94, 0.4)',
+                        backdropFilter: 'blur(10px)',
+                        letterSpacing: '-0.3px',
+                        opacity: isPending ? 0.7 : 1,
+                      }}
+                      onMouseEnter={(e) => {
+                        if (!isPending) {
+                          (e.currentTarget as HTMLButtonElement).style.transform = 'translateY(-2px)';
+                          (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 8px 20px 0 rgba(34, 197, 94, 0.6)';
+                        }
+                      }}
+                      onMouseLeave={(e) => {
+                        if (!isPending) {
+                          (e.currentTarget as HTMLButtonElement).style.transform = 'translateY(0)';
+                          (e.currentTarget as HTMLButtonElement).style.boxShadow = '0 4px 15px 0 rgba(34, 197, 94, 0.4)';
+                        }
+                      }}
                     >
-                      {isPending ? 'Submitting...' : 'Submit Application'}
+                      {isPending ? (
+                        <span className="flex items-center justify-center gap-2">
+                          <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                          Submitting...
+                        </span>
+                      ) : (
+                        'Submit Application'
+                      )}
                     </button>
                   )}
                 </div>
@@ -407,6 +832,6 @@ export default function AdmissionWizard() {
           </motion.form>
         </div>
       </div>
-    </div>
+    </main>
   );
 }

@@ -37,7 +37,7 @@ import AdmissionWizard from "./pages/AdmissionWizard";
 // import ApexCollegeLanding from "./pages/ApexCollegeLanding";
 import AdminApplicants from "./pages/AdminApplicants";
 import ApplicantDetail from "./pages/ApplicantDetail";
-// import VerifyApplicationPayment from "./pages/VerifyApplicationPayment";
+import VerifyApplicationPayment from "./pages/VerifyApplicationPayment";
 
 const queryClient = new QueryClient();
 function App() {
@@ -100,6 +100,7 @@ function App() {
               {/* </UserProvider> */}
               <Route path="/" element={<Login />} />
               <Route path="/apply" element={<AdmissionWizard />} />
+              <Route path="/application/verify-payment" element={<VerifyApplicationPayment />} />
               <Route path="/wallet/verify" element={<WalletVerify />} />
               <Route path="*" element={<div>404 Not Found</div>} />
             </Routes>
