@@ -16,7 +16,7 @@ export default function OLevelStep() {
   console.log('OLevelStep errors:', errors);
 
   const inputClasses = "w-full px-4 py-3 border-2 border-gray-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:border-blue-500 transition-all duration-300 bg-white/50 backdrop-blur-sm";
-  const labelClasses = "block text-sm font-semibold text-gray-700 mb-2";
+  const labelClasses = "block text-lg font-semibold text-[#070032] mb-2";
 
   return (
     <div className="space-y-8">
