@@ -305,9 +305,7 @@ const StudentIDCardGenerator = React.forwardRef<StudentIDCardGeneratorHandle, St
 
 									{/* Student Name - Prominent */}
 									<h2 style={{
-										fontSize: getResponsiveFontSize(currentStudent.name, 2.8),
-										fontWeight: '900',
-										margin: '0 0 1.2rem 0',
+								fontSize: getResponsiveFontSize(currentStudent.name, 4.0),
 										textTransform: 'uppercase',
 										letterSpacing: '1.5px',
 										color: '#0052cc',
@@ -319,8 +317,8 @@ const StudentIDCardGenerator = React.forwardRef<StudentIDCardGeneratorHandle, St
 
 									{/* Student Details */}
 									<div style={{
-										fontSize: '1rem',
-										lineHeight: '1.4rem',
+									fontSize: '1.2rem',
+									lineHeight: '1.6rem',
 										fontWeight: '600',
 										textTransform: 'uppercase',
 										letterSpacing: '0.5px',
@@ -331,28 +329,28 @@ const StudentIDCardGenerator = React.forwardRef<StudentIDCardGeneratorHandle, St
 											paddingBottom: '0.5rem',
 											borderBottom: '1px solid #e5e7eb'
 										}}>
-											<p style={{ margin: '0.2rem 0', fontSize: '0.85rem', color: '#666' }}>MATRIC NO</p>
-											<p style={{ margin: '0', fontWeight: '700', fontSize: '1.05rem' }}>{currentStudent.id}</p>
+											<p style={{ margin: '0.2rem 0', fontSize: '1rem', color: '#666' }}>MATRIC NO</p>
+											<p style={{ margin: '0', fontWeight: '700', fontSize: '1.4rem' }}>{currentStudent.id}</p>
 										</div>
 										<div style={{ 
 											marginBottom: '0.5rem',
 											paddingBottom: '0.5rem',
 											borderBottom: '1px solid #e5e7eb'
 										}}>
-											<p style={{ margin: '0.2rem 0', fontSize: '0.85rem', color: '#666' }}>DEPARTMENT</p>
-											<p style={{ margin: '0', fontWeight: '700', fontSize: '0.95rem' }}>{currentStudent.department}</p>
+											<p style={{ margin: '0.2rem 0', fontSize: '1rem', color: '#666' }}>DEPARTMENT</p>
+											<p style={{ margin: '0', fontWeight: '700', fontSize: '1.3rem' }}>{currentStudent.department}</p>
 										</div>
 										<div style={{ 
 											marginBottom: '0.5rem',
 											paddingBottom: '0.5rem',
 											borderBottom: '1px solid #e5e7eb'
 										}}>
-											<p style={{ margin: '0.2rem 0', fontSize: '0.85rem', color: '#666' }}>YEAR OF ENTRY</p>
-											<p style={{ margin: '0', fontWeight: '700', fontSize: '0.95rem' }}>{currentStudent.yearOfEntry}</p>
+											<p style={{ margin: '0.2rem 0', fontSize: '1rem', color: '#666' }}>YEAR OF ENTRY</p>
+											<p style={{ margin: '0', fontWeight: '700', fontSize: '1.3rem' }}>{currentStudent.yearOfEntry}</p>
 										</div>
 										<div>
-											<p style={{ margin: '0.2rem 0', fontSize: '0.85rem', color: '#666' }}>EXPIRY DATE</p>
-											<p style={{ margin: '0', fontWeight: '700', fontSize: '0.95rem' }}>N/A</p>
+											<p style={{ margin: '0.2rem 0', fontSize: '1rem', color: '#666' }}>EXPIRY DATE</p>
+											<p style={{ margin: '0', fontWeight: '700', fontSize: '1.3rem' }}>N/A</p>
 										</div>
 									</div>
 								</div>
@@ -388,7 +386,7 @@ const StudentIDCardGenerator = React.forwardRef<StudentIDCardGeneratorHandle, St
 										/>
 									</div>
 									<p style={{
-										fontSize: '1rem',
+									fontSize: '1.4rem',
 										fontWeight: '900',
 										color: '#0052cc',
 										margin: '0',
