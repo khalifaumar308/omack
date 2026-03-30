@@ -44,7 +44,7 @@ export function DashboardLayout() {
   const { user, isLoading } = useUser();
   if (!isLoading && !user) {
     //navigate to login
-    window.location.href = '/login';
+    window.location.href = '/';
     return null; // or a loading spinner
   }
   // console.log(user, 'user')
@@ -52,10 +52,10 @@ export function DashboardLayout() {
   const handleLogout = async () => {
     try {
       await userLogout();
-      window.location.href = '/login';
+      window.location.href = '/';
     } catch (error) {
       console.error('Logout failed:', error);
-      window.location.href = '/login';
+      window.location.href = '/';
     }
   };
 
