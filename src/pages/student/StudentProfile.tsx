@@ -83,7 +83,7 @@ const StudentProfile: React.FC = () => {
   };
 
   const [saving, setSaving] = useState(false);
-
+  
   const handleSubmit = async () => {
     if (!student) return;
     setSaving(true);
@@ -236,7 +236,7 @@ const StudentProfile: React.FC = () => {
 
                 <div>
                   <Label className="mb-1">Year of Entry</Label>
-                  <Input value={formState.yearOfEntry} onChange={(e) => handleChange('yearOfEntry', e.target.value)} />
+                  <Input type="date" value={formState.yearOfEntry} onChange={(e) => handleChange('yearOfEntry', e.target.value)} />
                 </div>
 
                 {/* Guardian Info */}

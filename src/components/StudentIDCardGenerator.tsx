@@ -4,6 +4,7 @@ import jsPDF from 'jspdf';
 // import QRCode from 'qrcode.react';
 import './id-card.css';
 import { Download } from 'lucide-react';
+import { getMonthAndYearInThreeYears } from '@/lib/utils';
 
 interface Student {
 	name: string;
@@ -350,7 +351,7 @@ const StudentIDCardGenerator = React.forwardRef<StudentIDCardGeneratorHandle, St
 										</div>
 										<div>
 											<p style={{ margin: '0.2rem 0', fontSize: '1rem', color: '#666' }}>EXPIRY DATE</p>
-											<p style={{ margin: '0', fontWeight: '700', fontSize: '1.3rem' }}>N/A</p>
+											<p style={{ margin: '0', fontWeight: '700', fontSize: '1.3rem' }}>{getMonthAndYearInThreeYears(currentStudent.yearOfEntry)}</p>
 										</div>
 									</div>
 								</div>
